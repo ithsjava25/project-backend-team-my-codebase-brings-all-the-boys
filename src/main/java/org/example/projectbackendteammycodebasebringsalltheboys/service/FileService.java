@@ -22,11 +22,11 @@ public class FileService {
     private final ActivityLogService activityLogService;
 
     @Transactional
-    public FileMetadata uploadAssignmentFile(Assignment assignment, User uploader, String fileName, 
-                                            InputStream inputStream, long size, String contentType) {
-        
+    public FileMetadata uploadAssignmentFile(Assignment assignment, User uploader, String fileName,
+                                             InputStream inputStream, long size, String contentType) {
+
         String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
-        
+
         FileMetadata metadata = new FileMetadata();
         metadata.setS3Key(s3Key);
         metadata.setFileName(fileName);
@@ -34,21 +34,21 @@ public class FileService {
         metadata.setContentType(contentType);
         metadata.setAssignment(assignment);
         metadata.setUploader(uploader);
-        
+
         FileMetadata saved = fileMetadataRepository.save(metadata);
-        
-        activityLogService.log(uploader, "UPLOADED_FILE", "Assignment", assignment.getId(), 
+
+        activityLogService.log(uploader, "UPLOADED_FILE", "Assignment", assignment.getId(),
                 "Uploaded file: " + fileName);
-        
+
         return saved;
     }
 
     @Transactional
-    public FileMetadata uploadCommentFile(Comment comment, User uploader, String fileName, 
-                                         InputStream inputStream, long size, String contentType) {
-        
+    public FileMetadata uploadCommentFile(Comment comment, User uploader, String fileName,
+                                          InputStream inputStream, long size, String contentType) {
+
         String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
-        
+
         FileMetadata metadata = new FileMetadata();
         metadata.setS3Key(s3Key);
         metadata.setFileName(fileName);
@@ -57,12 +57,12 @@ public class FileService {
         metadata.setComment(comment);
         metadata.setAssignment(comment.getAssignment());
         metadata.setUploader(uploader);
-        
+
         FileMetadata saved = fileMetadataRepository.save(metadata);
-        
-        activityLogService.log(uploader, "UPLOADED_FILE", "Comment", comment.getId(), 
+
+        activityLogService.log(uploader, "UPLOADED_FILE", "Comment", comment.getId(),
                 "Uploaded file: " + fileName + " for comment");
-        
+
         return saved;
     }
 
@@ -71,7 +71,7 @@ public class FileService {
         return fileMetadataRepository.findByAssignment(assignment);
     }
 
-    public byte[] downloadFile(FileMetadata metadata) {
+    public InputStream downloadFile(FileMetadata metadata) {
         return storageService.downloadFile(metadata.getS3Key());
     }
 }

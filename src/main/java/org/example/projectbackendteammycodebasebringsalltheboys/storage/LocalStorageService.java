@@ -35,13 +35,13 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
-    public byte[] downloadFile(String s3Key) {
+    public InputStream downloadFile(String s3Key) {
         try {
             Path file = root.resolve(s3Key).normalize();
             if (!file.startsWith(root)) {
                 throw new IllegalArgumentException("Invalid file key");
             }
-            return Files.readAllBytes(file);
+            return Files.newInputStream(file);
         } catch (IOException e) {
             throw new RuntimeException("Could not read file: " + e.getMessage(), e);
         }
@@ -50,9 +50,13 @@ public class LocalStorageService implements StorageService {
     @Override
     public void deleteFile(String s3Key) {
         try {
-            Files.deleteIfExists(root.resolve(s3Key));
+            Path file = root.resolve(s3Key).normalize();
+            if (!file.startsWith(root)) {
+                throw new IllegalArgumentException("Invalid file key");
+            }
+            Files.deleteIfExists(file);
         } catch (IOException e) {
-            throw new RuntimeException("Error: " + e.getMessage());
+            throw new RuntimeException("Could not delete file: " + e.getMessage(), e);
         }
     }
 }
