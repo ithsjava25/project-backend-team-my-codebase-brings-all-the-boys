@@ -34,3 +34,6 @@ build/
 
 ### jte ###
 /jte-classes/
+
+# Gemini CLI memory
+GEMINI.md
