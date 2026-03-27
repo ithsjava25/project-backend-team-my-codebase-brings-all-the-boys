@@ -26,11 +26,16 @@ public class LocalStorageService implements StorageService {
     @Override
     public String uploadFile(String fileName, InputStream inputStream, long size, String contentType) {
         try {
-            String s3Key = UUID.randomUUID().toString() + "_" + fileName;
-            Files.copy(inputStream, this.root.resolve(s3Key), StandardCopyOption.REPLACE_EXISTING);
+            String sanitizedFileName = Paths.get(fileName).getFileName().toString();
+            String s3Key = UUID.randomUUID().toString() + "_" + sanitizedFileName;
+            Path targetPath = this.root.resolve(s3Key).normalize();
+            if (!targetPath.startsWith(root)) {
+                throw new IllegalArgumentException("Invalid file name");
+            }
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             return s3Key;
         } catch (Exception e) {
-            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+            throw new RuntimeException("Could not store the file. Error: " + e.getMessage(), e);
         }
     }
 
