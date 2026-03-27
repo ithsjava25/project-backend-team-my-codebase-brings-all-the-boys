@@ -11,7 +11,7 @@ public class FileResponse {
     private String fileName;
     private Long fileSize;
     private String contentType;
-    private String s3Key;
+    private String downloadUrl;
     private UserResponse uploader;
     private LocalDateTime createdAt;
 }

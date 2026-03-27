@@ -9,7 +9,10 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAss
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_assignments")
+@Table(name = "user_assignments", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_assignments_assignment_student",
+                columnNames = {"assignment_id", "student_id"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
