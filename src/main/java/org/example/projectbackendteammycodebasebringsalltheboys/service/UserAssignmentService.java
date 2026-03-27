@@ -26,33 +26,39 @@ public class UserAssignmentService {
         ua.setAssignment(assignment);
         ua.setStudent(student);
         ua.setStatus(StudentAssignmentStatus.ASSIGNED);
-        
+
         UserAssignment saved = userAssignmentRepository.save(ua);
-        
-        activityLogService.log(assigner, "ASSIGNED_CASE", "UserAssignment", saved.getId(), 
+
+        activityLogService.log(assigner, "ASSIGNED_CASE", "UserAssignment", saved.getId(),
                 "Assigned case: " + assignment.getTitle() + " to student: " + student.getUsername());
-        
+
         return saved;
     }
 
     @Transactional
     public void submitAssignment(UserAssignment ua) {
+        if (ua.getStatus() != StudentAssignmentStatus.ASSIGNED) {
+            throw new IllegalStateException("Cannot submit assignment in status: " + ua.getStatus());
+        }
         ua.setStatus(StudentAssignmentStatus.TURNED_IN);
         ua.setTurnedInAt(LocalDateTime.now());
         userAssignmentRepository.save(ua);
-        
-        activityLogService.log(ua.getStudent(), "SUBMITTED_ASSIGNMENT", "UserAssignment", ua.getId(), 
+
+        activityLogService.log(ua.getStudent(), "SUBMITTED_ASSIGNMENT", "UserAssignment", ua.getId(),
                 "Student turned in assignment: " + ua.getAssignment().getTitle());
     }
 
     @Transactional
     public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
+        if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN) {
+            throw new IllegalStateException("Cannot evaluate assignment in status: " + ua.getStatus());
+        }
         ua.setStatus(StudentAssignmentStatus.EVALUATED);
         ua.setGrade(grade);
         ua.setFeedback(feedback);
         userAssignmentRepository.save(ua);
-        
-        activityLogService.log(evaluator, "EVALUATED_ASSIGNMENT", "UserAssignment", ua.getId(), 
+
+        activityLogService.log(evaluator, "EVALUATED_ASSIGNMENT", "UserAssignment", ua.getId(),
                 "Teacher evaluated assignment with grade: " + grade);
     }
 

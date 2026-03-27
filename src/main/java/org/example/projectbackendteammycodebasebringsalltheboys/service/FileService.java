@@ -27,20 +27,25 @@ public class FileService {
 
         String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
 
-        FileMetadata metadata = new FileMetadata();
-        metadata.setS3Key(s3Key);
-        metadata.setFileName(fileName);
-        metadata.setFileSize(size);
-        metadata.setContentType(contentType);
-        metadata.setAssignment(assignment);
-        metadata.setUploader(uploader);
+        try {
+            FileMetadata metadata = new FileMetadata();
+            metadata.setS3Key(s3Key);
+            metadata.setFileName(fileName);
+            metadata.setFileSize(size);
+            metadata.setContentType(contentType);
+            metadata.setAssignment(assignment);
+            metadata.setUploader(uploader);
 
-        FileMetadata saved = fileMetadataRepository.save(metadata);
+            FileMetadata saved = fileMetadataRepository.save(metadata);
 
-        activityLogService.log(uploader, "UPLOADED_FILE", "Assignment", assignment.getId(),
-                "Uploaded file: " + fileName);
+            activityLogService.log(uploader, "UPLOADED_FILE", "Assignment", assignment.getId(),
+                    "Uploaded file: " + fileName);
 
-        return saved;
+            return saved;
+        } catch (Exception e) {
+            storageService.deleteFile(s3Key);
+            throw e;
+        }
     }
 
     @Transactional
@@ -49,21 +54,26 @@ public class FileService {
 
         String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
 
-        FileMetadata metadata = new FileMetadata();
-        metadata.setS3Key(s3Key);
-        metadata.setFileName(fileName);
-        metadata.setFileSize(size);
-        metadata.setContentType(contentType);
-        metadata.setComment(comment);
-        metadata.setAssignment(comment.getAssignment());
-        metadata.setUploader(uploader);
+        try {
+            FileMetadata metadata = new FileMetadata();
+            metadata.setS3Key(s3Key);
+            metadata.setFileName(fileName);
+            metadata.setFileSize(size);
+            metadata.setContentType(contentType);
+            metadata.setComment(comment);
+            metadata.setAssignment(comment.getAssignment());
+            metadata.setUploader(uploader);
 
-        FileMetadata saved = fileMetadataRepository.save(metadata);
+            FileMetadata saved = fileMetadataRepository.save(metadata);
 
-        activityLogService.log(uploader, "UPLOADED_FILE", "Comment", comment.getId(),
-                "Uploaded file: " + fileName + " for comment");
+            activityLogService.log(uploader, "UPLOADED_FILE", "Comment", comment.getId(),
+                    "Uploaded file: " + fileName + " for comment");
 
-        return saved;
+            return saved;
+        } catch (Exception e) {
+            storageService.deleteFile(s3Key);
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
