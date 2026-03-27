@@ -13,7 +13,7 @@ import java.util.UUID;
 @Service
 public class LocalStorageService implements StorageService {
 
-    private final Path root = Paths.get("uploads");
+    private final Path root = Paths.get("uploads").toAbsolutePath().normalize();
 
     public LocalStorageService() {
         try {
@@ -28,13 +28,13 @@ public class LocalStorageService implements StorageService {
         try {
             String sanitizedFileName = Paths.get(fileName).getFileName().toString();
             String s3Key = UUID.randomUUID().toString() + "_" + sanitizedFileName;
-            Path targetPath = this.root.resolve(s3Key).normalize();
-            if (!targetPath.startsWith(root)) {
+            Path targetPath = this.root.resolve(s3Key).toAbsolutePath().normalize();
+            if (!targetPath.startsWith(this.root)) {
                 throw new IllegalArgumentException("Invalid file name");
             }
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             return s3Key;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage(), e);
         }
     }
@@ -42,8 +42,8 @@ public class LocalStorageService implements StorageService {
     @Override
     public InputStream downloadFile(String s3Key) {
         try {
-            Path file = root.resolve(s3Key).normalize();
-            if (!file.startsWith(root)) {
+            Path file = this.root.resolve(s3Key).toAbsolutePath().normalize();
+            if (!file.startsWith(this.root)) {
                 throw new IllegalArgumentException("Invalid file key");
             }
             return Files.newInputStream(file);
@@ -55,8 +55,8 @@ public class LocalStorageService implements StorageService {
     @Override
     public void deleteFile(String s3Key) {
         try {
-            Path file = root.resolve(s3Key).normalize();
-            if (!file.startsWith(root)) {
+            Path file = this.root.resolve(s3Key).toAbsolutePath().normalize();
+            if (!file.startsWith(this.root)) {
                 throw new IllegalArgumentException("Invalid file key");
             }
             Files.deleteIfExists(file);
