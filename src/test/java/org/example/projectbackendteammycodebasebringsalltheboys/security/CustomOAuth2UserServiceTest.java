@@ -12,11 +12,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -49,6 +53,19 @@ class CustomOAuth2UserServiceTest {
     void setUp() {
         service = new CustomOAuth2UserService(userRepository, roleRepository, passwordEncoder);
         service.setDelegate(delegate);
+
+        ClientRegistration.ProviderDetails.UserInfoEndpoint userInfoEndpoint =
+                mock(ClientRegistration.ProviderDetails.UserInfoEndpoint.class);
+        lenient().when(userInfoEndpoint.getUserNameAttributeName()).thenReturn("email");
+
+        ClientRegistration.ProviderDetails providerDetails =
+                mock(ClientRegistration.ProviderDetails.class);
+        lenient().when(providerDetails.getUserInfoEndpoint()).thenReturn(userInfoEndpoint);
+
+        ClientRegistration clientRegistration = mock(ClientRegistration.class);
+        lenient().when(clientRegistration.getProviderDetails()).thenReturn(providerDetails);
+
+        lenient().when(userRequest.getClientRegistration()).thenReturn(clientRegistration);
     }
 
     // --- loadUser: email null ---
@@ -72,13 +89,25 @@ class CustomOAuth2UserServiceTest {
     @DisplayName("loadUser returns existing OAuth2User when user already exists in DB")
     void loadUser_existingUser_returnsOAuthUserWithoutCreating() {
         String email = "existing@example.com";
+
+        Role role = new Role();
+        role.setName("ROLE_STUDENT");
+
+        User existingUser = new User();
+        existingUser.setUsername(email);
+        existingUser.setRole(role);
+
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn(email);
-        when(userRepository.findByUsername(email)).thenReturn(Optional.of(new User()));
+        when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
+        when(userRepository.findByUsername(email)).thenReturn(Optional.of(existingUser));
 
         OAuth2User result = service.loadUser(userRequest);
 
-        assertThat(result).isSameAs(oauthUser);
+        assertThat(result).isInstanceOf(DefaultOAuth2User.class);
+        assertThat(result.getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactly("ROLE_STUDENT");
         verify(userRepository).findByUsername(email);
         verify(userRepository, never()).save(any());
         verifyNoInteractions(roleRepository);
@@ -91,23 +120,29 @@ class CustomOAuth2UserServiceTest {
     void loadUser_newUser_createsAndSavesUser() {
         String email = "new@example.com";
         Role role = new Role();
-        role.setName("ROLE_USER");
+        role.setName("ROLE_STUDENT");
+
+        User savedUser = new User();
+        savedUser.setUsername(email);
+        savedUser.setRole(role);
 
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn(email);
+        when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
         when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
         when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
+        when(userRepository.save(any())).thenReturn(savedUser);
 
         OAuth2User result = service.loadUser(userRequest);
 
-        assertThat(result).isSameAs(oauthUser);
+        assertThat(result).isInstanceOf(DefaultOAuth2User.class);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
 
-        User savedUser = userCaptor.getValue();
-        assertThat(savedUser.getUsername()).isEqualTo(email);
-        assertThat(savedUser.getRole()).isEqualTo(role);
+        User captured = userCaptor.getValue();
+        assertThat(captured.getUsername()).isEqualTo(email);
+        assertThat(captured.getRole()).isEqualTo(role);
     }
 
     @Test
@@ -115,20 +150,29 @@ class CustomOAuth2UserServiceTest {
     void loadUser_newUser_returnsOAuthUser() {
         String email = "new@example.com";
         Role role = new Role();
-        role.setName("ROLE_USER");
+        role.setName("ROLE_STUDENT");
+
+        User savedUser = new User();
+        savedUser.setUsername(email);
+        savedUser.setRole(role);
 
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn(email);
+        when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
         when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
         when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
+        when(userRepository.save(any())).thenReturn(savedUser);
 
         OAuth2User result = service.loadUser(userRequest);
 
-        assertThat(result).isSameAs(oauthUser);
+        assertThat(result).isInstanceOf(DefaultOAuth2User.class);
+        assertThat(result.getAuthorities())
+                .extracting(GrantedAuthority::getAuthority)
+                .containsExactly("ROLE_STUDENT");
     }
 
     @Test
-    @DisplayName("loadUser throws IllegalStateException when ROLE_USER is missing from DB")
+    @DisplayName("loadUser throws IllegalStateException when ROLE_STUDENT is missing from DB")
     void loadUser_newUser_missingDefaultRole_throwsIllegalStateException() {
         String email = "new@example.com";
 
@@ -149,9 +193,16 @@ class CustomOAuth2UserServiceTest {
     @Test
     @DisplayName("loadUser always delegates to the upstream OAuth2UserService first")
     void loadUser_alwaysCallsDelegate() {
+        Role role = new Role();
+        role.setName("ROLE_STUDENT");
+
+        User existingUser = new User();
+        existingUser.setRole(role);
+
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn("any@example.com");
-        when(userRepository.findByUsername(any())).thenReturn(Optional.of(new User()));
+        when(oauthUser.getAttributes()).thenReturn(Map.of("email", "any@example.com"));
+        when(userRepository.findByUsername(any())).thenReturn(Optional.of(existingUser));
 
         service.loadUser(userRequest);
 

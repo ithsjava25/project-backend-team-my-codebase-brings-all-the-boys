@@ -6,14 +6,17 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.UUID;
 
 @Service
@@ -37,12 +40,22 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             throw new IllegalStateException("Email not provided by OAuth2 provider");
         }
 
-        return userRepository.findByUsername(email)
-                .map(existing -> oauthUser)
+        String userNameAttributeKey = userRequest.getClientRegistration()
+                .getProviderDetails()
+                .getUserInfoEndpoint()
+                .getUserNameAttributeName();
+
+        User user = userRepository.findByUsername(email)
                 .orElseGet(() -> createNewUser(email, oauthUser));
+
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority(user.getRole().getName())),
+                oauthUser.getAttributes(),
+                userNameAttributeKey
+        );
     }
 
-    private OAuth2User createNewUser(String email, OAuth2User oauthUser) {
+    private User createNewUser(String email, OAuth2User oauthUser) {
         Role defaultRole = roleRepository.findByName("ROLE_STUDENT")
                 .orElseThrow(() -> new IllegalStateException("Default role not found"));
 
@@ -51,8 +64,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
         user.setRole(defaultRole);
 
-        userRepository.save(user);
-
-        return oauthUser;
+        return userRepository.save(user);
     }
 }
