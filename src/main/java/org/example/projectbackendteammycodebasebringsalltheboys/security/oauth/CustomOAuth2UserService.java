@@ -6,11 +6,14 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -37,7 +40,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         String email = oauthUser.getAttribute("email");
         if (!StringUtils.hasText(email)) {
-            throw new IllegalStateException("Email not provided by OAuth2 provider");
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("invalid_user_info"),
+                    "Email not provided by OAuth2 provider"
+            );
         }
 
         String userNameAttributeKey = userRequest.getClientRegistration()
@@ -45,8 +51,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .getUserInfoEndpoint()
                 .getUserNameAttributeName();
 
-        User user = userRepository.findByUsername(email)
-                .orElseGet(() -> createNewUser(email, oauthUser));
+        User user = findOrCreateUser(email);
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority(user.getRole().getName())),
@@ -55,9 +60,22 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         );
     }
 
-    private User createNewUser(String email, OAuth2User oauthUser) {
+    private User findOrCreateUser(String email) {
+        try {
+            return userRepository.findByUsername(email)
+                    .orElseGet(() -> createNewUser(email));
+        } catch (DataIntegrityViolationException ex) {
+            return userRepository.findByUsername(email)
+                    .orElseThrow(() -> ex);
+        }
+    }
+
+    private User createNewUser(String email) {
         Role defaultRole = roleRepository.findByName("ROLE_STUDENT")
-                .orElseThrow(() -> new IllegalStateException("Default role not found"));
+                .orElseThrow(() -> new OAuth2AuthenticationException(
+                        new OAuth2Error("server_error"),
+                        "Default role not found"
+                ));
 
         User user = new User();
         user.setUsername(email);

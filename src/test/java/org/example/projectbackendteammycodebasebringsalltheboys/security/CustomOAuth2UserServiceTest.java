@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -71,13 +72,13 @@ class CustomOAuth2UserServiceTest {
     // --- loadUser: email null ---
 
     @Test
-    @DisplayName("loadUser throws IllegalStateException when OAuth2 provider returns no email")
+    @DisplayName("loadUser throws OAuth2AuthenticationException when OAuth2 provider returns no email")
     void loadUser_nullEmail_throwsIllegalStateException() {
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn(null);
 
         assertThatThrownBy(() -> service.loadUser(userRequest))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(OAuth2AuthenticationException.class)
                 .hasMessage("Email not provided by OAuth2 provider");
 
         verifyNoInteractions(userRepository, roleRepository);
@@ -131,6 +132,7 @@ class CustomOAuth2UserServiceTest {
         when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
         when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
         when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-oauth-password");
         when(userRepository.save(any())).thenReturn(savedUser);
 
         OAuth2User result = service.loadUser(userRequest);
@@ -143,6 +145,8 @@ class CustomOAuth2UserServiceTest {
         User captured = userCaptor.getValue();
         assertThat(captured.getUsername()).isEqualTo(email);
         assertThat(captured.getRole()).isEqualTo(role);
+        assertThat(captured.getPassword()).isNotNull().isNotEmpty();
+        verify(passwordEncoder).encode(anyString());
     }
 
     @Test
@@ -161,6 +165,7 @@ class CustomOAuth2UserServiceTest {
         when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
         when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
         when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-oauth-password");
         when(userRepository.save(any())).thenReturn(savedUser);
 
         OAuth2User result = service.loadUser(userRequest);
@@ -169,11 +174,16 @@ class CustomOAuth2UserServiceTest {
         assertThat(result.getAuthorities())
                 .extracting(GrantedAuthority::getAuthority)
                 .containsExactly("ROLE_STUDENT");
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().getPassword()).isEqualTo("encoded-oauth-password");
+        verify(passwordEncoder).encode(anyString());
     }
 
     @Test
-    @DisplayName("loadUser throws IllegalStateException when ROLE_STUDENT is missing from DB")
-    void loadUser_newUser_missingDefaultRole_throwsIllegalStateException() {
+    @DisplayName("loadUser throws OAuth2AuthenticationException when ROLE_STUDENT is missing from DB")
+    void loadUser_newUser_missingDefaultRole_throwsOAuth2AuthenticationException() {
         String email = "new@example.com";
 
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
@@ -182,7 +192,7 @@ class CustomOAuth2UserServiceTest {
         when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.loadUser(userRequest))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(OAuth2AuthenticationException.class)
                 .hasMessage("Default role not found");
 
         verify(userRepository, never()).save(any());
