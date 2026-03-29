@@ -62,10 +62,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private User findOrCreateUser(String email) {
         try {
-            return userRepository.findByUsername(email)
+            return userRepository.findByEmail(email)
                     .orElseGet(() -> createNewUser(email));
         } catch (DataIntegrityViolationException ex) {
-            return userRepository.findByUsername(email)
+            return userRepository.findByEmail(email)
                     .orElseThrow(() -> ex);
         }
     }
@@ -79,6 +79,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         User user = new User();
         user.setUsername(email);
+        user.setEmail(email);
         user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
         user.setRole(defaultRole);
 
