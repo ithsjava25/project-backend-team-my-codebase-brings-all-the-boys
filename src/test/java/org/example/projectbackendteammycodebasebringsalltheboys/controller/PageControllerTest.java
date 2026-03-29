@@ -1,6 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
-import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.SharedWebMvcTest;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.NoSecurityWebMvcTest;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SharedWebMvcTest(PageController.class)
+@NoSecurityWebMvcTest(PageController.class)
 @Import(TestViewConfig.class)
 class PageControllerTest {
 

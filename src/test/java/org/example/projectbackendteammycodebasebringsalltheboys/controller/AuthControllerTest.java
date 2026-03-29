@@ -1,6 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
-import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.SharedWebMvcTest;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.NoSecurityWebMvcTest;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SharedWebMvcTest(AuthController.class)
+@NoSecurityWebMvcTest(AuthController.class)
 @Import(TestViewConfig.class)
 class AuthControllerTest {
 

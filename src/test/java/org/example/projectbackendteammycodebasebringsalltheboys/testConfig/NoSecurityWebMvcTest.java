@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
         OAuth2ClientWebSecurityAutoConfiguration.class,
         ServletWebSecurityAutoConfiguration.class
 })
-public @interface SharedWebMvcTest {
+public @interface NoSecurityWebMvcTest {
     @AliasFor(annotation = WebMvcTest.class, attribute = "value")
     Class<?>[] value() default {};
 }
