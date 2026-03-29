@@ -1,4 +1,4 @@
-package org.example.projectbackendteammycodebasebringsalltheboys.config;
+package org.example.projectbackendteammycodebasebringsalltheboys.testConfig;
 
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;

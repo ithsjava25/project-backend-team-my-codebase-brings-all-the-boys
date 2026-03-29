@@ -1,6 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.security;
 
-import org.example.projectbackendteammycodebasebringsalltheboys.config.TestViewConfig;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.AuthController;
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.PageController;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
@@ -101,7 +101,7 @@ class SecurityConfigTest {
     void dashboard_unauthenticated_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"));
+                .andExpect(redirectedUrl("/auth/login"));
     }
 
     @Test
@@ -109,7 +109,7 @@ class SecurityConfigTest {
     void admin_unauthenticated_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/admin"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login")); // <-- not redirectedUrlPattern
+                .andExpect(redirectedUrl("/auth/login"));
     }
 
     // --- Protected endpoints: authenticated as USER ---

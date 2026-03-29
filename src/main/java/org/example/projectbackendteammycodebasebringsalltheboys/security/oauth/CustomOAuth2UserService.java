@@ -1,15 +1,19 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.security.oauth;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -17,15 +21,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // Make delegate non-final so tests can replace it
+    @Setter
     private OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate =
             new DefaultOAuth2UserService();
-
-    // Package-private setter for tests
-    public void setDelegate(OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate) {
-        this.delegate = delegate;
-    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
@@ -42,11 +42,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     private OAuth2User createNewUser(String email, OAuth2User oauthUser) {
-        Role defaultRole = roleRepository.findByName("ROLE_USER")
+        Role defaultRole = roleRepository.findByName("ROLE_STUDENT")
                 .orElseThrow(() -> new IllegalStateException("Default role not found"));
 
         User user = new User();
         user.setUsername(email);
+        user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
         user.setRole(defaultRole);
 
         userRepository.save(user);

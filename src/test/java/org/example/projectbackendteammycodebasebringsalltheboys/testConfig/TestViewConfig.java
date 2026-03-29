@@ -1,4 +1,4 @@
-package org.example.projectbackendteammycodebasebringsalltheboys.config;
+package org.example.projectbackendteammycodebasebringsalltheboys.testConfig;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

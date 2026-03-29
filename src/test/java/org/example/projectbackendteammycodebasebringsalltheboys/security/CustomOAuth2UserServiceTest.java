@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -31,6 +32,9 @@ class CustomOAuth2UserServiceTest {
     private RoleRepository roleRepository;
 
     @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
     private OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate;
 
     @Mock
@@ -43,7 +47,7 @@ class CustomOAuth2UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new CustomOAuth2UserService(userRepository, roleRepository);
+        service = new CustomOAuth2UserService(userRepository, roleRepository, passwordEncoder);
         service.setDelegate(delegate);
     }
 
@@ -92,7 +96,7 @@ class CustomOAuth2UserServiceTest {
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn(email);
         when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(role));
+        when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
 
         OAuth2User result = service.loadUser(userRequest);
 
@@ -116,7 +120,7 @@ class CustomOAuth2UserServiceTest {
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn(email);
         when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(role));
+        when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
 
         OAuth2User result = service.loadUser(userRequest);
 
@@ -131,7 +135,7 @@ class CustomOAuth2UserServiceTest {
         when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
         when(oauthUser.getAttribute("email")).thenReturn(email);
         when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
-        when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.empty());
+        when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.loadUser(userRequest))
                 .isInstanceOf(IllegalStateException.class)

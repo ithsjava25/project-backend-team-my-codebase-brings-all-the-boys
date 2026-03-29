@@ -1,7 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
-import org.example.projectbackendteammycodebasebringsalltheboys.config.SharedWebMvcTest;
-import org.example.projectbackendteammycodebasebringsalltheboys.config.TestViewConfig;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.SharedWebMvcTest;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;

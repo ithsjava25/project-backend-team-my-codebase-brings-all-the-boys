@@ -1,7 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
-import org.example.projectbackendteammycodebasebringsalltheboys.config.SharedWebMvcTest;
-import org.example.projectbackendteammycodebasebringsalltheboys.config.TestViewConfig;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.SharedWebMvcTest;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
