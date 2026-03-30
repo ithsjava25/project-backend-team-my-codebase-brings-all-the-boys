@@ -13,25 +13,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepo;
+  private final UserRepository userRepo;
 
-    public CustomUserDetailsService(UserRepository userRepo) {
-        this.userRepo = userRepo;
-    }
+  public CustomUserDetailsService(UserRepository userRepo) {
+    this.userRepo = userRepo;
+  }
 
-    @Override
-    public UserDetails loadUserByUsername(@NonNull String username) {
-        User user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+  @Override
+  public UserDetails loadUserByUsername(@NonNull String username) {
+    User user =
+        userRepo
+            .findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        GrantedAuthority authority =
-                new SimpleGrantedAuthority(user.getRole().getName());
+    GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getName());
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .authorities(authority)
-                .build();
-    }
+    return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+        .password(user.getPassword())
+        .authorities(authority)
+        .build();
+  }
 }
-
