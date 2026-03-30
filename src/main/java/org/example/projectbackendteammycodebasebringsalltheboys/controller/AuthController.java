@@ -12,46 +12,45 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final UserService userService;
+  private final UserService userService;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
+  public AuthController(UserService userService) {
+    this.userService = userService;
+  }
+
+  @GetMapping("/register")
+  public String showRegistrationForm(Model model) {
+    model.addAttribute("registrationRequest", new RegistrationRequest());
+    return "register";
+  }
+
+  @PostMapping("/register")
+  public String registerUser(
+      @Valid @ModelAttribute("registrationRequest") RegistrationRequest request,
+      BindingResult bindingResult,
+      Model model) {
+
+    if (bindingResult.hasErrors()) {
+      return "register";
     }
 
-    @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
-        model.addAttribute("registrationRequest", new RegistrationRequest());
-        return "register";
+    try {
+      userService.registerUser(request);
+    } catch (IllegalStateException e) {
+      model.addAttribute("errorMessage", e.getMessage());
+      return "register";
     }
 
-    @PostMapping("/register")
-    public String registerUser(
-            @Valid @ModelAttribute("registrationRequest") RegistrationRequest request,
-            BindingResult bindingResult,
-            Model model
-    ) {
+    return "redirect:/auth/login?registered";
+  }
 
-        if (bindingResult.hasErrors()) {
-            return "register";
-        }
+  @GetMapping("/login")
+  public String loginPage() {
+    return "login";
+  }
 
-        try {
-            userService.registerUser(request);
-        } catch (IllegalStateException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "register";
-        }
-
-        return "redirect:/auth/login?registered";
-    }
-
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
-
-    @GetMapping("/logout-success")
-    public String logoutSuccess() {
-        return "logout-success";
-    }
+  @GetMapping("/logout-success")
+  public String logoutSuccess() {
+    return "logout-success";
+  }
 }
