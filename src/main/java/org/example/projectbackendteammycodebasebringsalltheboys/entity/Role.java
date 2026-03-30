@@ -12,14 +12,14 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Role {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String name;
+  @Column(unique = true, nullable = false)
+  private String name;
 
-    public Role(String name) {
-        this.name = name;
-    }
+  public Role(String name) {
+    this.name = name;
+  }
 }

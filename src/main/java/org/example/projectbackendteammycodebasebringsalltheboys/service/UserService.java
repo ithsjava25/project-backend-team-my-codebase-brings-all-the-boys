@@ -1,5 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
@@ -9,9 +11,6 @@ import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserR
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
