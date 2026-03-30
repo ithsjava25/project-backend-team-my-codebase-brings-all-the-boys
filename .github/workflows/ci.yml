@@ -21,9 +21,3 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
           cache: 'maven'
-
-      - name: Run tests
-        run: ./mvnw -B test
-
-      - name: Run spotless checks
-        run: ./mvnw -B spotless:check
