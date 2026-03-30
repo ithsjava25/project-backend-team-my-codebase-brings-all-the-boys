@@ -73,3 +73,6 @@ The project has successfully completed Phase 1 (Foundation) and Phase 2 (Core Lo
 2. **Database**: Run `docker compose up -d` to start the PostgreSQL instance.
 3. **Run**: Execute `./mvnw spring-boot:run` to start the application.
 4. **Access**: The database is available at `localhost:5432` with user `admin` and password `admin`.
+
+## CI/CD
+This project uses GitHub Actions for continuous integration.
