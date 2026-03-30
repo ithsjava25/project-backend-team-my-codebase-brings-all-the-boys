@@ -95,7 +95,7 @@ class CustomOAuth2UserServiceTest {
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
     when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
-    when(userRepository.findByUsername(email)).thenReturn(Optional.of(existingUser));
+    when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
 
     OAuth2User result = service.loadUser(userRequest);
 
@@ -103,7 +103,7 @@ class CustomOAuth2UserServiceTest {
     assertThat(result.getAuthorities())
         .extracting(GrantedAuthority::getAuthority)
         .containsExactly("ROLE_STUDENT");
-    verify(userRepository).findByUsername(email);
+    verify(userRepository).findByEmail(email);
     verify(userRepository, never()).save(any());
     verifyNoInteractions(roleRepository);
   }
@@ -124,7 +124,7 @@ class CustomOAuth2UserServiceTest {
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
     when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
-    when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
+    when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
     when(passwordEncoder.encode(anyString())).thenReturn("encoded-oauth-password");
     when(userRepository.save(any())).thenReturn(savedUser);
@@ -157,7 +157,7 @@ class CustomOAuth2UserServiceTest {
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
     when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
-    when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
+    when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
     when(passwordEncoder.encode(anyString())).thenReturn("encoded-oauth-password");
     when(userRepository.save(any())).thenReturn(savedUser);
@@ -182,7 +182,7 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
-    when(userRepository.findByUsername(email)).thenReturn(Optional.empty());
+    when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.loadUser(userRequest))
@@ -206,7 +206,7 @@ class CustomOAuth2UserServiceTest {
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn("any@example.com");
     when(oauthUser.getAttributes()).thenReturn(Map.of("email", "any@example.com"));
-    when(userRepository.findByUsername(any())).thenReturn(Optional.of(existingUser));
+    when(userRepository.findByEmail(any())).thenReturn(Optional.of(existingUser));
 
     service.loadUser(userRequest);
 
