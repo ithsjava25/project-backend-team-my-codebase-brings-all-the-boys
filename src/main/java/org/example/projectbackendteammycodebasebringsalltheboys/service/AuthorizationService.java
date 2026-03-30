@@ -11,38 +11,38 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthorizationService {
 
-    private final UserAssignmentRepository userAssignmentRepository;
+  private final UserAssignmentRepository userAssignmentRepository;
 
-    @Transactional(readOnly = true)
-    public boolean canAccessCase(User user, Assignment assignment) {
-        // Admin can access everything
-        if (isAdmin(user)) return true;
+  @Transactional(readOnly = true)
+  public boolean canAccessCase(User user, Assignment assignment) {
+    // Admin can access everything
+    if (isAdmin(user)) return true;
 
-        // Teacher who created the case
-        if (isTeacher(user) && assignment.getCreator().getId().equals(user.getId())) {
-            return true;
-        }
-
-        // Student who is assigned the case
-        return isStudent(user) &&
-                userAssignmentRepository.findByAssignmentAndStudent(assignment, user).isPresent();
+    // Teacher who created the case
+    if (isTeacher(user) && assignment.getCreator().getId().equals(user.getId())) {
+      return true;
     }
 
-    @Transactional(readOnly = true)
-    public boolean canManageCase(User user, Assignment assignment) {
-        return isAdmin(user) ||
-                (isTeacher(user) && assignment.getCreator().getId().equals(user.getId()));
-    }
+    // Student who is assigned the case
+    return isStudent(user)
+        && userAssignmentRepository.findByAssignmentAndStudent(assignment, user).isPresent();
+  }
 
-    private boolean isAdmin(User user) {
-        return user.getRole().getName().equalsIgnoreCase("ROLE_ADMIN");
-    }
+  @Transactional(readOnly = true)
+  public boolean canManageCase(User user, Assignment assignment) {
+    return isAdmin(user)
+        || (isTeacher(user) && assignment.getCreator().getId().equals(user.getId()));
+  }
 
-    private boolean isTeacher(User user) {
-        return user.getRole().getName().equalsIgnoreCase("ROLE_TEACHER");
-    }
+  private boolean isAdmin(User user) {
+    return user.getRole().getName().equalsIgnoreCase("ROLE_ADMIN");
+  }
 
-    private boolean isStudent(User user) {
-        return user.getRole().getName().equalsIgnoreCase("ROLE_STUDENT");
-    }
+  private boolean isTeacher(User user) {
+    return user.getRole().getName().equalsIgnoreCase("ROLE_TEACHER");
+  }
+
+  private boolean isStudent(User user) {
+    return user.getRole().getName().equalsIgnoreCase("ROLE_STUDENT");
+  }
 }

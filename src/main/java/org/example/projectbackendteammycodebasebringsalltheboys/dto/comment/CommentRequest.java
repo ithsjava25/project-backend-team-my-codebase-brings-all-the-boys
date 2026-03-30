@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class CommentRequest {
-    @NotBlank(message = "Comment text is required")
-    private String text;
+  @NotBlank(message = "Comment text is required")
+  private String text;
 }

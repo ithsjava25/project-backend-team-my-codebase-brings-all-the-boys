@@ -12,18 +12,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Comment extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignment_id", nullable = false)
-    private Assignment assignment;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "assignment_id", nullable = false)
+  private Assignment assignment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "author_id", nullable = false)
+  private User author;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String text;
+  @Column(nullable = false, columnDefinition = "TEXT")
+  private String text;
 }
