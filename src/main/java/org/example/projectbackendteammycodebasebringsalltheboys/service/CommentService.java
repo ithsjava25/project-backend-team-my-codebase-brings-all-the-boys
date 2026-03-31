@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +35,9 @@ public class CommentService {
 
     activityLogService.log(
         author,
-        "ADDED_COMMENT",
-        "Comment",
+        assignment.getId(),
+        ActivityAction.ADDED,
+        EntityType.COMMENT,
         saved.getId(),
         "Added comment to assignment: " + assignment.getTitle());
 

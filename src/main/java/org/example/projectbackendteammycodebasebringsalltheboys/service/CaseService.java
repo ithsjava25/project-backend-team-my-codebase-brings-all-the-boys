@@ -5,6 +5,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +28,7 @@ public class CaseService {
     Assignment saved = assignmentRepository.save(assignment);
 
     activityLogService.log(
-        creator, "CREATED_CASE", "Assignment", saved.getId(), "Case created: " + title);
+        creator, saved.getId(), ActivityAction.CREATED, EntityType.ASSIGNMENT, saved.getId(), "Case created: " + title);
 
     return saved;
   }

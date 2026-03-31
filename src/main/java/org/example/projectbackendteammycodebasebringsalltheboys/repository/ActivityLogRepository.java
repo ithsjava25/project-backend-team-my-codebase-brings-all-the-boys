@@ -12,4 +12,6 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> 
 
   List<ActivityLog> findByEntityTypeAndEntityIdOrderByTimestampDesc(
       String entityType, Long entityId);
+
+  List<ActivityLog> findByCaseIdOrderByTimestampDesc(Long caseId);
 }

@@ -7,6 +7,8 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignmen
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.springframework.stereotype.Service;
@@ -44,9 +46,10 @@ public class FileService {
 
       activityLogService.log(
           uploader,
-          "UPLOADED_FILE",
-          "Assignment",
           assignment.getId(),
+          ActivityAction.ADDED,
+          EntityType.FILE,
+          saved.getId(),
           "Uploaded file: " + fileName);
 
       return saved;
@@ -81,8 +84,9 @@ public class FileService {
 
       activityLogService.log(
           uploader,
-          "UPLOADED_FILE",
-          "Comment",
+          saved.getId(),
+          ActivityAction.ADDED,
+          EntityType.COMMENT_FILE,
           comment.getId(),
           "Uploaded file: " + fileName + " for comment");
 

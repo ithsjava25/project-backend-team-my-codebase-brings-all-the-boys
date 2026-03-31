@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.stereotype.Service;
@@ -30,9 +32,10 @@ public class UserAssignmentService {
 
     activityLogService.log(
         assigner,
-        "ASSIGNED_CASE",
-        "UserAssignment",
-        saved.getId(),
+        assignment.getId(),
+        ActivityAction.ASSIGNED,
+        EntityType.USER,
+        student.getId(),
         "Assigned case: " + assignment.getTitle() + " to student: " + student.getUsername());
 
     return saved;
@@ -49,8 +52,9 @@ public class UserAssignmentService {
 
     activityLogService.log(
         ua.getStudent(),
-        "SUBMITTED_ASSIGNMENT",
-        "UserAssignment",
+        ua.getAssignment().getId(),
+        ActivityAction.ADDED,
+        EntityType.USER_ASSIGNMENT,
         ua.getId(),
         "Student turned in assignment: " + ua.getAssignment().getTitle());
   }
@@ -67,8 +71,9 @@ public class UserAssignmentService {
 
     activityLogService.log(
         evaluator,
-        "EVALUATED_ASSIGNMENT",
-        "UserAssignment",
+        ua.getId(),
+        ActivityAction.EVALUATED,
+        EntityType.USER_ASSIGNMENT,
         ua.getId(),
         "Teacher evaluated assignment with grade: " + grade);
   }
