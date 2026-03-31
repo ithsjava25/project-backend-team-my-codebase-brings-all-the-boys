@@ -1,8 +1,11 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
+
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.file.GeneratedUpload;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
@@ -16,137 +19,165 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class FileService {
 
-  private final FileMetadataRepository fileMetadataRepository;
-  private final StorageService storageService;
-  private final ActivityLogService activityLogService;
+    private final FileMetadataRepository fileMetadataRepository;
+    private final StorageService storageService;
+    private final ActivityLogService activityLogService;
 
-  @Transactional
-  public FileMetadata uploadAssignmentFile(
-      Assignment assignment,
-      User uploader,
-      String fileName,
-      InputStream inputStream,
-      long size,
-      String contentType) {
+    @Transactional
+    public FileMetadata uploadAssignmentFile(
+            Assignment assignment,
+            User uploader,
+            String fileName,
+            InputStream inputStream,
+            long size,
+            String contentType) {
 
-    String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
+        String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
 
-    try {
-      FileMetadata metadata = new FileMetadata();
-      metadata.setS3Key(s3Key);
-      metadata.setFileName(fileName);
-      metadata.setFileSize(size);
-      metadata.setContentType(contentType);
-      metadata.setAssignment(assignment);
-      metadata.setUploader(uploader);
+        try {
+            FileMetadata metadata = new FileMetadata();
+            metadata.setS3Key(s3Key);
+            metadata.setFileName(fileName);
+            metadata.setFileSize(size);
+            metadata.setContentType(contentType);
+            metadata.setAssignment(assignment);
+            metadata.setUploader(uploader);
 
-      FileMetadata saved = fileMetadataRepository.save(metadata);
+            FileMetadata saved = fileMetadataRepository.save(metadata);
 
-      activityLogService.log(
-          uploader,
-          "UPLOADED_FILE",
-          "Assignment",
-          assignment.getId(),
-          "Uploaded file: " + fileName);
+            activityLogService.log(
+                    uploader,
+                    "UPLOADED_FILE",
+                    "Assignment",
+                    assignment.getId(),
+                    "Uploaded file: " + fileName);
 
-      return saved;
-    } catch (Exception e) {
-      storageService.deleteFile(s3Key);
-      throw e;
+            return saved;
+        } catch (Exception e) {
+            storageService.deleteFile(s3Key);
+            throw e;
+        }
     }
-  }
 
-  @Transactional
-  public FileMetadata uploadCommentFile(
-      Comment comment,
-      User uploader,
-      String fileName,
-      InputStream inputStream,
-      long size,
-      String contentType) {
+    @Transactional
+    public FileMetadata uploadCommentFile(
+            Comment comment,
+            User uploader,
+            String fileName,
+            InputStream inputStream,
+            long size,
+            String contentType) {
 
-    String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
+        String s3Key = storageService.uploadFile(fileName, inputStream, size, contentType);
 
-    try {
-      FileMetadata metadata = new FileMetadata();
-      metadata.setS3Key(s3Key);
-      metadata.setFileName(fileName);
-      metadata.setFileSize(size);
-      metadata.setContentType(contentType);
-      metadata.setComment(comment);
-      metadata.setAssignment(comment.getAssignment());
-      metadata.setUploader(uploader);
+        try {
+            FileMetadata metadata = new FileMetadata();
+            metadata.setS3Key(s3Key);
+            metadata.setFileName(fileName);
+            metadata.setFileSize(size);
+            metadata.setContentType(contentType);
+            metadata.setComment(comment);
+            metadata.setAssignment(comment.getAssignment());
+            metadata.setUploader(uploader);
 
-      FileMetadata saved = fileMetadataRepository.save(metadata);
+            FileMetadata saved = fileMetadataRepository.save(metadata);
 
-      activityLogService.log(
-          uploader,
-          "UPLOADED_FILE",
-          "Comment",
-          comment.getId(),
-          "Uploaded file: " + fileName + " for comment");
+            activityLogService.log(
+                    uploader,
+                    "UPLOADED_FILE",
+                    "Comment",
+                    comment.getId(),
+                    "Uploaded file: " + fileName + " for comment");
 
-      return saved;
-    } catch (Exception e) {
-      storageService.deleteFile(s3Key);
-      throw e;
+            return saved;
+        } catch (Exception e) {
+            storageService.deleteFile(s3Key);
+            throw e;
+        }
     }
-  }
 
-  @Transactional(readOnly = true)
-  public List<FileMetadata> getFilesByAssignment(Assignment assignment) {
-    return fileMetadataRepository.findByAssignment(assignment);
-  }
+    @Transactional(readOnly = true)
+    public List<FileMetadata> getFilesByAssignment(Assignment assignment) {
+        return fileMetadataRepository.findByAssignment(assignment);
+    }
 
-  @Transactional(readOnly = true)
-  public java.util.Optional<FileMetadata> getFileById(Long id) {
-    return fileMetadataRepository.findById(id);
-  }
+    @Transactional(readOnly = true)
+    public java.util.Optional<FileMetadata> getFileById(Long id) {
+        return fileMetadataRepository.findById(id);
+    }
 
-  @Transactional
-  public FileMetadata savePresignedMetadata(
-      String s3Key,
-      String fileName,
-      long size,
-      String contentType,
-      User uploader,
-      Assignment assignment,
-      Comment comment) {
+    @Transactional
+    public FileMetadata savePresignedMetadata(
+            String s3Key,
+            String fileName,
+            long size,
+            String contentType,
+            User uploader,
+            Assignment assignment,
+            Comment comment) {
 
-    FileMetadata metadata = new FileMetadata();
-    metadata.setS3Key(s3Key);
-    metadata.setFileName(fileName);
-    metadata.setFileSize(size);
-    metadata.setContentType(contentType);
-    metadata.setUploader(uploader);
-    metadata.setAssignment(assignment);
-    metadata.setComment(comment);
+        if ((assignment == null) == (comment == null)) {
+            throw new IllegalArgumentException("Exactly one of assignment or comment must be provided");
+        }
 
-    FileMetadata saved = fileMetadataRepository.save(metadata);
+        FileMetadata metadata = new FileMetadata();
+        metadata.setS3Key(s3Key);
+        metadata.setFileName(fileName);
+        metadata.setFileSize(size);
+        metadata.setContentType(contentType);
+        metadata.setUploader(uploader);
+        metadata.setAssignment(assignment);
+        metadata.setComment(comment);
 
-    String targetType = assignment != null ? "Assignment" : "Comment";
-    Long targetId = assignment != null ? assignment.getId() : comment.getId();
+        try {
+            FileMetadata saved = fileMetadataRepository.save(metadata);
 
-    activityLogService.log(
-        uploader, "UPLOADED_FILE", targetType, targetId, "Uploaded file: " + fileName);
+            String targetType = assignment != null ? "Assignment" : "Comment";
+            Long targetId = assignment != null ? assignment.getId() : comment.getId();
 
-    return saved;
-  }
+            activityLogService.log(
+                    uploader, "UPLOADED_FILE", targetType, targetId, "Uploaded file: " + fileName);
 
-  public String generateUploadUrl(String fileName, String contentType) {
-    String s3Key = java.util.UUID.randomUUID().toString() + "_" + fileName.replaceAll("\\s+", "_");
-    return storageService.generateUploadUrl(s3Key, contentType);
-  }
+            return saved;
+        } catch (Exception e) {
+            storageService.deleteFile(s3Key);
+            throw e;
+        }
+    }
 
-  public String getS3KeyFromUrl(String uploadUrl) {
-    // This is a bit hacky, but for S3 URLs the key is after the bucket name
-    // In a real S3 URL it looks like https://bucket.s3.region.amazonaws.com/key
-    // For local it's /api/files/upload-placeholder/key
-    String[] parts = uploadUrl.split("/");
-    return parts[parts.length - 1].split("\\?")[0];
-  }
+    public GeneratedUpload generateUploadUrl(String fileName, String contentType) {
+        String s3Key = java.util.UUID.randomUUID() + "_" + fileName.replaceAll("\\s+", "_");
+        String uploadUrl = storageService.generateUploadUrl(s3Key, contentType);
+        return new GeneratedUpload(uploadUrl, s3Key);
+    }
 
-  public InputStream downloadFile(FileMetadata metadata) {
-    return storageService.downloadFile(metadata.getS3Key());
-  }
+    public String getS3KeyFromUrl(String uploadUrl) {
+        if (uploadUrl == null || uploadUrl.isBlank()) {
+            throw new IllegalArgumentException("uploadUrl must not be blank");
+        }
+
+        String path = URI.create(uploadUrl).getPath();
+        if (path == null || path.isBlank()) {
+            throw new IllegalArgumentException("Could not extract path from uploadUrl");
+        }
+
+        String localPrefix = "/api/files/upload-placeholder/";
+        if (path.startsWith(localPrefix)) {
+            path = path.substring(localPrefix.length());
+        }
+
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+
+        if (path.isBlank()) {
+            throw new IllegalArgumentException("Could not extract S3 key from uploadUrl");
+        }
+
+        return path;
+    }
+
+    public InputStream downloadFile(FileMetadata metadata) {
+        return storageService.downloadFile(metadata.getS3Key());
+    }
 }
