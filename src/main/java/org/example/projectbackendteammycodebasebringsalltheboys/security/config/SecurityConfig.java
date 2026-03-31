@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -16,27 +17,22 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(
-      HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
+      HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) {
 
-    http.csrf(Customizer.withDefaults())
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/auth/login", "/auth/register", "/auth/logout-success")
-                    .permitAll()
-                    .requestMatchers("/oauth2/**")
-                    .permitAll()
-                    .requestMatchers("/admin/**")
-                    .hasRole("ADMIN")
-                    .anyRequest()
-                    .authenticated())
-        .formLogin(form -> form.loginPage("/auth/login").permitAll())
-        .oauth2Login(
-            oauth ->
-                oauth
-                    .loginPage("/auth/login")
+    http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(Customizer.withDefaults())
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/auth/me").permitAll()
+                    .requestMatchers("/oauth2/**").permitAll()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/**").authenticated()
+                    .anyRequest().authenticated())
+            .oauth2Login(oauth -> oauth
                     .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
-                    .defaultSuccessUrl("/", true))
-        .logout(logout -> logout.logoutSuccessUrl("/auth/login?logout").permitAll());
+                    .defaultSuccessUrl("http://localhost:5173/dashboard", true))
+            .logout(logout -> logout
+                    .logoutSuccessUrl("http://localhost:5173").permitAll());
 
     return http.build();
   }
