@@ -28,8 +28,30 @@
     </scm>
     <properties>
         <java.version>25</java.version>
+        <aws.java.sdk.version>2.42.23</aws.java.sdk.version>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.java.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.java.sdk.version}</version>
+        </dependency>
+        <!-- <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3-presigner</artifactId>
+            <version>${aws.java.sdk.version}</version>
+        </dependency> -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient</artifactId>

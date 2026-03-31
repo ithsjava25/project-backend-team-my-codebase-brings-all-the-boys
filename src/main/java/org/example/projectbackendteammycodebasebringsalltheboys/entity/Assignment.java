@@ -27,6 +27,10 @@ public class Assignment extends BaseEntity {
   @JoinColumn(name = "creator_id", nullable = false)
   private User creator;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "course_id")
+  private Course course;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private AssignmentStatus status = AssignmentStatus.CREATED;

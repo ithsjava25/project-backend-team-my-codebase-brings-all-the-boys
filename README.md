@@ -5,71 +5,62 @@ This project is a modern, high-security case management system designed for scho
 
 ## Core Features
 - **Assignment Lifecycle**: Creation, assignment, communication, submission, and evaluation.
-- **Strict RBAC**: Roles including Admin, Teacher, Student, Staff, and Guest.
-- **Confidentiality**: Users (students) only have access to their own assignments and related data.
+- **Contextual RBAC**: Roles including Admin, Teacher, Student, and Mentor. Users can have different roles in different classes (e.g., a Teacher can be a Mentor for one class and a regular Teacher for another).
+- **Strict Confidentiality**: Users only have access to their own assignments, and those in classes where they are enrolled.
+- **S3 File Management**: Secure file handling using **AWS SDK v2** with **Pre-signed URLs** for direct client-to-cloud transfers.
 - **Activity Logging**: Automated tracking of all major events (role changes, assignments, comments).
-- **File Management**: Metadata stored in PostgreSQL, with actual files residing in S3-compatible storage.
 - **Interactive Communication**: Commenting system for ongoing feedback on assignments.
 
 ## Technology Stack
 - **Backend**: Java 25, Spring Boot 4.0.4
 - **Database**: PostgreSQL (Dockerized)
-- **Security**: Spring Security (OAuth2/JWT preparation)
-- **File Storage**: S3-compatible (Integration in progress)
-- **Frontend**: React (TypeScript)
+- **Security**: Spring Security (OAuth2 / Session-based, JWT in progress)
+- **File Storage**: S3-compatible (Pre-signed URL strategy)
+- **Frontend**: React (Pure REST Backend)
 - **Persistence**: Spring Data JPA / Hibernate
 
 ## Project Structure
 ```text
 src/main/java/org/example/projectbackendteammycodebasebringsalltheboys/
-├── config      # Security, S3, and OpenAPI configurations
-├── controller  # REST endpoints
-├── dto         # Data Transfer Objects
-├── entity      # JPA Database Entities
-├── enums       # System-wide Enums (Status, Roles)
-├── exception   # Global error handling
-├── mapper      # Entity-DTO mapping logic
+├── config      # Security, S3, and Storage configurations
+├── controller  # REST endpoints (API Prefix)
+├── dto         # Data Transfer Objects (Case, Comment, File, User)
+├── entity      # JPA Database Entities (Class, Course, Assignment, etc.)
+├── enums       # System-wide Enums (Status, Roles, ClassRoles)
+├── mapper      # Entity-DTO mapping logic (DtoMapper)
 ├── repository  # Spring Data JPA Repositories
 ├── security    # Authentication and Authorization logic
 ├── service     # Business logic and orchestration
-└── storage     # S3 integration services
+└── storage     # S3 and Local storage implementations
 ```
 
-## Current State & Progress
-The project has successfully completed Phase 1 (Foundation) and Phase 2 (Core Logic).
-- [x] Dockerized PostgreSQL environment set up.
-- [x] Professional project structure implemented.
-- [x] Core Entities and Enums defined.
-- [x] JPA Auditing for automatic timestamping enabled.
-- [x] All Repositories with custom query methods implemented.
-- [x] Comprehensive DTO layer for API communication.
-- [x] Full Service Layer (Case, User, Comment, File, Activity Logging, Authorization).
-- [x] `LocalStorageService` implemented for development file handling.
+## Current State & Progress (Updated 2026-03-31)
+The project has established a robust foundation and moved into advanced feature sets.
+- [x] **Infrastructure**: Dockerized PostgreSQL and S3 configuration.
+- [x] **RBAC**: Base roles (ADMIN, TEACHER, STUDENT) and Contextual roles (MENTOR, ASSISTANT) implemented.
+- [x] **REST API**: Completed `AssignmentController`, `CommentController`, and `FileController`.
+- [x] **File Strategy**: Implemented AWS S3 integration with pre-signed upload/download URLs.
+- [x] **Data Model**: Implemented `SchoolClass`, `Course`, and `ClassEnrollment` for future-proof scalability.
+- [x] **Services**: Full service layer for Classes, Courses, Enrollments, Assignments, and Files.
+- [x] **Stability**: Resolved build issues and upgraded to AWS SDK 2.42.23.
 
 ## Roadmap & Backlog
-### Phase 2: Core Logic & Security (Current)
-- [ ] Implement Spring Security configuration (RBAC & JWT).
-- [ ] Create User and Auth services for login/registration.
-- [ ] Implement Case management business logic.
-- [ ] Set up DTOs and Mappers for clean API communication.
+### Phase 6: Contextual Security (Next)
+- [ ] Implement Scoped Security: Use `ClassEnrollment` to authorize API requests.
+- [ ] Refactor existing controllers to enforce class-based boundaries.
+- [ ] Implement "Public Profile" vs "Private Details" logic for unauthorized users.
 
-### Phase 3: S3 Integration & File Handling
-- [ ] Integrate AWS SDK for Java.
-- [ ] Implement secure file upload and download services.
-- [ ] Link file metadata to assignments and comments.
+### Phase 7: Communication & Real-time
+- [ ] Finalize REST Controllers for course/class management.
+- [ ] (Optional) Add real-time event notifications for new comments/assignments.
 
-### Phase 4: Communication & Auditing
-- [ ] Build the commenting engine.
-- [ ] Implement the `ActivityLogService` for automated event tracking.
-- [ ] Develop real-time update notifications.
-
-### Phase 5: Frontend (JTE)
-- [ ] Create role-specific dashboards.
-- [ ] Build forms for assignment creation and submission.
-- [ ] Implement a history view for case owners.
+### Phase 8: Security Hardening
+- [ ] Complete JWT-based Authentication for stateless REST communication.
+- [ ] Implement Global Exception Handling for consistent API error responses.
 
 ## Getting Started
 1. **Prerequisites**: Docker, Java 25+, Maven.
 2. **Database**: Run `docker compose up -d` to start the PostgreSQL instance.
-3. **Run**: Execute `./mvnw spring-boot:run` to start the application.
-4. **Access**: The database is available at `localhost:5432` with user `admin` and password `admin`.
+3. **Storage**: Configure `aws.s3.*` properties in `application.properties`. Toggle `storage.type=local` for local development.
+4. **Run**: Execute `./mvnw spring-boot:run` to start the application.
+5. **Access**: API endpoints are prefixed with `/api`.

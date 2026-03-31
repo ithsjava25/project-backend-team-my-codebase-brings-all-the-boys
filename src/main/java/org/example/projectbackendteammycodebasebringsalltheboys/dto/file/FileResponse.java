@@ -1,6 +1,5 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.dto.file;
 
-import java.time.LocalDateTime;
 import lombok.Data;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 
@@ -12,5 +11,4 @@ public class FileResponse {
   private String contentType;
   private String downloadUrl;
   private UserResponse uploader;
-  private LocalDateTime createdAt;
 }
