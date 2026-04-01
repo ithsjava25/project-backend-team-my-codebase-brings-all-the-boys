@@ -14,8 +14,9 @@ public class StorageConfig {
 
   @Bean
   @ConditionalOnProperty(name = "storage.type", havingValue = "s3")
-  public StorageService s3StorageService(S3Client s3Client, S3Presigner s3Presigner) {
-    return new S3StorageService(s3Client, s3Presigner);
+  public StorageService s3StorageService(
+      S3Client s3Client, S3Presigner s3Presigner, String bucketName) {
+    return new S3StorageService(s3Client, s3Presigner, bucketName);
   }
 
   @Bean

@@ -3,8 +3,6 @@ package org.example.projectbackendteammycodebasebringsalltheboys.storage;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -15,14 +13,17 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
-@RequiredArgsConstructor
 public class S3StorageService implements StorageService {
 
   private final S3Client s3Client;
   private final S3Presigner s3Presigner;
+  private final String bucketName;
 
-  @Value("${aws.s3.bucket-name}")
-  private String bucketName;
+  public S3StorageService(S3Client s3Client, S3Presigner s3Presigner, String bucketName) {
+    this.s3Client = s3Client;
+    this.s3Presigner = s3Presigner;
+    this.bucketName = bucketName;
+  }
 
   @Override
   public String uploadFile(

@@ -76,7 +76,9 @@ public class AssignmentController {
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new IllegalStateException("Current user not found"));
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current user not found"));
 
     List<Assignment> assignments = caseService.getCasesByCreator(currentUser);
     List<CaseResponse> response =

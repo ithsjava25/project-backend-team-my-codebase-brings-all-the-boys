@@ -50,6 +50,19 @@ public class CommentController {
             .getCaseById(assignmentId)
             .orElseThrow(() -> new IllegalArgumentException("Assignment not found"));
 
+    boolean isCreator =
+        assignment.getCreator() != null
+            && assignment.getCreator().getId().equals(currentUser.getId());
+
+    boolean isEnrolled =
+        assignment.getCourse() != null
+            && assignment.getCourse().getSchoolClass() != null
+            && classEnrollmentService.isUserInClass(
+                currentUser, assignment.getCourse().getSchoolClass());
+
+    if (!isCreator && !isEnrolled) {
+      throw new AccessDeniedException("You are not authorized to comment on this assignment");
+    }
     Comment comment = commentService.addComment(assignment, currentUser, request.getText());
 
     return ResponseEntity.ok(dtoMapper.toCommentResponse(comment));
