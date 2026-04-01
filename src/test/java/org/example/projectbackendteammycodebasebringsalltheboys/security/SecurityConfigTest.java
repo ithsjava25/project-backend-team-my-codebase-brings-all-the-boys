@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.AuthController;
@@ -53,27 +54,22 @@ class SecurityConfigTest {
   @Test
   @DisplayName("GET /admin unauthenticated redirects to login")
   void adminPage_unauthenticated_redirectsToLogin() throws Exception {
-    mockMvc.perform(get("/admin")).andExpect(status().is3xxRedirection());
+    mockMvc.perform(get("/admin")).andExpect(status().isUnauthorized());
   }
 
   // --- Public endpoints ---
-
   @Test
-  @DisplayName("GET /auth/login is accessible without authentication")
-  void authLogin_isPublic() throws Exception {
-    mockMvc.perform(get("/auth/login")).andExpect(status().isOk());
+  @DisplayName("GET /api/auth/me is public (returns 401 when not authenticated)")
+  void apiAuthMe_isPublic() throws Exception {
+    mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
   }
 
   @Test
-  @DisplayName("GET /auth/register is accessible without authentication")
-  void authRegister_isPublic() throws Exception {
-    mockMvc.perform(get("/auth/register")).andExpect(status().isOk());
-  }
-
-  @Test
-  @DisplayName("GET /auth/logout-success is accessible without authentication")
-  void authLogoutSuccess_isPublic() throws Exception {
-    mockMvc.perform(get("/auth/logout-success")).andExpect(status().isOk());
+  @DisplayName("POST /api/auth/register is public")
+  void apiAuthRegister_isPublic() throws Exception {
+    mockMvc
+        .perform(post("/api/auth/register"))
+        .andExpect(status().isBadRequest()); // 400 missing body
   }
 
   @Test
@@ -85,21 +81,15 @@ class SecurityConfigTest {
   // --- Protected endpoints: unauthenticated ---
 
   @Test
-  @DisplayName("GET /dashboard unauthenticated redirects to login")
-  void dashboard_unauthenticated_redirectsToLogin() throws Exception {
-    mockMvc
-        .perform(get("/dashboard"))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/auth/login"));
+  @DisplayName("GET /dashboard unauthenticated returns 401")
+  void dashboard_unauthenticated_returnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/dashboard")).andExpect(status().isUnauthorized());
   }
 
   @Test
-  @DisplayName("GET /admin unauthenticated redirects to login")
-  void admin_unauthenticated_redirectsToLogin() throws Exception {
-    mockMvc
-        .perform(get("/admin"))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/auth/login"));
+  @DisplayName("GET /admin unauthenticated returns 401")
+  void admin_unauthenticated_returnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/admin")).andExpect(status().isUnauthorized());
   }
 
   // --- Protected endpoints: authenticated as USER ---
