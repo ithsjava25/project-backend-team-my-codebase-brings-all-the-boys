@@ -1,6 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.security.config;
 
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -15,15 +16,22 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+  @Value("${frontend.url}")
+  private String frontendUrl;
+
   @Bean
   public SecurityFilterChain filterChain(
-      HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) {
+      HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
 
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers("/api/auth/me")
+                    .permitAll()
+                    .requestMatchers("/api/auth/register")
+                    .permitAll()
+                    .requestMatchers("/api/auth/login")
                     .permitAll()
                     .requestMatchers("/oauth2/**")
                     .permitAll()
@@ -37,9 +45,15 @@ public class SecurityConfig {
             oauth ->
                 oauth
                     .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
-                    .defaultSuccessUrl("http://localhost:5173/dashboard", true))
-        .logout(logout -> logout.logoutSuccessUrl("http://localhost:5173").permitAll())
-        .httpBasic(Customizer.withDefaults());
+                    .defaultSuccessUrl(frontendUrl + "/dashboard", true))
+        .logout(logout -> logout.logoutSuccessUrl(frontendUrl).permitAll())
+        .httpBasic(Customizer.withDefaults())
+        .formLogin(
+            form ->
+                form.loginProcessingUrl("/api/auth/login")
+                    .defaultSuccessUrl(frontendUrl + "/dashboard", true)
+                    .failureUrl("/api/auth/login?error")
+                    .permitAll());
 
     return http.build();
   }
