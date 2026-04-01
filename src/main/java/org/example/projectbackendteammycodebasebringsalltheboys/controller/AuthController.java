@@ -1,15 +1,15 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
+import java.util.Map;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,14 +25,11 @@ public class AuthController {
   public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest request) {
     try {
       User user = userService.registerUser(request);
-      return ResponseEntity.ok().body(Map.of(
-              "message", "User registered successfully",
-              "username", user.getUsername()
-      ));
+      UserResponse response = userService.toUserResponse(user);
+
+      return ResponseEntity.ok(response);
     } catch (IllegalStateException e) {
-      return ResponseEntity.badRequest().body(Map.of(
-              "error", e.getMessage()
-      ));
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
   }
 
@@ -43,12 +40,11 @@ public class AuthController {
     }
 
     String username = authentication.getName();
-    User user = userService.getUserByUsername(username)
-            .orElseThrow(() -> new IllegalStateException("User not found"));
+    User user =
+        userService
+            .getUserByUsername(username)
+            .orElseThrow(() -> new IllegalStateException("User not found: " + username));
 
-    return ResponseEntity.ok().body(Map.of(
-            "username", user.getUsername(),
-            "role", user.getRole().getName(
-            )));
+    return ResponseEntity.ok(userService.toUserResponse(user));
   }
 }

@@ -3,6 +3,8 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
@@ -46,5 +48,19 @@ public class UserService {
     user.setRole(defaultRole);
 
     return userRepository.save(user);
+  }
+
+  public UserResponse toUserResponse(User user) {
+    UserResponse response = new UserResponse();
+    response.setId(user.getId());
+    response.setUsername(user.getUsername());
+    response.setEmail(user.getUsername()); // samma i ditt fall
+
+    RoleResponse roleResponse = new RoleResponse();
+    roleResponse.setId(user.getRole().getId());
+    roleResponse.setName(user.getRole().getName());
+    response.setRole(roleResponse);
+
+    return response;
   }
 }
