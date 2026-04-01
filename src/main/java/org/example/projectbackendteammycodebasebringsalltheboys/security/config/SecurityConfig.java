@@ -32,7 +32,8 @@ public class SecurityConfig {
                     .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
                     .defaultSuccessUrl("http://localhost:5173/dashboard", true))
             .logout(logout -> logout
-                    .logoutSuccessUrl("http://localhost:5173").permitAll());
+                    .logoutSuccessUrl("http://localhost:5173").permitAll())
+            .httpBasic(Customizer.withDefaults());
 
     return http.build();
   }
