@@ -2,14 +2,17 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
-@RequestMapping("/auth")
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
   private final UserService userService;
@@ -18,39 +21,34 @@ public class AuthController {
     this.userService = userService;
   }
 
-  @GetMapping("/register")
-  public String showRegistrationForm(Model model) {
-    model.addAttribute("registrationRequest", new RegistrationRequest());
-    return "register";
-  }
-
   @PostMapping("/register")
-  public String registerUser(
-      @Valid @ModelAttribute("registrationRequest") RegistrationRequest request,
-      BindingResult bindingResult,
-      Model model) {
-
-    if (bindingResult.hasErrors()) {
-      return "register";
-    }
-
+  public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest request) {
     try {
-      userService.registerUser(request);
+      User user = userService.registerUser(request);
+      return ResponseEntity.ok().body(Map.of(
+              "message", "User registered successfully",
+              "username", user.getUsername()
+      ));
     } catch (IllegalStateException e) {
-      model.addAttribute("errorMessage", e.getMessage());
-      return "register";
+      return ResponseEntity.badRequest().body(Map.of(
+              "error", e.getMessage()
+      ));
+    }
+  }
+
+  @GetMapping("/me")
+  public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+    if (authentication == null || !authentication.isAuthenticated()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    return "redirect:/auth/login?registered";
-  }
+    String username = authentication.getName();
+    User user = userService.getUserByUsername(username)
+            .orElseThrow(() -> new IllegalStateException("User not found"));
 
-  @GetMapping("/login")
-  public String loginPage() {
-    return "login";
-  }
-
-  @GetMapping("/logout-success")
-  public String logoutSuccess() {
-    return "logout-success";
+    return ResponseEntity.ok().body(Map.of(
+            "username", user.getUsername(),
+            "role", user.getRole().getName(
+            )));
   }
 }
