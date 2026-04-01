@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
@@ -19,6 +20,7 @@ public class CommentService {
   private final CommentRepository commentRepository;
   private final ActivityLogService activityLogService;
 
+  @LogActivity(action = ActivityAction.ADDED, entity = EntityType.COMMENT, entityIdParamIndex = 0)
   @Transactional
   public Comment addComment(Assignment assignment, User author, String text) {
     Objects.requireNonNull(assignment, "Assignment cannot be null");
@@ -31,17 +33,7 @@ public class CommentService {
     comment.setAuthor(author);
     comment.setText(text);
 
-    Comment saved = commentRepository.save(comment);
-
-    activityLogService.log(
-        author,
-        assignment.getId(),
-        ActivityAction.ADDED,
-        EntityType.COMMENT,
-        saved.getId(),
-        "Added comment to assignment: " + assignment.getTitle());
-
-    return saved;
+    return commentRepository.save(comment);
   }
 
   @Transactional(readOnly = true)

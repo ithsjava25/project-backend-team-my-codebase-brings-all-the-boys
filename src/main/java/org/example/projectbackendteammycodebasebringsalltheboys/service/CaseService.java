@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
@@ -18,6 +19,7 @@ public class CaseService {
   private final AssignmentRepository assignmentRepository;
   private final ActivityLogService activityLogService;
 
+  @LogActivity(action = ActivityAction.CREATED, entity = EntityType.ASSIGNMENT, captureReturnId = true)
   @Transactional
   public Assignment createCase(String title, String description, User creator) {
     Assignment assignment = new Assignment();
@@ -25,12 +27,7 @@ public class CaseService {
     assignment.setDescription(description);
     assignment.setCreator(creator);
 
-    Assignment saved = assignmentRepository.save(assignment);
-
-    activityLogService.log(
-        creator, saved.getId(), ActivityAction.CREATED, EntityType.ASSIGNMENT, saved.getId(), "Case created: " + title);
-
-    return saved;
+    return assignmentRepository.save(assignment);
   }
 
   @Transactional(readOnly = true)
