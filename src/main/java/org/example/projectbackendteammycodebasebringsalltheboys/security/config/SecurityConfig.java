@@ -50,7 +50,7 @@ public class SecurityConfig {
             ex ->
                 ex.authenticationEntryPoint(
                     (request, response, authException) ->
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
         .oauth2Login(
             oauth ->
                 oauth
