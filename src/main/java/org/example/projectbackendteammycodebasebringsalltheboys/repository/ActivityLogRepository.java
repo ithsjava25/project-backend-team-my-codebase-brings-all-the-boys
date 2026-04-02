@@ -13,7 +13,7 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> 
   Page<ActivityLog> findByUserOrderByTimestampDesc(User user, Pageable pageable);
 
   Page<ActivityLog> findByEntityTypeAndEntityIdOrderByTimestampDesc(
-          EntityType entityType, Long entityId, Pageable pageable);
+      EntityType entityType, Long entityId, Pageable pageable);
 
   Page<ActivityLog> findByCaseIdOrderByTimestampDesc(Long caseId, Pageable pageable);
 }

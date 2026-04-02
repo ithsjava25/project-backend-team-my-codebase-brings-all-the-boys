@@ -11,17 +11,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SecurityContextService {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+  public User getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
-
-        String username = authentication.getName(); // safe — Spring Security User always has this
-
-        return userRepository.findByUsername(username).orElse(null);
+    if (authentication == null || !authentication.isAuthenticated()) {
+      return null;
     }
+
+    String username = authentication.getName(); // safe — Spring Security User always has this
+
+    return userRepository.findByUsername(username).orElse(null);
+  }
 }

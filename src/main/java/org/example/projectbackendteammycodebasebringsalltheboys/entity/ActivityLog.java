@@ -1,11 +1,9 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Map;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -53,8 +51,15 @@ public class ActivityLog {
   @Column(nullable = false)
   private ActivityStatus status;
 
-  public ActivityLog(User user, Long caseID, ActivityAction action, EntityType entityType,
-                     Long entityId, Map<String, Object> details, ActivityStatus status, Clock clock) {
+  public ActivityLog(
+      User user,
+      Long caseID,
+      ActivityAction action,
+      EntityType entityType,
+      Long entityId,
+      Map<String, Object> details,
+      ActivityStatus status,
+      Clock clock) {
     this.user = user;
     this.caseId = caseID;
     this.action = action;

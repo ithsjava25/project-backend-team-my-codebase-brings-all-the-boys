@@ -1,9 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.time.Clock;
-import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ActivityLog;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
@@ -26,9 +24,16 @@ public class ActivityLogService {
   private final Clock clock;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void log(User user, Long caseID, ActivityAction action, EntityType entityType,
-                  Long entityId, Map<String, Object> details, ActivityStatus status) {
-    ActivityLog log = new ActivityLog(user, caseID, action, entityType, entityId, details, status, clock);
+  public void log(
+      User user,
+      Long caseID,
+      ActivityAction action,
+      EntityType entityType,
+      Long entityId,
+      Map<String, Object> details,
+      ActivityStatus status) {
+    ActivityLog log =
+        new ActivityLog(user, caseID, action, entityType, entityId, details, status, clock);
     activityLogRepository.save(log);
   }
 
@@ -48,9 +53,9 @@ public class ActivityLogService {
   }
 
   @Transactional(readOnly = true)
-  public Page<ActivityLog> getLogsForEntity(EntityType entityType, Long entityId, Pageable pageable) {
+  public Page<ActivityLog> getLogsForEntity(
+      EntityType entityType, Long entityId, Pageable pageable) {
     return activityLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDesc(
         entityType, entityId, pageable);
   }
 }
-
