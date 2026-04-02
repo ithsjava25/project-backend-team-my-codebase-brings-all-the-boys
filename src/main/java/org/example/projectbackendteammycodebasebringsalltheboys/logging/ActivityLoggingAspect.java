@@ -97,6 +97,7 @@ public class ActivityLoggingAspect {
   }
 
   private User resolveUser(Object[] args) {
+    if (args == null) return null;
     for (Object arg : args) {
       if (arg instanceof User user) return user;
     }
