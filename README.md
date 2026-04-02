@@ -10,19 +10,20 @@ This project is a modern, high-security case management system designed for scho
 - **Activity Logging**: Automated tracking of all major events (role changes, assignments, comments).
 - **File Management**: Metadata stored in PostgreSQL, with actual files residing in S3-compatible storage.
 - **Interactive Communication**: Commenting system for ongoing feedback on assignments.
+- **Authentication**: Session-based authentication with GitHub OAuth2 integration.
 
 ## Technology Stack
 - **Backend**: Java 25, Spring Boot 4.0.4
 - **Database**: PostgreSQL (Dockerized)
-- **Security**: Spring Security (OAuth2/JWT preparation)
+- **Security**: Spring Security (Session-based auth + OAuth2 for GitHub login)
 - **File Storage**: S3-compatible (Integration in progress)
-- **Frontend**: React (TypeScript)
+- **Frontend**: React (TypeScript) with Vite dev server
 - **Persistence**: Spring Data JPA / Hibernate
 
 ## Project Structure
 ```text
 src/main/java/org/example/projectbackendteammycodebasebringsalltheboys/
-├── config      # Security, S3, and OpenAPI configurations
+├── config      # Security, CORS, S3, and OpenAPI configurations
 ├── controller  # REST endpoints
 ├── dto         # Data Transfer Objects
 ├── entity      # JPA Database Entities
@@ -36,7 +37,7 @@ src/main/java/org/example/projectbackendteammycodebasebringsalltheboys/
 ```
 
 ## Current State & Progress
-The project has successfully completed Phase 1 (Foundation) and Phase 2 (Core Logic).
+The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic), and Phase 3 (Frontend Integration).
 - [x] Dockerized PostgreSQL environment set up.
 - [x] Professional project structure implemented.
 - [x] Core Entities and Enums defined.
@@ -45,31 +46,121 @@ The project has successfully completed Phase 1 (Foundation) and Phase 2 (Core Lo
 - [x] Comprehensive DTO layer for API communication.
 - [x] Full Service Layer (Case, User, Comment, File, Activity Logging, Authorization).
 - [x] `LocalStorageService` implemented for development file handling.
+- [x] Spring Security configuration with OAuth2 and session-based authentication.
+- [x] REST API endpoints for user registration, login, logout, and current user.
+- [x] CORS configuration for React frontend integration.
+- [x] OAuth2 GitHub login integration.
 
 ## Roadmap & Backlog
-### Phase 2: Core Logic & Security (Current)
-- [ ] Implement Spring Security configuration (RBAC & JWT).
-- [ ] Create User and Auth services for login/registration.
-- [ ] Implement Case management business logic.
-- [ ] Set up DTOs and Mappers for clean API communication.
 
-### Phase 3: S3 Integration & File Handling
+### ✅ Phase 2: Core Logic & Security (COMPLETED)
+- [x] Implement Spring Security configuration (Session-based auth + OAuth2).
+- [x] Create User and Auth services for login/registration.
+- [x] Implement Case management business logic.
+- [x] Set up DTOs and Mappers for clean API communication.
+- [x] Configure CORS for React frontend.
+
+### ✅ Phase 3: Frontend Integration (COMPLETED)
+- [x] REST API for authentication (`/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`).
+- [x] GitHub OAuth2 integration with redirect to React dashboard.
+- [x] Session management with Spring Security 6.
+- [x] CORS configuration for development environment.
+
+### 🔄 Phase 4: S3 Integration & File Handling (In Progress)
 - [ ] Integrate AWS SDK for Java.
 - [ ] Implement secure file upload and download services.
 - [ ] Link file metadata to assignments and comments.
 
-### Phase 4: Communication & Auditing
+### 📋 Phase 5: Communication & Auditing (Planned)
 - [ ] Build the commenting engine.
 - [ ] Implement the `ActivityLogService` for automated event tracking.
 - [ ] Develop real-time update notifications.
 
-### Phase 5: Frontend (JTE)
+### 📋 Phase 6: Frontend (React) - Additional Features (Planned)
 - [ ] Create role-specific dashboards.
 - [ ] Build forms for assignment creation and submission.
 - [ ] Implement a history view for case owners.
 
 ## Getting Started
-1. **Prerequisites**: Docker, Java 25+, Maven.
-2. **Database**: Run `docker compose up -d` to start the PostgreSQL instance.
-3. **Run**: Execute `./mvnw spring-boot:run` to start the application.
-4. **Access**: The database is available at `localhost:5432` with user `admin` and password `admin`.
+
+### Prerequisites
+- Docker
+- Java 25+
+- Maven
+- Node.js 20+ (for React frontend)
+
+### Backend Setup
+
+1. **Start Database**:
+   ```bash
+   docker compose up -d
+   ```
+   The PostgreSQL instance will be available at `localhost:5432`.
+
+2. **Configure Application**:
+   - The `dev` profile is active by default.
+   - Edit `src/main/resources/application-dev.properties` to configure:
+     - `frontend.url=http://localhost:5173` (React dev server)
+     - Database credentials (default: `admin`/`admin`)
+     - GitHub OAuth2 credentials
+
+3. **GitHub OAuth2 Setup** (for local development):
+   - Create a new OAuth App in GitHub Settings → Developer settings → OAuth Apps
+   - Authorization callback URL: `http://localhost:8080/oauth2/callback/github`
+   - Add `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` to `application-dev.properties`
+
+4. **Run Backend**:
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+   The API will be available at `http://localhost:8080`.
+
+### Frontend Setup
+
+1. **Navigate to Frontend**:
+   ```bash
+   cd ../project-frontend-team-name  # Adjust path as needed
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start Dev Server**:
+   ```bash
+   npm run dev
+   ```
+   The React app will be available at `http://localhost:5173`.
+
+### API Endpoints
+
+#### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login with username/password
+- `GET /api/auth/me` - Get current user info
+- `POST /api/auth/logout` - Logout
+
+#### OAuth2
+- `GET /oauth2/authorization/github` - Initiate GitHub login
+- Callback: `/oauth2/callback/github` → Redirects to `http://localhost:5173/dashboard`
+
+### Configuration Profiles
+
+- **dev** (default): Local development with PostgreSQL on localhost
+- **test**: Integration tests with H2 in-memory database
+- **prod**: Production environment (create `application-prod.properties` as needed)
+
+## Database Access
+
+- **URL**: `localhost:5432`
+- **Database**: `schoolportal`
+- **User**: `admin`
+- **Password**: `admin`
+
+## Security Notes
+
+- CSRF is disabled for REST API (suitable for React + Session-based auth)
+- CORS is restricted to configured `frontend.url`
+- Session management uses Spring Security 6 with explicit save
+- OAuth2 state parameter protects against CSRF attacks

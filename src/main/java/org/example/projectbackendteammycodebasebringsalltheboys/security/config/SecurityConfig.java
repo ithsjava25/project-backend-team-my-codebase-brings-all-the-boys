@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.security.config
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.OAuth2LoginSuccessHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,9 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(
-      HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) {
+      HttpSecurity http,
+      CustomOAuth2UserService customOAuth2UserService,
+      OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
 
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
@@ -55,7 +58,7 @@ public class SecurityConfig {
             oauth ->
                 oauth
                     .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
-                    .defaultSuccessUrl(frontendUrl + "/dashboard", true))
+                    .successHandler(oAuth2LoginSuccessHandler))
         .logout(logout -> logout.logoutSuccessUrl(frontendUrl).permitAll());
 
     return http.build();
