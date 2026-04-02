@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseSurfaceResponse;
@@ -25,58 +26,60 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CourseController {
 
-  private final CourseService courseService;
-  private final UserService userService;
-  private final DtoMapper dtoMapper;
+    private final CourseService courseService;
+    private final UserService userService;
+    private final DtoMapper dtoMapper;
 
-  @GetMapping
-  public ResponseEntity<List<CourseSurfaceResponse>> getAllCourses() {
-    List<Course> courses = courseService.getAllCourses();
-    List<CourseSurfaceResponse> response =
-        courses.stream().map(dtoMapper::toCourseSurfaceResponse).collect(Collectors.toList());
+    @GetMapping
+    public ResponseEntity<List<CourseSurfaceResponse>> getAllCourses() {
+        List<Course> courses = courseService.getAllCourses();
+        List<CourseSurfaceResponse> response =
+                courses.stream().map(dtoMapper::toCourseSurfaceResponse).collect(Collectors.toList());
 
-    return ResponseEntity.ok(response);
-  }
-
-  @GetMapping("/{id}")
-  public ResponseEntity<CourseDetailResponse> getCourseById(
-      @PathVariable UUID id, java.security.Principal principal) {
-    if (principal == null) {
-      throw new UnauthorizedException("Authentication is required");
+        return ResponseEntity.ok(response);
     }
 
-    User currentUser =
-        userService
-            .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+    @GetMapping("/{id}")
+    public ResponseEntity<CourseDetailResponse> getCourseById(
+            @PathVariable UUID id, java.security.Principal principal) {
+        if (principal == null) {
+            throw new UnauthorizedException("Authentication is required");
+        }
 
-    Course course =
-        courseService
-            .getCourseById(id)
-            .orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
+        User currentUser =
+                userService
+                        .getUserByUsername(principal.getName())
+                        .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
-    boolean isTeacherOrAdmin =
-        currentUser.getRole().getName().equals("ROLE_ADMIN")
-            || currentUser.getRole().getName().equals("ROLE_TEACHER");
-    boolean isLeadTeacher =
-        course.getLeadTeacher() != null
-            && course.getLeadTeacher().getId().equals(currentUser.getId());
-    boolean isAssistant =
-        course.getAssistants() != null && course.getAssistants().contains(currentUser);
-    boolean isEnrolledStudent =
-        course.getSchoolClass() != null
-            && course.getSchoolClass().getEnrollments().stream()
-                .anyMatch(
-                    e ->
-                        e.getUser().getId().equals(currentUser.getId())
-                            && e.getClassRole()
-                                == org.example.projectbackendteammycodebasebringsalltheboys.enums
-                                    .ClassRole.STUDENT);
+        Course course =
+                courseService
+                        .getCourseById(id)
+                        .orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
 
-    if (isTeacherOrAdmin || isLeadTeacher || isAssistant || isEnrolledStudent) {
-      return ResponseEntity.ok(dtoMapper.toCourseDetailResponse(course));
-    } else {
-      throw new ForbiddenException("You do not have permission to view this course's details.");
+        boolean isTeacherOrAdmin =
+                currentUser.getRole().getName().equals("ROLE_ADMIN")
+                        || currentUser.getRole().getName().equals("ROLE_TEACHER");
+        boolean isLeadTeacher =
+                course.getLeadTeacher() != null
+                        && course.getLeadTeacher().getId().equals(currentUser.getId());
+        boolean isAssistant =
+                course.getAssistants() != null && course.getAssistants()
+                        .stream().anyMatch(assistant -> assistant.getId()
+                                .equals(currentUser.getId()));
+        boolean isEnrolledStudent =
+                course.getSchoolClass() != null
+                        && course.getSchoolClass().getEnrollments().stream()
+                        .anyMatch(
+                                e ->
+                                        e.getUser().getId().equals(currentUser.getId())
+                                                && e.getClassRole()
+                                                == org.example.projectbackendteammycodebasebringsalltheboys.enums
+                                                .ClassRole.STUDENT);
+
+        if (isTeacherOrAdmin || isLeadTeacher || isAssistant || isEnrolledStudent) {
+            return ResponseEntity.ok(dtoMapper.toCourseDetailResponse(course));
+        } else {
+            throw new ForbiddenException("You do not have permission to view this course's details.");
+        }
     }
-  }
 }
