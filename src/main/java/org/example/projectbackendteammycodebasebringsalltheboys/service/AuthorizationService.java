@@ -43,9 +43,8 @@ public class AuthorizationService {
       return true;
     }
     if (assignment.getCourse() != null && assignment.getCourse().getSchoolClass() != null) {
-      return classEnrollmentRepository
-          .findByUserAndSchoolClass(user, assignment.getCourse().getSchoolClass())
-          .isPresent();
+      return classEnrollmentRepository.existsByUserAndSchoolClass(
+          user, assignment.getCourse().getSchoolClass());
     }
     return false;
   }
@@ -60,9 +59,8 @@ public class AuthorizationService {
     }
 
     if (assignment.getCourse() != null && assignment.getCourse().getSchoolClass() != null) {
-      return classEnrollmentRepository
-          .findByUserAndSchoolClass(user, assignment.getCourse().getSchoolClass())
-          .isPresent();
+      return classEnrollmentRepository.existsByUserAndSchoolClass(
+          user, assignment.getCourse().getSchoolClass());
     }
 
     return false;
@@ -77,9 +75,10 @@ public class AuthorizationService {
 
   @Transactional(readOnly = true)
   public boolean canModifyAssignment(User user, Assignment assignment) {
-    return user.getRole().getName().equals("ROLE_ADMIN")
-        || user.getRole().getName().equals("ROLE_TEACHER")
-        || assignment.getCreator().getId().equals(user.getId());
+    return isAdmin(user)
+        || isTeacher(user)
+        || (assignment.getCreator() != null
+            && assignment.getCreator().getId().equals(user.getId()));
   }
 
   @Transactional(readOnly = true)

@@ -30,6 +30,7 @@ public class CourseController {
   private final UserService userService;
   private final DtoMapper dtoMapper;
 
+  @Transactional(readOnly = true)
   @GetMapping
   public ResponseEntity<List<CourseSurfaceResponse>> getAllCourses() {
     List<Course> courses = courseService.getAllCourses();

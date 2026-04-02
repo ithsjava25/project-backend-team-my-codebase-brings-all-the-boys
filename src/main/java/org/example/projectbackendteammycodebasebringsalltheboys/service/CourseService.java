@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ public class CourseService {
   @Transactional
   public Course createCourse(
       String name, String description, SchoolClass schoolClass, User leadTeacher, User creator) {
+    if (schoolClass == null) {
+      throw new BadRequestException("SchoolClass cannot be null");
+    }
     Course course = new Course();
     course.setName(name);
     course.setDescription(description);

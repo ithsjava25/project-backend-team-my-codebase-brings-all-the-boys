@@ -19,4 +19,6 @@ public interface ClassEnrollmentRepository extends JpaRepository<ClassEnrollment
   Optional<ClassEnrollment> findByUserAndSchoolClass(User user, SchoolClass schoolClass);
 
   List<ClassEnrollment> findBySchoolClassAndClassRole(SchoolClass schoolClass, ClassRole classRole);
+
+  boolean existsByUserAndSchoolClass(User user, SchoolClass schoolClass);
 }
