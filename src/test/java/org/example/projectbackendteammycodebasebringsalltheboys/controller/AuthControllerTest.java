@@ -63,7 +63,6 @@ class AuthControllerTest {
     roleResponse.setName("ROLE_STUDENT");
     userResponse.setRole(roleResponse);
 
-    when(userService.registerUser(any(RegistrationRequest.class))).thenReturn(user);
     when(userService.toUserResponse(any(User.class))).thenReturn(userResponse);
 
     mockMvc

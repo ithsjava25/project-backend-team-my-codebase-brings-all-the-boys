@@ -60,7 +60,7 @@ class SecurityConfigTest {
   // --- Public endpoints ---
   @Test
   @DisplayName("GET /api/auth/me is public (returns 401 when not authenticated)")
-  void apiAuthMe_isPublic() throws Exception {
+  void apiAuthMe_unauthenticated_returnsUnauthorized() throws Exception {
     mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
   }
 
