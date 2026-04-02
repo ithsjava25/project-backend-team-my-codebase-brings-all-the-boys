@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Submission;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.SubmissionRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserAssignmentService {
 
   private final UserAssignmentRepository userAssignmentRepository;
+  private final SubmissionRepository submissionRepository;
+  private final FileMetadataRepository fileMetadataRepository;
   private final ActivityLogService activityLogService;
 
   @Transactional
@@ -40,9 +45,32 @@ public class UserAssignmentService {
 
   @Transactional
   public void submitAssignment(UserAssignment ua) {
+    submitWork(ua, "Automatic submission", List.of());
+  }
+
+  @Transactional
+  public void submitWork(UserAssignment ua, String content, List<String> fileS3Keys) {
     if (ua.getStatus() != StudentAssignmentStatus.ASSIGNED) {
       throw new IllegalStateException("Cannot submit assignment in status: " + ua.getStatus());
     }
+
+    Submission submission = new Submission();
+    submission.setUserAssignment(ua);
+    submission.setStudent(ua.getStudent());
+    submission.setContent(content);
+    submission.setSubmittedAt(LocalDateTime.now());
+    Submission savedSubmission = submissionRepository.save(submission);
+
+    for (String s3Key : fileS3Keys) {
+      fileMetadataRepository
+          .findByS3Key(s3Key)
+          .ifPresent(
+              file -> {
+                file.setSubmission(savedSubmission);
+                fileMetadataRepository.save(file);
+              });
+    }
+
     ua.setStatus(StudentAssignmentStatus.TURNED_IN);
     ua.setTurnedInAt(LocalDateTime.now());
     userAssignmentRepository.save(ua);

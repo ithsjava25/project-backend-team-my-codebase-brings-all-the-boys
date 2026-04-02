@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.file.GeneratedUpload;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
@@ -101,7 +102,7 @@ public class FileService {
   }
 
   @Transactional(readOnly = true)
-  public java.util.Optional<FileMetadata> getFileById(Long id) {
+  public java.util.Optional<FileMetadata> getFileById(UUID id) {
     return fileMetadataRepository.findById(id);
   }
 
@@ -132,7 +133,7 @@ public class FileService {
       FileMetadata saved = fileMetadataRepository.save(metadata);
 
       String targetType = assignment != null ? "Assignment" : "Comment";
-      Long targetId = assignment != null ? assignment.getId() : comment.getId();
+      UUID targetId = assignment != null ? assignment.getId() : comment.getId();
 
       activityLogService.log(
           uploader, "UPLOADED_FILE", targetType, targetId, "Uploaded file: " + fileName);

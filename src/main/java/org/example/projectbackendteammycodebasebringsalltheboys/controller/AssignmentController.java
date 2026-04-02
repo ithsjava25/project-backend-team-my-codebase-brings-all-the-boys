@@ -4,20 +4,25 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CaseService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
@@ -27,6 +32,7 @@ public class AssignmentController {
 
   private final CaseService caseService;
   private final UserService userService;
+  private final AuthorizationService authorizationService;
   private final DtoMapper dtoMapper;
 
   @PostMapping
@@ -37,9 +43,7 @@ public class AssignmentController {
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current user not found"));
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
     Assignment assignment =
         caseService.createCase(request.getTitle(), request.getDescription(), currentUser);
@@ -54,20 +58,48 @@ public class AssignmentController {
   }
 
   @GetMapping
-  public ResponseEntity<List<CaseResponse>> getAllAssignments() {
+  public ResponseEntity<List<AssignmentResponse>> getAllAssignments(Principal principal) {
+    if (principal == null) {
+      throw new UnauthorizedException("Authentication is required.");
+    }
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
     List<Assignment> assignments = caseService.getAllCases();
-    List<CaseResponse> response =
-        assignments.stream().map(dtoMapper::toCaseResponse).collect(Collectors.toList());
+
+    List<AssignmentResponse> response =
+        assignments.stream()
+            .filter(assignment -> authorizationService.canViewAssignment(currentUser, assignment))
+            .map(dtoMapper::toAssignmentResponse)
+            .collect(Collectors.toList());
+
     return ResponseEntity.ok(response);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<CaseResponse> getAssignmentById(@PathVariable Long id) {
-    return caseService
-        .getCaseById(id)
-        .map(dtoMapper::toCaseResponse)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+  public ResponseEntity<AssignmentDetailResponse> getAssignmentById(
+      @PathVariable UUID id, Principal principal) {
+    if (principal == null) {
+      throw new UnauthorizedException("Authentication is required");
+    }
+
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
+    Assignment assignment =
+        caseService
+            .getCaseById(id)
+            .orElseThrow(() -> new NotFoundException("Assignment not found with id: " + id));
+
+    if (!authorizationService.canAccessAssignmentDetails(currentUser, assignment)) {
+      throw new ForbiddenException("You do not have permission to view this assignment's details.");
+    }
+
+    return ResponseEntity.ok(dtoMapper.toAssignmentDetailResponse(assignment));
   }
 
   @GetMapping("/my-created")
@@ -76,9 +108,7 @@ public class AssignmentController {
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current user not found"));
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
     List<Assignment> assignments = caseService.getCasesByCreator(currentUser);
     List<CaseResponse> response =

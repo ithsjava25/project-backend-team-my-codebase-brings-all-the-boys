@@ -2,6 +2,8 @@ package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,10 +21,6 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAss
 @Setter
 @NoArgsConstructor
 public class UserAssignment extends BaseEntity {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "assignment_id", nullable = false)
@@ -42,4 +40,7 @@ public class UserAssignment extends BaseEntity {
   private String grade;
 
   private LocalDateTime turnedInAt;
+
+  @OneToMany(mappedBy = "userAssignment", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Submission> submissions = new ArrayList<>();
 }

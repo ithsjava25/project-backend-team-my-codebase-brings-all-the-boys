@@ -12,10 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Comment extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "assignment_id", nullable = false)
   private Assignment assignment;

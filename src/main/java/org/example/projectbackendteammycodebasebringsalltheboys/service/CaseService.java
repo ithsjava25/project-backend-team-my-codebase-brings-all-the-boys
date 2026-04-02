@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
@@ -48,7 +49,7 @@ public class CaseService {
   }
 
   @Transactional(readOnly = true)
-  public Optional<Assignment> getCaseById(Long id) {
+  public Optional<Assignment> getCaseById(UUID id) {
     return assignmentRepository.findById(id);
   }
 

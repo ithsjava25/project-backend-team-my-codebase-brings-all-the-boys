@@ -19,10 +19,6 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 @NoArgsConstructor
 public class ClassEnrollment extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
   private User user;

@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,8 +15,8 @@ import lombok.Setter;
 public class ActivityLog {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
@@ -27,7 +28,7 @@ public class ActivityLog {
   @Column(nullable = false)
   private String entityType;
 
-  private Long entityId;
+  private UUID entityId;
 
   @Column(columnDefinition = "TEXT")
   private String details;
@@ -35,7 +36,7 @@ public class ActivityLog {
   @Column(nullable = false)
   private LocalDateTime timestamp = LocalDateTime.now();
 
-  public ActivityLog(User user, String action, String entityType, Long entityId, String details) {
+  public ActivityLog(User user, String action, String entityType, UUID entityId, String details) {
     this.user = user;
     this.action = action;
     this.entityType = entityType;

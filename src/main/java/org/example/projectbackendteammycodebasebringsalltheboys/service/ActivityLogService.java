@@ -1,6 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ActivityLog;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
@@ -16,7 +17,7 @@ public class ActivityLogService {
   private final ActivityLogRepository activityLogRepository;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void log(User user, String action, String entityType, Long entityId, String details) {
+  public void log(User user, String action, String entityType, UUID entityId, String details) {
     ActivityLog log = new ActivityLog(user, action, entityType, entityId, details);
     activityLogRepository.save(log);
   }
@@ -27,7 +28,7 @@ public class ActivityLogService {
   }
 
   @Transactional(readOnly = true)
-  public List<ActivityLog> getLogsForEntity(String entityType, Long entityId) {
+  public List<ActivityLog> getLogsForEntity(String entityType, UUID entityId) {
     return activityLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDesc(
         entityType, entityId);
   }

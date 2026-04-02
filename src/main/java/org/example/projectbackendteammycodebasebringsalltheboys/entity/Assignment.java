@@ -13,10 +13,6 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.Assignment
 @NoArgsConstructor
 public class Assignment extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
   @Column(nullable = false)
   private String title;
 

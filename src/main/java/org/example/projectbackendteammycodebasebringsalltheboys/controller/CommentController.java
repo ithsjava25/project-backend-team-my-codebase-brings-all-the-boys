@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.comment.CommentRequest;
@@ -10,13 +11,15 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.comment.Comm
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CaseService;
-import org.example.projectbackendteammycodebasebringsalltheboys.service.ClassEnrollmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CommentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,41 +30,32 @@ public class CommentController {
   private final CommentService commentService;
   private final CaseService caseService;
   private final UserService userService;
-  private final ClassEnrollmentService classEnrollmentService;
+  private final AuthorizationService authorizationService;
   private final DtoMapper dtoMapper;
 
   @PostMapping("/assignment/{assignmentId}")
   public ResponseEntity<CommentResponse> addComment(
-      @PathVariable Long assignmentId,
+      @PathVariable UUID assignmentId,
       @Valid @RequestBody CommentRequest request,
       Principal principal) {
 
     if (principal == null) {
-      return ResponseEntity.status(401).build();
+      throw new UnauthorizedException("Authentication is required");
     }
 
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new IllegalStateException("Current user not found"));
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
     Assignment assignment =
         caseService
             .getCaseById(assignmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Assignment not found"));
+            .orElseThrow(
+                () -> new NotFoundException("Assignment not found with id: " + assignmentId));
 
-    boolean isCreator =
-        assignment.getCreator() != null
-            && assignment.getCreator().getId().equals(currentUser.getId());
-
-    boolean isEnrolled =
-        assignment.getCourse() != null
-            && assignment.getCourse().getSchoolClass() != null
-            && classEnrollmentService.isUserInClass(
-                currentUser, assignment.getCourse().getSchoolClass());
-
-    if (!isCreator && !isEnrolled) {
-      throw new AccessDeniedException("You are not authorized to comment on this assignment");
+    if (!authorizationService.canCommentOnAssignment(currentUser, assignment)) {
+      throw new ForbiddenException("You are not authorized to comment on this assignment");
     }
     Comment comment = commentService.addComment(assignment, currentUser, request.getText());
 
@@ -70,35 +64,25 @@ public class CommentController {
 
   @GetMapping("/assignment/{assignmentId}")
   public ResponseEntity<List<CommentResponse>> getCommentsByAssignment(
-      @PathVariable Long assignmentId, Principal principal) {
+      @PathVariable UUID assignmentId, Principal principal) {
 
     if (principal == null) {
-      return ResponseEntity.status(401).build();
+      throw new UnauthorizedException("Authentication is required");
     }
 
     Assignment assignment =
         caseService
             .getCaseById(assignmentId)
-            .orElseThrow(() -> new IllegalArgumentException("Assignment not found"));
+            .orElseThrow(
+                () -> new NotFoundException("Assignment not found with id: " + assignmentId));
 
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new IllegalStateException("Current user not found"));
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
-    boolean isCreator =
-        assignment.getCreator() != null
-            && assignment.getCreator().getId().equals(currentUser.getId());
-
-    boolean isEnrolled =
-        assignment.getCourse() != null
-            && assignment.getCourse().getSchoolClass() != null
-            && classEnrollmentService.isUserInClass(
-                currentUser, assignment.getCourse().getSchoolClass());
-
-    if (!isCreator && !isEnrolled) {
-      throw new AccessDeniedException(
-          "You are not authorized to view comments for this assignment");
+    if (!authorizationService.canViewAssignment(currentUser, assignment)) {
+      throw new ForbiddenException("You are not authorized to view comments for this assignment");
     }
 
     List<Comment> comments = commentService.getCommentsByAssignment(assignment);

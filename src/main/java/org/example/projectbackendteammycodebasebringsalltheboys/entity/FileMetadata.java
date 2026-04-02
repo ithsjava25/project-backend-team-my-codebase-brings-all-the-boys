@@ -12,10 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FileMetadata extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
   @Column(nullable = false, unique = true)
   private String s3Key;
 
@@ -33,6 +29,10 @@ public class FileMetadata extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "comment_id")
   private Comment comment;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "submission_id")
+  private Submission submission;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "uploader_id", nullable = false)

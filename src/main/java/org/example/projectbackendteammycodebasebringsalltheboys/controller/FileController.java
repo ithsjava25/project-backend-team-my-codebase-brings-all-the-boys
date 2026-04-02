@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
 import java.security.Principal;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.file.FileResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.file.GeneratedUpload;
@@ -11,12 +12,14 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignmen
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CaseService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CommentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.FileService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
-import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +30,6 @@ public class FileController {
 
   private final FileService fileService;
   private final UserService userService;
-  private final StorageService storageService;
   private final CaseService caseService;
   private final CommentService commentService;
   private final DtoMapper dtoMapper;
@@ -48,28 +50,28 @@ public class FileController {
       @Valid @RequestBody UploadRequest request, @RequestParam String s3Key, Principal principal) {
 
     if (principal == null) {
-      return ResponseEntity.status(401).build();
+      throw new UnauthorizedException("Authentication is required");
     }
 
     if (s3Key == null || s3Key.isBlank()) {
-      throw new IllegalArgumentException("s3Key is required");
+      throw new BadRequestException("s3Key is required");
     }
 
     if (request.getAssignmentId() == null && request.getCommentId() == null) {
-      throw new IllegalArgumentException("Either assignmentId or commentId must be provided");
+      throw new BadRequestException("Either assignmentId or commentId must be provided");
     }
 
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new IllegalStateException("Current user not found"));
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
     Assignment assignment = null;
     if (request.getAssignmentId() != null) {
       assignment =
           caseService
               .getCaseById(request.getAssignmentId())
-              .orElseThrow(() -> new IllegalArgumentException("Assignment not found"));
+              .orElseThrow(() -> new NotFoundException("Assignment not found"));
     }
 
     Comment comment = null;
@@ -77,14 +79,14 @@ public class FileController {
       comment =
           commentService
               .getCommentById(request.getCommentId())
-              .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+              .orElseThrow(() -> new NotFoundException("Comment not found"));
 
       if (comment.getAssignment() == null) {
-        throw new IllegalArgumentException("Comment is not linked to an assignment");
+        throw new BadRequestException("Comment is not linked to an assignment");
       }
 
       if (assignment != null && !comment.getAssignment().getId().equals(assignment.getId())) {
-        throw new IllegalArgumentException("Comment does not belong to the specified assignment");
+        throw new BadRequestException("Comment does not belong to the specified assignment");
       }
 
       assignment = comment.getAssignment();
@@ -104,7 +106,7 @@ public class FileController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<FileResponse> getFileMetadata(@PathVariable Long id, Principal principal) {
+  public ResponseEntity<FileResponse> getFileMetadata(@PathVariable UUID id, Principal principal) {
     if (principal == null) {
       return ResponseEntity.status(401).build();
     }
@@ -112,7 +114,7 @@ public class FileController {
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new IllegalStateException("Current user not found"));
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
     return fileService
         .getFileById(id)

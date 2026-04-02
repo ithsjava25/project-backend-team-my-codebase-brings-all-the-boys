@@ -14,10 +14,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SchoolClass extends BaseEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
-
   @Column(nullable = false, unique = true)
   private String name; // e.g., "9A", "Class-2026-A"
 

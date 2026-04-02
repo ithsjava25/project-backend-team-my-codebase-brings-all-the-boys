@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
@@ -42,7 +43,7 @@ public class SchoolClassService {
   }
 
   @Transactional(readOnly = true)
-  public Optional<SchoolClass> getClassById(Long id) {
+  public Optional<SchoolClass> getClassById(UUID id) {
     return schoolClassRepository.findById(id);
   }
 
