@@ -3,7 +3,6 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassSurfaceResponse;
@@ -27,69 +26,69 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class SchoolClassController {
 
-    private final SchoolClassService schoolClassService;
-    private final UserService userService;
-    private final DtoMapper dtoMapper;
+  private final SchoolClassService schoolClassService;
+  private final UserService userService;
+  private final DtoMapper dtoMapper;
 
-    @GetMapping
-    public ResponseEntity<List<SchoolClassSurfaceResponse>>
-    getAllSchoolClasses() { // Assuming SchoolClassSurfaceResponse exists
-        List<SchoolClass> schoolClasses = schoolClassService.getAllClasses();
-        List<SchoolClassSurfaceResponse> response =
-                schoolClasses.stream()
-                        .map(dtoMapper::toSchoolClassSurfaceResponse)
-                        .collect(Collectors.toList());
-        return ResponseEntity.ok(response);
+  @GetMapping
+  public ResponseEntity<List<SchoolClassSurfaceResponse>>
+      getAllSchoolClasses() { // Assuming SchoolClassSurfaceResponse exists
+    List<SchoolClass> schoolClasses = schoolClassService.getAllClasses();
+    List<SchoolClassSurfaceResponse> response =
+        schoolClasses.stream()
+            .map(dtoMapper::toSchoolClassSurfaceResponse)
+            .collect(Collectors.toList());
+    return ResponseEntity.ok(response);
+  }
+
+  @Transactional(readOnly = true)
+  @GetMapping("/{id}")
+  public ResponseEntity<SchoolClassDetailResponse> getSchoolClassById(
+      @PathVariable UUID id,
+      java.security.Principal principal) { // Assuming SchoolClassDetailResponse exists
+
+    if (principal == null) {
+      throw new UnauthorizedException("Authentication is required");
     }
 
-    @Transactional(readOnly = true)
-    @GetMapping("/{id}")
-    public ResponseEntity<SchoolClassDetailResponse> getSchoolClassById(
-            @PathVariable UUID id,
-            java.security.Principal principal) { // Assuming SchoolClassDetailResponse exists
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
-        if (principal == null) {
-            throw new UnauthorizedException("Authentication is required");
-        }
+    SchoolClass schoolClass =
+        schoolClassService
+            .getClassById(id)
+            .orElseThrow(() -> new NotFoundException("School class not found with id: " + id));
 
-        User currentUser =
-                userService
-                        .getUserByUsername(principal.getName())
-                        .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+    // Authorization check: Allow Admins, Teachers, Mentors, and enrolled Students to view details
+    boolean isTeacherOrAdmin =
+        currentUser.getRole().getName().equals("ROLE_ADMIN")
+            || currentUser.getRole().getName().equals("ROLE_TEACHER");
+    boolean isMentor =
+        schoolClass.getEnrollments().stream()
+            .anyMatch(
+                e ->
+                    e.getUser().getId().equals(currentUser.getId())
+                        && e.getClassRole()
+                            == org.example.projectbackendteammycodebasebringsalltheboys.enums
+                                .ClassRole.MENTOR);
+    boolean isEnrolledStudent =
+        schoolClass.getEnrollments().stream()
+            .anyMatch(
+                e ->
+                    e.getUser().getId().equals(currentUser.getId())
+                        && e.getClassRole()
+                            == org.example.projectbackendteammycodebasebringsalltheboys.enums
+                                .ClassRole.STUDENT);
 
-        SchoolClass schoolClass =
-                schoolClassService
-                        .getClassById(id)
-                        .orElseThrow(() -> new NotFoundException("School class not found with id: " + id));
-
-        // Authorization check: Allow Admins, Teachers, Mentors, and enrolled Students to view details
-        boolean isTeacherOrAdmin =
-                currentUser.getRole().getName().equals("ROLE_ADMIN")
-                        || currentUser.getRole().getName().equals("ROLE_TEACHER");
-        boolean isMentor =
-                schoolClass.getEnrollments().stream()
-                        .anyMatch(
-                                e ->
-                                        e.getUser().getId().equals(currentUser.getId())
-                                                && e.getClassRole()
-                                                == org.example.projectbackendteammycodebasebringsalltheboys.enums
-                                                .ClassRole.MENTOR);
-        boolean isEnrolledStudent =
-                schoolClass.getEnrollments().stream()
-                        .anyMatch(
-                                e ->
-                                        e.getUser().getId().equals(currentUser.getId())
-                                                && e.getClassRole()
-                                                == org.example.projectbackendteammycodebasebringsalltheboys.enums
-                                                .ClassRole.STUDENT);
-
-        if (isTeacherOrAdmin || isMentor || isEnrolledStudent) {
-            return ResponseEntity.ok(
-                    dtoMapper.toSchoolClassDetailResponse(schoolClass)); // Corrected mapping
-        } else {
-            // For users who are not authorized, deny access.
-            throw new ForbiddenException(
-                    "You do not have permission to view this school class's details.");
-        }
+    if (isTeacherOrAdmin || isMentor || isEnrolledStudent) {
+      return ResponseEntity.ok(
+          dtoMapper.toSchoolClassDetailResponse(schoolClass)); // Corrected mapping
+    } else {
+      // For users who are not authorized, deny access.
+      throw new ForbiddenException(
+          "You do not have permission to view this school class's details.");
     }
+  }
 }
