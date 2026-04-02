@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
-public abstract class BaseEntity {
+public abstract class BaseEntity implements Identifiable {
 
   @CreatedDate
   @Column(nullable = false, updatable = false)

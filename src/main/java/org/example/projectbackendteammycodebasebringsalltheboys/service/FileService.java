@@ -3,10 +3,13 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 import java.io.InputStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ public class FileService {
   private final StorageService storageService;
   private final ActivityLogService activityLogService;
 
+  @LogActivity(action = ActivityAction.ADDED, entity = EntityType.FILE)
   @Transactional
   public FileMetadata uploadAssignmentFile(
       Assignment assignment,
@@ -40,22 +44,14 @@ public class FileService {
       metadata.setAssignment(assignment);
       metadata.setUploader(uploader);
 
-      FileMetadata saved = fileMetadataRepository.save(metadata);
-
-      activityLogService.log(
-          uploader,
-          "UPLOADED_FILE",
-          "Assignment",
-          assignment.getId(),
-          "Uploaded file: " + fileName);
-
-      return saved;
+      return fileMetadataRepository.save(metadata);
     } catch (Exception e) {
       storageService.deleteFile(s3Key);
       throw e;
     }
   }
 
+  @LogActivity(action = ActivityAction.ADDED, entity = EntityType.COMMENT_FILE)
   @Transactional
   public FileMetadata uploadCommentFile(
       Comment comment,
@@ -77,16 +73,7 @@ public class FileService {
       metadata.setAssignment(comment.getAssignment());
       metadata.setUploader(uploader);
 
-      FileMetadata saved = fileMetadataRepository.save(metadata);
-
-      activityLogService.log(
-          uploader,
-          "UPLOADED_FILE",
-          "Comment",
-          comment.getId(),
-          "Uploaded file: " + fileName + " for comment");
-
-      return saved;
+      return fileMetadataRepository.save(metadata);
     } catch (Exception e) {
       storageService.deleteFile(s3Key);
       throw e;

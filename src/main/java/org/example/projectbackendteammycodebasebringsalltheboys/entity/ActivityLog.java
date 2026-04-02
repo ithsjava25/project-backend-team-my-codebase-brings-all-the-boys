@@ -1,10 +1,17 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "activity_logs")
@@ -17,29 +24,49 @@ public class ActivityLog {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  private Long caseId;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
   private User user;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private String action;
+  private ActivityAction action;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private String entityType;
+  private EntityType entityType;
 
   private Long entityId;
 
-  @Column(columnDefinition = "TEXT")
-  private String details;
+  @Column(columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  private Map<String, Object> details;
 
   @Column(nullable = false)
-  private LocalDateTime timestamp = LocalDateTime.now();
+  private LocalDateTime timestamp;
 
-  public ActivityLog(User user, String action, String entityType, Long entityId, String details) {
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private ActivityStatus status;
+
+  public ActivityLog(
+      User user,
+      Long caseID,
+      ActivityAction action,
+      EntityType entityType,
+      Long entityId,
+      Map<String, Object> details,
+      ActivityStatus status,
+      Clock clock) {
     this.user = user;
+    this.caseId = caseID;
     this.action = action;
     this.entityType = entityType;
     this.entityId = entityId;
     this.details = details;
+    this.status = status;
+    this.timestamp = LocalDateTime.now(clock);
   }
 }
