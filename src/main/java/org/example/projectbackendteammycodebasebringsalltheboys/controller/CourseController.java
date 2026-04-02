@@ -58,9 +58,8 @@ public class CourseController {
             .getCourseById(id)
             .orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
 
-    boolean isTeacherOrAdmin =
-        currentUser.getRole().getName().equals("ROLE_ADMIN")
-            || currentUser.getRole().getName().equals("ROLE_TEACHER");
+    String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : null;
+    boolean isTeacherOrAdmin = "ROLE_ADMIN".equals(roleName) || "ROLE_TEACHER".equals(roleName);
     boolean isLeadTeacher =
         course.getLeadTeacher() != null
             && course.getLeadTeacher().getId().equals(currentUser.getId());

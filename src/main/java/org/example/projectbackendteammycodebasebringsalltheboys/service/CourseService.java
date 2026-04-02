@@ -46,6 +46,12 @@ public class CourseService {
 
   @Transactional
   public void updateLeadTeacher(UUID courseId, User newLead, User updater) {
+    if (newLead == null || newLead.getId() == null) {
+      throw new BadRequestException("Lead teacher is required");
+    }
+    if (updater == null || updater.getId() == null) {
+      throw new BadRequestException("Updater is required");
+    }
     Course course =
         courseRepository
             .findById(courseId)
@@ -63,6 +69,12 @@ public class CourseService {
 
   @Transactional
   public void addAssistant(UUID courseId, User assistant, User updater) {
+    if (assistant == null || assistant.getId() == null) {
+      throw new BadRequestException("Assistant is required");
+    }
+    if (updater == null || updater.getId() == null) {
+      throw new BadRequestException("Updater is required");
+    }
     Course course =
         courseRepository
             .findById(courseId)
@@ -84,6 +96,12 @@ public class CourseService {
 
   @Transactional
   public void removeAssistant(UUID courseId, User assistant, User updater) {
+    if (assistant == null || assistant.getId() == null) {
+      throw new BadRequestException("Assistant is required");
+    }
+    if (updater == null || updater.getId() == null) {
+      throw new BadRequestException("Updater is required");
+    }
     Course course =
         courseRepository
             .findById(courseId)
