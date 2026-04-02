@@ -26,9 +26,9 @@ export default function Dashboard() {
                 borderRadius: '8px',
                 marginBottom: '1.5rem'
             }}>
-                <h2>Välkommen, {user.username}!</h2>
-                <p><strong>Email:</strong> {user.email || 'Ej angiven'}</p>
-                <p><strong>Role:</strong> {user.role?.name || 'Ej angiven'}</p>
+                <h2>Welcome, {user.username}!</h2>
+                <p><strong>Email:</strong> {user.email || 'Not specified'}</p>
+                <p><strong>Role:</strong> {user.role?.name || 'Not specified'}</p>
                 <p><strong>User ID:</strong> {user.id}</p>
             </div>
 
@@ -44,14 +44,15 @@ export default function Dashboard() {
                     fontSize: '1rem'
                 }}
             >
-                Logga ut
+                Logout
             </button>
 
             <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+                <h2>Placeholder Page</h2>
                 <h3>Session Status</h3>
-                <p>✅ Inloggad via session cookie</p>
-                <p>🔒 CSRF-skydd aktivt (via OAuth2 state parameter)</p>
-                <p>🍪 Kolla DevTools → Application → Cookies för att se session-cookien</p>
+                <p>✅ Logged in via session cookie</p>
+                <p>🔒 CSRF protection active (via OAuth2 state parameter)</p>
+                <p>🍪 Check DevTools → Application → Cookies to see the session cookie</p>
             </div>
         </div>
     );

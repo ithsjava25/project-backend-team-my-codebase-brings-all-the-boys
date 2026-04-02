@@ -97,6 +97,6 @@ public class AuthController {
     HttpSession session = request.getSession(false);
     if (session != null) session.invalidate();
     SecurityContextHolder.clearContext();
-    return ResponseEntity.ok(Map.of("message", "Utloggad"));
+    return ResponseEntity.ok(Map.of("message", "Logged out"));
   }
 }
