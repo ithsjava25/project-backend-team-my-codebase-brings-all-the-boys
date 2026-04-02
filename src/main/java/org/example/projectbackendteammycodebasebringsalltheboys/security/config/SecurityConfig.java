@@ -2,7 +2,6 @@ package org.example.projectbackendteammycodebasebringsalltheboys.security.config
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
-import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.OAuth2LoginSuccessHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -7,9 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.AuthController;
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.PageController;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.config.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
-import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.DisplayName;

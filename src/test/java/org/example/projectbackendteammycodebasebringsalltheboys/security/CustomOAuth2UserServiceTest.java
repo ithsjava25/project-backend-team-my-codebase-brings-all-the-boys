@@ -99,6 +99,7 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
+    when(oauthUser.getAttribute("login")).thenReturn("testuser");
     when(oauthUser.getAttributes()).thenReturn(Map.of("email", email, "login", "testuser"));
     when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
 
@@ -162,6 +163,7 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
+    when(oauthUser.getAttribute("login")).thenReturn("testuser");
     when(oauthUser.getAttributes()).thenReturn(Map.of("email", email, "login", "testuser"));
     when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
@@ -187,6 +189,7 @@ class CustomOAuth2UserServiceTest {
     String email = "new@example.com";
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
+    when(oauthUser.getAttribute("login")).thenReturn("testuser");
     when(oauthUser.getAttribute("email")).thenReturn(email);
     when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
@@ -211,6 +214,7 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn("any@example.com");
+    when(oauthUser.getAttribute("login")).thenReturn("testuser");
     when(oauthUser.getAttributes())
         .thenReturn(Map.of("email", "any@example.com", "login", "testuser"));
     when(userRepository.findByEmail(any())).thenReturn(Optional.of(existingUser));

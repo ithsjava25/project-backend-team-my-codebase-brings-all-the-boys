@@ -12,9 +12,9 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleRes
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.config.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
-import org.example.projectbackendteammycodebasebringsalltheboys.security.config.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ class AuthControllerTest {
   // --- POST /api/auth/register ---
 
   @Test
-  @DisplayName("POST /api/auth/register with valid data returns 200 OK")
+  @DisplayName("POST /api/auth/register with valid data returns 201 Created")
   void registerUser_validRequest_returnsOk() throws Exception {
     RegistrationRequest request = new RegistrationRequest();
     request.setUsername("test@example.com");
@@ -80,7 +80,7 @@ class AuthControllerTest {
             post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
+        .andExpect(status().isCreated())
         .andExpect(jsonPath("$.username").value("user"))
         .andExpect(jsonPath("$.role.name").value("ROLE_STUDENT"));
   }
