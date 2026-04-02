@@ -9,11 +9,13 @@ import org.example.projectbackendteammycodebasebringsalltheboys.controller.AuthC
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.PageController;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,19 +25,18 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {PageController.class, AuthController.class})
+@WebMvcTest(
+    excludeAutoConfiguration = OAuth2ClientAutoConfiguration.class,
+    controllers = {PageController.class, AuthController.class})
 @Import({SecurityConfig.class, TestViewConfig.class})
 class SecurityConfigTest {
 
   @Autowired private MockMvc mockMvc;
-
   @Autowired private PasswordEncoder passwordEncoder;
-
   @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
-
   @MockitoBean private UserService userService;
-
   @MockitoBean private ClientRegistrationRepository clientRegistrationRepository;
+  @MockitoBean private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
   @Test
   @WithMockUser(roles = "ADMIN")

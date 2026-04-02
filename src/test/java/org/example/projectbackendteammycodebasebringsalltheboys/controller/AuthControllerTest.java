@@ -13,6 +13,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,12 +23,19 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(AuthController.class)
 @Import(SecurityConfig.class)
+@TestPropertySource(
+    properties = {
+      "spring.security.oauth2.client.registration.github.client-id=test-id",
+      "spring.security.oauth2.client.registration.github.client-secret=test-secret",
+      "frontend.url=http://localhost:3000"
+    })
 class AuthControllerTest {
 
   @Autowired private MockMvc mockMvc;
@@ -35,6 +43,7 @@ class AuthControllerTest {
   @MockitoBean private UserService userService;
   @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
   @MockitoBean private ClientRegistrationRepository clientRegistrationRepository;
+  @MockitoBean private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -50,19 +59,20 @@ class AuthControllerTest {
     request.setConfirmPassword("password123");
 
     User user = new User();
-    user.setUsername("test@example.com");
+    user.setUsername("user");
 
     Role role = new Role();
     role.setName("ROLE_STUDENT");
     user.setRole(role);
 
     UserResponse userResponse = new UserResponse();
-    userResponse.setUsername("test@example.com");
+    userResponse.setUsername("user");
 
     RoleResponse roleResponse = new RoleResponse();
     roleResponse.setName("ROLE_STUDENT");
     userResponse.setRole(roleResponse);
 
+    when(userService.registerUser(any(RegistrationRequest.class))).thenReturn(user);
     when(userService.toUserResponse(any(User.class))).thenReturn(userResponse);
 
     mockMvc
@@ -71,7 +81,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.username").value("test@example.com"))
+        .andExpect(jsonPath("$.username").value("user"))
         .andExpect(jsonPath("$.role.name").value("ROLE_STUDENT"));
   }
 

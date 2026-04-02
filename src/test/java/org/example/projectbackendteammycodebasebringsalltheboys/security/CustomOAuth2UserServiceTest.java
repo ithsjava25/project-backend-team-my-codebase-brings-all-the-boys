@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -68,12 +69,16 @@ class CustomOAuth2UserServiceTest {
   @DisplayName(
       "loadUser throws OAuth2AuthenticationException when OAuth2 provider returns no email")
   void loadUser_nullEmail_throwsIllegalStateException() {
+    OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+    when(userRequest.getAccessToken()).thenReturn(accessToken);
+    when(accessToken.getTokenValue()).thenReturn("dummy-token");
+
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(null);
 
     assertThatThrownBy(() -> service.loadUser(userRequest))
         .isInstanceOf(OAuth2AuthenticationException.class)
-        .hasMessage("Email not provided by OAuth2 provider");
+        .hasMessage("Email not provided by OAuth2 provider and could not be fetched");
 
     verifyNoInteractions(userRepository, roleRepository);
   }
@@ -94,7 +99,7 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
-    when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
+    when(oauthUser.getAttributes()).thenReturn(Map.of("email", email, "login", "testuser"));
     when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
 
     OAuth2User result = service.loadUser(userRequest);
@@ -123,7 +128,8 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
-    when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
+    when(oauthUser.getAttribute("login")).thenReturn("testuser");
+    when(oauthUser.getAttributes()).thenReturn(Map.of("email", email, "login", "testuser"));
     when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
     when(passwordEncoder.encode(anyString())).thenReturn("encoded-oauth-password");
@@ -137,7 +143,7 @@ class CustomOAuth2UserServiceTest {
     verify(userRepository).save(userCaptor.capture());
 
     User captured = userCaptor.getValue();
-    assertThat(captured.getUsername()).isEqualTo(email);
+    assertThat(captured.getUsername()).isEqualTo("testuser");
     assertThat(captured.getRole()).isEqualTo(role);
     assertThat(captured.getPassword()).isNotNull().isNotEmpty();
     verify(passwordEncoder).encode(anyString());
@@ -156,7 +162,7 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn(email);
-    when(oauthUser.getAttributes()).thenReturn(Map.of("email", email));
+    when(oauthUser.getAttributes()).thenReturn(Map.of("email", email, "login", "testuser"));
     when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
     when(passwordEncoder.encode(anyString())).thenReturn("encoded-oauth-password");
@@ -205,7 +211,8 @@ class CustomOAuth2UserServiceTest {
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
     when(oauthUser.getAttribute("email")).thenReturn("any@example.com");
-    when(oauthUser.getAttributes()).thenReturn(Map.of("email", "any@example.com"));
+    when(oauthUser.getAttributes())
+        .thenReturn(Map.of("email", "any@example.com", "login", "testuser"));
     when(userRepository.findByEmail(any())).thenReturn(Optional.of(existingUser));
 
     service.loadUser(userRequest);
