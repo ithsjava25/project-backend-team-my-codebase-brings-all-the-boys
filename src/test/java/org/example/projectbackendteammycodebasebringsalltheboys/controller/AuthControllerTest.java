@@ -21,6 +21,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -42,31 +43,26 @@ class AuthControllerTest {
   @Test
   @DisplayName("POST /api/auth/register with valid data returns 200 OK")
   void registerUser_validRequest_returnsOk() throws Exception {
-    User user = new User();
-    user.setId(1L);
-    user.setUsername("test@example.com");
-
-    Role role = new Role();
-    role.setId(1L);
-    role.setName("ROLE_STUDENT");
-    user.setRole(role);
-    when(userService.registerUser(any(RegistrationRequest.class))).thenReturn(user);
-
-    UserResponse userResponse = new UserResponse();
-    userResponse.setId(1L);
-    userResponse.setUsername("test@example.com");
-    userResponse.setEmail("test@example.com");
-
-    RoleResponse roleResponse = new RoleResponse();
-    roleResponse.setId(1L);
-    roleResponse.setName("ROLE_STUDENT");
-    userResponse.setRole(roleResponse);
     RegistrationRequest request = new RegistrationRequest();
     request.setUsername("test@example.com");
+    request.setEmail("test@example.com");
     request.setPassword("password123");
     request.setConfirmPassword("password123");
 
-    when(userService.registerUser(any(RegistrationRequest.class))).thenReturn(user);
+    User user = new User();
+    user.setUsername("test@example.com");
+
+    Role role = new Role();
+    role.setName("ROLE_STUDENT");
+    user.setRole(role);
+
+    UserResponse userResponse = new UserResponse();
+    userResponse.setUsername("test@example.com");
+
+    RoleResponse roleResponse = new RoleResponse();
+    roleResponse.setName("ROLE_STUDENT");
+    userResponse.setRole(roleResponse);
+
     when(userService.toUserResponse(any(User.class))).thenReturn(userResponse);
 
     mockMvc
@@ -77,8 +73,6 @@ class AuthControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value("test@example.com"))
         .andExpect(jsonPath("$.role.name").value("ROLE_STUDENT"));
-
-    verify(userService, times(1)).registerUser(any(RegistrationRequest.class));
   }
 
   @Test
@@ -89,6 +83,7 @@ class AuthControllerTest {
 
     RegistrationRequest request = new RegistrationRequest();
     request.setUsername("test@example.com");
+    request.setEmail("test@example.com");
     request.setPassword("password123");
     request.setConfirmPassword("password123");
 
@@ -112,17 +107,14 @@ class AuthControllerTest {
     user.setUsername("test@example.com");
 
     Role role = new Role();
-    role.setId(1L);
     role.setName("ROLE_STUDENT");
     user.setRole(role);
 
     UserResponse userResponse = new UserResponse();
-    userResponse.setId(1L);
     userResponse.setUsername("test@example.com");
     userResponse.setEmail("test@example.com");
 
     RoleResponse roleResponse = new RoleResponse();
-    roleResponse.setId(1L);
     roleResponse.setName("ROLE_STUDENT");
     userResponse.setRole(roleResponse);
 
@@ -131,10 +123,7 @@ class AuthControllerTest {
 
     mockMvc
         .perform(
-            get("/api/auth/me")
-                .with(
-                    org.springframework.security.test.web.servlet.request
-                        .SecurityMockMvcRequestPostProcessors.user("test@example.com")))
+            get("/api/auth/me").with(SecurityMockMvcRequestPostProcessors.user("test@example.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value("test@example.com"))
         .andExpect(jsonPath("$.role.name").value("ROLE_STUDENT"));

@@ -1,6 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -14,7 +15,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +26,8 @@ public class AuthController {
 
   private final UserService userService;
   private final AuthenticationManager authenticationManager;
+  private final HttpSessionSecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
 
   public AuthController(UserService userService, AuthenticationManager authenticationManager) {
     this.userService = userService;
@@ -43,15 +48,27 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<?> login(
-      @RequestBody Map<String, String> credentials, HttpServletRequest request) {
+      @RequestBody Map<String, String> credentials,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+
+    String username = credentials.get("username");
+    String password = credentials.get("password");
+
+    if (username == null || username.isBlank() || password == null || password.isBlank()) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", "Username and password are required"));
+    }
+
     try {
       UsernamePasswordAuthenticationToken token =
-          new UsernamePasswordAuthenticationToken(
-              credentials.get("username"), credentials.get("password"));
+          new UsernamePasswordAuthenticationToken(username, password);
 
       Authentication auth = authenticationManager.authenticate(token);
-      SecurityContextHolder.getContext().setAuthentication(auth);
-      request.getSession(true);
+      SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+      securityContext.setAuthentication(auth);
+      SecurityContextHolder.setContext(securityContext);
+      securityContextRepository.saveContext(securityContext, request, response);
 
       return ResponseEntity.ok(Map.of("message", "Inloggad"));
     } catch (AuthenticationException e) {
@@ -79,6 +96,7 @@ public class AuthController {
   public ResponseEntity<?> logout(HttpServletRequest request) {
     HttpSession session = request.getSession(false);
     if (session != null) session.invalidate();
+    SecurityContextHolder.clearContext();
     return ResponseEntity.ok(Map.of("message", "Utloggad"));
   }
 }
