@@ -1,11 +1,9 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,24 +17,24 @@ import org.hibernate.annotations.SoftDelete;
 @NoArgsConstructor
 public class Submission extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_assignment_id", nullable = false)
-    private UserAssignment userAssignment;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "user_assignment_id", nullable = false)
+  private UserAssignment userAssignment;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "student_id", nullable = false)
+  private User student;
 
-    @Column(columnDefinition = "TEXT")
-    private String content;
+  @Column(columnDefinition = "TEXT")
+  private String content;
 
-    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FileMetadata> files = new ArrayList<>();
+  @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<FileMetadata> files = new ArrayList<>();
 
-    private LocalDateTime submittedAt;
+  private LocalDateTime submittedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.submittedAt = LocalDateTime.now();
-    }
+  @PrePersist
+  protected void onCreate() {
+    this.submittedAt = LocalDateTime.now();
+  }
 }

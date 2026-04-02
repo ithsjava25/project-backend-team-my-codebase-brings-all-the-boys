@@ -15,21 +15,21 @@ import org.hibernate.annotations.SoftDelete;
 @NoArgsConstructor
 public class Assignment extends BaseEntity {
 
-    @Column(nullable = false)
-    private String title;
+  @Column(nullable = false)
+  private String title;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+  @Column(columnDefinition = "TEXT")
+  private String description;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "creator_id", nullable = false)
-    private User creator;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "creator_id", nullable = false)
+  private User creator;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "course_id")
-    private Course course;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "course_id")
+  private Course course;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private AssignmentStatus status = AssignmentStatus.CREATED;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private AssignmentStatus status = AssignmentStatus.CREATED;
 }
