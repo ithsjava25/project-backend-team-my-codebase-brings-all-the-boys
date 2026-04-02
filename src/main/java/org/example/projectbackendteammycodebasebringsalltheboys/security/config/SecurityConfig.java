@@ -24,7 +24,7 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(
-      HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) throws Exception {
+      HttpSecurity http, CustomOAuth2UserService customOAuth2UserService) {
 
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
@@ -49,7 +49,7 @@ public class SecurityConfig {
         .exceptionHandling(
             ex ->
                 ex.authenticationEntryPoint(
-                    (request, response, authException) ->
+                    (_, response, _) ->
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
         .oauth2Login(
             oauth ->
@@ -57,7 +57,6 @@ public class SecurityConfig {
                     .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
                     .defaultSuccessUrl(frontendUrl + "/dashboard", true))
         .logout(logout -> logout.logoutSuccessUrl(frontendUrl).permitAll());
-    // .httpBasic(Customizer.withDefaults())
 
     return http.build();
   }
@@ -68,8 +67,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-      throws Exception {
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
     return config.getAuthenticationManager();
   }
 }

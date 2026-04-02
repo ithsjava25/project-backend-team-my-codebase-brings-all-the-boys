@@ -9,6 +9,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,7 @@ public class UserService {
   }
 
   @Transactional
-  public User registerUser(RegistrationRequest request) {
+  public User registerUser(@NonNull RegistrationRequest request) {
 
     if (userRepository.findByUsername(request.getUsername()).isPresent()) {
       throw new IllegalStateException("User already exists");
@@ -51,16 +52,18 @@ public class UserService {
     return userRepository.save(user);
   }
 
-  public UserResponse toUserResponse(User user) {
+  public UserResponse toUserResponse(@NonNull User user) {
     UserResponse response = new UserResponse();
     response.setId(user.getId());
     response.setUsername(user.getUsername());
-    response.setEmail(user.getUsername()); // samma i ditt fall
+    response.setEmail(user.getEmail());
 
-    RoleResponse roleResponse = new RoleResponse();
-    roleResponse.setId(user.getRole().getId());
-    roleResponse.setName(user.getRole().getName());
-    response.setRole(roleResponse);
+    if (user.getRole() != null) {
+      RoleResponse roleResponse = new RoleResponse();
+      roleResponse.setId(user.getRole().getId());
+      roleResponse.setName(user.getRole().getName());
+      response.setRole(roleResponse);
+    }
 
     return response;
   }
