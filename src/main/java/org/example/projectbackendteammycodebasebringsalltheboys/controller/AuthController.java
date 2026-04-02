@@ -91,12 +91,4 @@ public class AuthController {
 
     return ResponseEntity.ok(userService.toUserResponse(user));
   }
-
-  @PostMapping("/logout")
-  public ResponseEntity<?> logout(HttpServletRequest request) {
-    HttpSession session = request.getSession(false);
-    if (session != null) session.invalidate();
-    SecurityContextHolder.clearContext();
-    return ResponseEntity.ok(Map.of("message", "Logged out"));
-  }
 }

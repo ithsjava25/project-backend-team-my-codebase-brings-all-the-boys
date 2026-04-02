@@ -58,7 +58,12 @@ public class SecurityConfig {
                 oauth
                     .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
                     .successHandler(oAuth2LoginSuccessHandler))
-        .logout(logout -> logout.logoutSuccessUrl(frontendUrl).permitAll());
+            .logout(logout -> logout
+                    .logoutUrl("/api/auth/logout")
+                    .logoutSuccessUrl(frontendUrl)
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID"));
 
     return http.build();
   }
