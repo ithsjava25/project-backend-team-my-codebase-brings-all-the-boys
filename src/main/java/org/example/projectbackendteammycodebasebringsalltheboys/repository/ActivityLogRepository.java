@@ -10,10 +10,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
-  Page<ActivityLog> findByUserOrderByTimestampDesc(User user, Pageable pageable);
+  Page<ActivityLog> findByUserOrderByTimestampDescIdDesc(User user, Pageable pageable);
 
-  Page<ActivityLog> findByEntityTypeAndEntityIdOrderByTimestampDesc(
+  Page<ActivityLog> findByEntityTypeAndEntityIdOrderByTimestampDescIdDesc(
       EntityType entityType, Long entityId, Pageable pageable);
 
-  Page<ActivityLog> findByCaseIdOrderByTimestampDesc(Long caseId, Pageable pageable);
+  Page<ActivityLog> findByCaseIdOrderByTimestampDescIdDesc(Long caseId, Pageable pageable);
 }

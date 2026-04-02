@@ -39,12 +39,12 @@ public class ActivityLogService {
 
   @Transactional(readOnly = true)
   public Page<ActivityLog> getLogsForUser(User user, Pageable pageable) {
-    return activityLogRepository.findByUserOrderByTimestampDesc(user, pageable);
+    return activityLogRepository.findByUserOrderByTimestampDescIdDesc(user, pageable);
   }
 
   @Transactional(readOnly = true)
   public Page<ActivityLog> getLogsForCase(Long caseId, Pageable pageable) {
-    return activityLogRepository.findByCaseIdOrderByTimestampDesc(caseId, pageable);
+    return activityLogRepository.findByCaseIdOrderByTimestampDescIdDesc(caseId, pageable);
   }
 
   @Transactional(readOnly = true)
@@ -55,7 +55,7 @@ public class ActivityLogService {
   @Transactional(readOnly = true)
   public Page<ActivityLog> getLogsForEntity(
       EntityType entityType, Long entityId, Pageable pageable) {
-    return activityLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDesc(
+    return activityLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDescIdDesc(
         entityType, entityId, pageable);
   }
 }

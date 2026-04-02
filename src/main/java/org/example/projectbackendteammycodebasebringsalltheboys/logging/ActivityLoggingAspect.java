@@ -46,7 +46,7 @@ public class ActivityLoggingAspect {
       Long caseId =
           logActivity.noCase() ? resolveResultId(result) : resolveCaseId(args, logActivity);
 
-      Long entityId = result instanceof Identifiable i ? i.getId() : null;
+      Long entityId = resolveResultId(result);
 
       Map<String, Object> details = detailsBuilder.build(logActivity, args);
 
@@ -80,7 +80,7 @@ public class ActivityLoggingAspect {
       Map<String, Object> details =
           new java.util.HashMap<>(detailsBuilder.build(logActivity, args));
       details.put("failed", true);
-      details.put("error", ex.getMessage());
+      details.put("errorType", ex.getClass().getSimpleName());
 
       activityLogService.log(
           user,
