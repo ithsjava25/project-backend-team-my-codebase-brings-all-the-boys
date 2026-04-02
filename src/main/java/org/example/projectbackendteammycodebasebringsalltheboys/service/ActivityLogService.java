@@ -26,9 +26,9 @@ public class ActivityLogService {
   private final Clock clock;
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void log(User user, ActivityAction action, EntityType entityType,
+  public void log(User user, Long caseID, ActivityAction action, EntityType entityType,
                   Long entityId, Map<String, Object> details, ActivityStatus status) {
-    ActivityLog log = new ActivityLog(user, action, entityType, entityId, details, status, clock);
+    ActivityLog log = new ActivityLog(user, caseID, action, entityType, entityId, details, status, clock);
     activityLogRepository.save(log);
   }
 
@@ -48,7 +48,7 @@ public class ActivityLogService {
   }
 
   @Transactional(readOnly = true)
-  public Page<ActivityLog> getLogsForEntity(String entityType, Long entityId, Pageable pageable) {
+  public Page<ActivityLog> getLogsForEntity(EntityType entityType, Long entityId, Pageable pageable) {
     return activityLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDesc(
         entityType, entityId, pageable);
   }

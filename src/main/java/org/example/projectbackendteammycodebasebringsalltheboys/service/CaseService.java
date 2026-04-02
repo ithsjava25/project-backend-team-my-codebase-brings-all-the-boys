@@ -19,7 +19,10 @@ public class CaseService {
   private final AssignmentRepository assignmentRepository;
   private final ActivityLogService activityLogService;
 
-  @LogActivity(action = ActivityAction.CREATED, entity = EntityType.ASSIGNMENT, captureReturnId = true)
+  @LogActivity(
+          action = ActivityAction.CREATED,
+          entity = EntityType.ASSIGNMENT,
+          noCase = true)
   @Transactional
   public Assignment createCase(String title, String description, User creator) {
     Assignment assignment = new Assignment();

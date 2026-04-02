@@ -23,7 +23,9 @@ public class FileService {
   private final StorageService storageService;
   private final ActivityLogService activityLogService;
 
-  @LogActivity(action = ActivityAction.ADDED, entity = EntityType.FILE, entityIdParamIndex = 0)
+  @LogActivity(
+          action = ActivityAction.ADDED,
+          entity = EntityType.FILE)
   @Transactional
   public FileMetadata uploadAssignmentFile(
       Assignment assignment,
@@ -51,7 +53,9 @@ public class FileService {
     }
   }
 
-  @LogActivity(action = ActivityAction.ADDED, entity = EntityType.COMMENT_FILE, entityIdParamIndex = 0)
+  @LogActivity(
+          action = ActivityAction.ADDED,
+          entity = EntityType.COMMENT_FILE)
   @Transactional
   public FileMetadata uploadCommentFile(
       Comment comment,

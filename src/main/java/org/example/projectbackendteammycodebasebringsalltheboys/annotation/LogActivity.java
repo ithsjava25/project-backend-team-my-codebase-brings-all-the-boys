@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LogActivity {
     ActivityAction action();
+    int caseIdParamIndex() default 0;
     EntityType entity();
-    int entityIdParamIndex() default 0;
-    boolean captureReturnId() default false;
+    boolean noCase() default false;
 }

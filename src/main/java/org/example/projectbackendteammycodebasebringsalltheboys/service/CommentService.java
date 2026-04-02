@@ -20,7 +20,9 @@ public class CommentService {
   private final CommentRepository commentRepository;
   private final ActivityLogService activityLogService;
 
-  @LogActivity(action = ActivityAction.ADDED, entity = EntityType.COMMENT, entityIdParamIndex = 0)
+  @LogActivity(
+          action = ActivityAction.ADDED,
+          entity = EntityType.COMMENT)
   @Transactional
   public Comment addComment(Assignment assignment, User author, String text) {
     Objects.requireNonNull(assignment, "Assignment cannot be null");

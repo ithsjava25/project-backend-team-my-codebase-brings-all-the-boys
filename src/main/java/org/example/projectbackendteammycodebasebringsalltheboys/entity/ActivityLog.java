@@ -32,9 +32,11 @@ public class ActivityLog {
   @JoinColumn(name = "user_id")
   private User user;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private ActivityAction action;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private EntityType entityType;
 
@@ -51,9 +53,10 @@ public class ActivityLog {
   @Column(nullable = false)
   private ActivityStatus status;
 
-  public ActivityLog(User user, ActivityAction action, EntityType entityType,
+  public ActivityLog(User user, Long caseID, ActivityAction action, EntityType entityType,
                      Long entityId, Map<String, Object> details, ActivityStatus status, Clock clock) {
     this.user = user;
+    this.caseId = caseID;
     this.action = action;
     this.entityType = entityType;
     this.entityId = entityId;
