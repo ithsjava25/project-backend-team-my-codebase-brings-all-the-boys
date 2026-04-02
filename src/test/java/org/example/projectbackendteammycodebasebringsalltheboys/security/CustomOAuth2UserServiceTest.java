@@ -74,7 +74,7 @@ class CustomOAuth2UserServiceTest {
     when(accessToken.getTokenValue()).thenReturn("dummy-token");
 
     when(delegate.loadUser(userRequest)).thenReturn(oauthUser);
-    when(oauthUser.getAttribute("email")).thenReturn(null);
+    lenient().when(oauthUser.getAttribute("email")).thenReturn(null);
 
     assertThatThrownBy(() -> service.loadUser(userRequest))
         .isInstanceOf(OAuth2AuthenticationException.class)

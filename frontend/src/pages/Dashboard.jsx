@@ -1,10 +1,10 @@
 // Placeholder dashboard page
 
 import { useAuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import {Navigate, useNavigate} from 'react-router-dom';
 
 export default function Dashboard() {
-    const { user, logout } = useAuthContext();
+    const { user, logout, loading } = useAuthContext();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -19,6 +19,10 @@ export default function Dashboard() {
 
     if (loading) {
         return <div>Loading...</div>;
+    }
+
+    if (!user) {
+      return <Navigate to="/login" replace />;
     }
 
     return (
