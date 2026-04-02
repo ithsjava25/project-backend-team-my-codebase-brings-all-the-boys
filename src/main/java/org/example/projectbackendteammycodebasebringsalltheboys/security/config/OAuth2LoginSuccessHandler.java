@@ -27,13 +27,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException {
 
-    OAuth2User oauthUser = ((OAuth2AuthenticationToken) authentication).getPrincipal();
-
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
-    securityContextRepository.saveContext(context, request, response);
-
-    response.sendRedirect(frontendUrl + "/dashboard");
+    String baseUrl = frontendUrl.endsWith("/") ? frontendUrl.substring(0, frontendUrl.length() - 1) : frontendUrl;
+    response.sendRedirect(baseUrl + "/dashboard");
   }
 }
