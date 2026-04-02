@@ -8,8 +8,13 @@ export default function Dashboard() {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
+      try {
         await logout();
+      } catch (err) {
+        console.error('Logout failed:', err);
+      } finally {
         navigate('/login');
+      }
     };
 
     if (!user) {
