@@ -12,10 +12,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserAssignmentRepository extends JpaRepository<UserAssignment, UUID> {
+  @EntityGraph(attributePaths = {"assignment", "student"})
   List<UserAssignment> findByStudent(User student);
 
   Optional<UserAssignment> findByAssignmentAndStudent(Assignment assignment, User student);
-
-  @EntityGraph(attributePaths = {"assignment", "student"})
-  List<UserAssignment> findByStudentWithDetails(User student);
 }
