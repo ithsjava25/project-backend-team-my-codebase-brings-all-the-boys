@@ -53,8 +53,8 @@ class SecurityConfigTest {
   }
 
   @Test
-  @DisplayName("GET /admin unauthenticated redirects to login")
-  void adminPage_unauthenticated_redirectsToLogin() throws Exception {
+  @DisplayName("GET /admin unauthenticated returns 401")
+  void adminPage_unauthenticated_returnsUnauthorized() throws Exception {
     mockMvc.perform(get("/admin")).andExpect(status().isUnauthorized());
   }
 

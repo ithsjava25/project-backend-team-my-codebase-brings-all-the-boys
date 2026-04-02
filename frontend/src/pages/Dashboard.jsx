@@ -17,7 +17,7 @@ export default function Dashboard() {
       }
     };
 
-    if (!user) {
+    if (loading) {
         return <div>Loading...</div>;
     }
 

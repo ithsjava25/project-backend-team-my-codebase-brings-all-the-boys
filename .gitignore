@@ -38,8 +38,6 @@ build/
 # Gemini CLI memory
 GEMINI.md
 
-nul
-
 .env
 .env.local
 .env.*.local

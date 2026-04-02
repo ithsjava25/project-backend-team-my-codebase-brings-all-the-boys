@@ -7,7 +7,7 @@ export function useAuth() {
 
     const fetchUser = () => {
         setLoading(true);
-        client.get('/auth/me')
+        return client.get('/auth/me')
             .then(res => setUser(res.data))
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
@@ -18,7 +18,7 @@ export function useAuth() {
     }, []);
 
     const refetch = () => {
-        fetchUser();
+        return fetchUser();
     };
 
     const logout = async () => {

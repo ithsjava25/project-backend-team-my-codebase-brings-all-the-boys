@@ -34,6 +34,10 @@ public class UserService {
       throw new IllegalStateException("User already exists");
     }
 
+    if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+      throw new IllegalStateException("Email already registered");
+    }
+
     if (!request.getPassword().equals(request.getConfirmPassword())) {
       throw new IllegalStateException("Passwords do not match");
     }
@@ -52,6 +56,7 @@ public class UserService {
     return userRepository.save(user);
   }
 
+  @Transactional(readOnly = true)
   public UserResponse toUserResponse(@NonNull User user) {
     UserResponse response = new UserResponse();
     response.setId(user.getId());

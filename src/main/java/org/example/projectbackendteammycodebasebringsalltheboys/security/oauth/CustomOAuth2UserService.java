@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.security.oauth;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -10,9 +11,12 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -29,6 +33,7 @@ import org.springframework.web.client.RestClient;
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+  private static final Logger log = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
@@ -38,7 +43,14 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
   private OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate =
       new DefaultOAuth2UserService();
 
-  private final RestClient restClient = RestClient.create();
+  private final RestClient restClient =
+      RestClient.builder()
+          .requestFactory(
+              new JdkClientHttpRequestFactory(
+                  java.net.http.HttpClient.newBuilder()
+                      .connectTimeout(Duration.ofSeconds(5))
+                      .build()))
+          .build();
 
   @Override
   public OAuth2User loadUser(OAuth2UserRequest userRequest) {
@@ -57,6 +69,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     String login = oauthUser.getAttribute("login");
+    if (!StringUtils.hasText(login)) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("invalid_user_info"), "Login (username) not provided by OAuth2 provider");
+    }
 
     User user = findOrCreateUser(email, login);
 
@@ -94,6 +110,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                       .findFirst()
                       .orElse(null));
     } catch (Exception e) {
+      log.warn("Failed to fetch email from GitHub: {}", e.getMessage());
       return null;
     }
   }

@@ -40,7 +40,7 @@ public class AuthController {
       User user = userService.registerUser(request);
       UserResponse response = userService.toUserResponse(user);
 
-      return ResponseEntity.ok(response);
+      return ResponseEntity.status(HttpStatus.CREATED).body(response);
     } catch (IllegalStateException e) {
       return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
