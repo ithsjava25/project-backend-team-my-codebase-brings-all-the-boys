@@ -70,10 +70,10 @@ public class AuthController {
       SecurityContextHolder.setContext(securityContext);
       securityContextRepository.saveContext(securityContext, request, response);
 
-      return ResponseEntity.ok(Map.of("message", "Inloggad"));
+      return ResponseEntity.ok(Map.of("message", "Logged in"));
     } catch (AuthenticationException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("error", "Fel användarnamn eller lösenord"));
+          .body(Map.of("error", "Wrong username or password"));
     }
   }
 
