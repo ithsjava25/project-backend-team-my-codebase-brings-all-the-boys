@@ -1,8 +1,10 @@
-package org.example.projectbackendteammycodebasebringsalltheboys.security.oauth;
+package org.example.projectbackendteammycodebasebringsalltheboys.security.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -12,15 +14,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-  private final HttpSessionSecurityContextRepository securityContextRepository =
-      new HttpSessionSecurityContextRepository();
-
   @Value("${frontend.url}")
   private String frontendUrl;
 
   @Override
   public void onAuthenticationSuccess(
-      HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+          @NonNull HttpServletRequest request,
+          @NonNull HttpServletResponse response,
+          @NonNull Authentication authentication)
       throws IOException {
 
     String baseUrl =
