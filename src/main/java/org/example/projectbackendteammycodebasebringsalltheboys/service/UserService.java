@@ -1,6 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
@@ -22,6 +23,11 @@ public class UserService {
   @Transactional(readOnly = true)
   public Optional<User> getUserByUsername(String username) {
     return userRepository.findByUsername(username);
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<User> getUserById(UUID id) {
+    return userRepository.findById(id);
   }
 
   @Transactional
