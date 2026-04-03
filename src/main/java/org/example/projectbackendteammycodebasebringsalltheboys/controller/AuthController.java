@@ -2,7 +2,6 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;

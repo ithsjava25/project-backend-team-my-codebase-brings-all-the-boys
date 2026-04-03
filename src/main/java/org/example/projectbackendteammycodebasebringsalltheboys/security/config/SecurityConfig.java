@@ -58,7 +58,9 @@ public class SecurityConfig {
                 oauth
                     .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
                     .successHandler(oAuth2LoginSuccessHandler))
-            .logout(logout -> logout
+        .logout(
+            logout ->
+                logout
                     .logoutUrl("/api/auth/logout")
                     .logoutSuccessUrl(frontendUrl)
                     .invalidateHttpSession(true)
