@@ -17,7 +17,7 @@ This project is a modern, high-security case management system designed for scho
 - **Database**: PostgreSQL (Dockerized)
 - **Security**: Spring Security (Session-based auth + OAuth2 for GitHub login)
 - **File Storage**: S3-compatible (Integration in progress)
-- **Frontend**: React (TypeScript) with Vite dev server
+- **Frontend**: React 19.2.4, Vite 8.0.1, React Router 7.13.2, Axios 1.14.0
 - **Persistence**: Spring Data JPA / Hibernate
 
 ## Project Structure
@@ -36,10 +36,83 @@ src/main/java/org/example/projectbackendteammycodebasebringsalltheboys/
 └── storage     # S3 integration services
 ```
 
+### Frontend Project Structure
+```text
+frontend/
+├── src/
+│   ├── api/
+│   │   └── client.js           # Axios instance with base URL and credentials
+│   ├── components/
+│   │   └── ProtectedRoute.jsx  # Route guard for authenticated pages
+│   ├── context/
+│   │   └── AuthContext.jsx     # Authentication context provider
+│   ├── hooks/
+│   │   └── useAuth.js          # Custom hook for auth state management
+│   ├── pages/
+│   │   ├── Dashboard.jsx       # Protected dashboard page
+│   │   └── LoginPage.jsx       # Login/Register page with GitHub OAuth
+│   ├── App.jsx                 # Root component with routing
+│   └── main.jsx                # Application entry point
+├── vite.config.js              # Vite configuration with API proxy
+└── package.json                # Frontend dependencies
+```
+
+## How It Works - Authentication Flow
+
+### Username/Password Authentication
+1. User enters credentials on `/login` page
+2. Frontend sends `POST /api/auth/login` to backend
+3. Backend validates credentials and creates session
+4. Session cookie is automatically stored in browser
+5. Frontend fetches user data via `GET /api/auth/me`
+6. User is redirected to `/dashboard`
+
+### GitHub OAuth2 Authentication
+1. User clicks "Login using GitHub" on `/login` page
+2. Frontend redirects to `http://localhost:8080/oauth2/authorization/github`
+3. GitHub asks user to authorize the application
+4. On success, GitHub redirects to `/oauth2/callback/github`
+5. Backend creates session and redirects to `http://localhost:5173/dashboard`
+6. Frontend fetches user data via `GET /api/auth/me`
+
+### Session Management
+- **Session Storage**: Backend uses Spring Security 6 with session-based authentication
+- **Cookie Handling**: Axios is configured with `withCredentials: true` to send session cookies with every request
+- **Auth State**: Frontend uses React Context (`AuthContext`) to manage authentication state globally
+- **Auto-Login**: On page load, frontend automatically fetches current user via `/api/auth/me`
+- **Protected Routes**: `ProtectedRoute` component checks auth state before allowing access
+
+### API Communication
+- **Base URL**: Frontend uses `/api` as base URL (proxied to `http://localhost:8080` by Vite)
+- **Credentials**: All requests include session cookies automatically
+- **Error Handling**: Frontend displays user-friendly error messages from backend responses
+
 ## Current State & Progress
 The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic), and Phase 3 (Frontend Integration).
-- [x] Dockerized PostgreSQL environment set up.
-- [x] Professional project structure implemented.
+
+### ✅ Phase 3: Frontend Integration (COMPLETED)
+- [x] React 19.2.4 with Vite 8.0.1 setup and configuration
+- [x] React Router 7.13.2 for client-side routing
+- [x] Axios client with session cookie handling (`withCredentials: true`)
+- [x] Vite dev server proxy configuration for API calls
+- [x] Authentication context provider (`AuthContext`) for global auth state
+- [x] Custom `useAuth` hook for authentication logic
+- [x] `ProtectedRoute` component for route guards
+- [x] Login page with username/password authentication
+- [x] Registration page with email confirmation
+- [x] Login/Register toggle functionality
+- [x] GitHub OAuth2 integration with redirect to dashboard
+- [x] Dashboard page displaying user information
+- [x] Logout functionality with session cleanup
+- [-] Error handling and user-friendly error messages (need more error handling
+- [x] Automatic user fetching on app load
+- [x] Auto-redirect to login for unauthenticated users
+- [x] Auto-redirect to dashboard for authenticated users
+
+### Foundation Infrastructure (COMPLETED)
+- [x] Dockerized PostgreSQL environment set up
+- [x] Professional project structure implemented
+- [x] Core Entities and Enums defined
 - [x] Core Entities and Enums defined.
 - [x] JPA Auditing for automatic timestamping enabled.
 - [x] All Repositories with custom query methods implemented.
@@ -61,10 +134,20 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 - [x] Configure CORS for React frontend.
 
 ### ✅ Phase 3: Frontend Integration (COMPLETED)
-- [x] REST API for authentication (`/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`).
-- [x] GitHub OAuth2 integration with redirect to React dashboard.
-- [x] Session management with Spring Security 6.
-- [x] CORS configuration for development environment.
+- [x] React 19.2.4 + Vite 8.0.1 setup with React Router 7.13.2
+- [x] Axios client with session cookie handling (`withCredentials: true`)
+- [x] Vite dev server proxy configuration for API calls
+- [x] Authentication context provider (`AuthContext`) for global auth state
+- [x] Custom `useAuth` hook for authentication logic
+- [x] `ProtectedRoute` component for route guards
+- [x] Login page with username/password authentication
+- [x] Registration page with email confirmation
+- [x] GitHub OAuth2 integration with redirect to dashboard
+- [x] Dashboard page displaying user information
+- [x] Logout functionality with session cleanup
+- [x] REST API for authentication (`/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`)
+- [x] Session management with Spring Security 6
+- [x] CORS configuration for development environment
 
 ### 🔄 Phase 4: S3 Integration & File Handling (In Progress)
 - [ ] Integrate AWS SDK for Java.
@@ -118,20 +201,22 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 ### Frontend Setup
 
 1. **Navigate to Frontend**:
-   ```bash
-   cd ../project-frontend-team-name  # Adjust path as needed
-   ```
+    ```bash
+    cd frontend
+    ```
 
 2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+    ```bash
+    npm install
+    ```
 
 3. **Start Dev Server**:
-   ```bash
-   npm run dev
-   ```
-   The React app will be available at `http://localhost:5173`.
+    ```bash
+    npm run dev
+    ```
+    The React app will be available at `http://localhost:5173`.
+
+**Note**: The Vite dev server proxies API requests to `http://localhost:8080` automatically. See `vite.config.js` for proxy configuration.
 
 ### API Endpoints
 
