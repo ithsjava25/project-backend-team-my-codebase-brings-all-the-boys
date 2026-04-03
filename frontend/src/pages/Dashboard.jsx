@@ -17,14 +17,6 @@ export default function Dashboard() {
       }
     };
 
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    if (!user) {
-      return <Navigate to="/login" replace />;
-    }
-
     return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
             <h1>Dashboard</h1>
@@ -56,12 +48,11 @@ export default function Dashboard() {
                 Logout
             </button>
 
-            <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+            <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: 'rgba(51,54,60,0.46)', borderRadius: '4px' }}>
                 <h2>Placeholder Page</h2>
-                <h3>Session Status</h3>
+                <h3>Wait.. Here already? Quick.. Put some placeholders in!</h3>
                 <p>✅ Logged in via session cookie</p>
-                <p>🔒 CSRF protection active (via OAuth2 state parameter)</p>
-                <p>🍪 Check DevTools → Application → Cookies to see the session cookie</p>
+                <p>Check DevTools → Application → Cookies to see the session cookie</p>
             </div>
         </div>
     );

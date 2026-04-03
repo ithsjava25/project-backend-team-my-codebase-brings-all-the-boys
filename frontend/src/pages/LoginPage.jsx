@@ -54,13 +54,12 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'black' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'rgba(30,33,36,0.58)' }}>
             <div style={{ backgroundColor: '#24292e', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '400px' }}>
                 <h1 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                     {isLogin ? 'Login' : 'Register'}
                 </h1>
 
-                {/* Toggle */}
                 <div style={{ display: 'flex', marginBottom: '1.5rem', gap: '1rem' }}>
                     <button
                         onClick={() => setIsLogin(true)}
