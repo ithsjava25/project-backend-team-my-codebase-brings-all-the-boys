@@ -8,4 +8,8 @@ public interface StorageService {
   InputStream downloadFile(String s3Key);
 
   void deleteFile(String s3Key);
+
+  String generateDownloadUrl(String s3Key);
+
+  String generateUploadUrl(String s3Key, String contentType);
 }

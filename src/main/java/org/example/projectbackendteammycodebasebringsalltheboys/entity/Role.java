@@ -10,11 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Role {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class Role extends BaseEntity {
 
   @Column(unique = true, nullable = false)
   private String name;

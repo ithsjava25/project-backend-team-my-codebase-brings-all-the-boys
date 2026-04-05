@@ -5,9 +5,14 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Submission;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.SubmissionRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserAssignmentService {
 
   private final UserAssignmentRepository userAssignmentRepository;
+  private final SubmissionRepository submissionRepository;
+  private final FileMetadataRepository fileMetadataRepository;
   private final ActivityLogService activityLogService;
 
   @Transactional
@@ -40,12 +47,56 @@ public class UserAssignmentService {
 
   @Transactional
   public void submitAssignment(UserAssignment ua) {
-    if (ua.getStatus() != StudentAssignmentStatus.ASSIGNED) {
-      throw new IllegalStateException("Cannot submit assignment in status: " + ua.getStatus());
+    submitWork(ua, "Automatic submission", List.of());
+  }
+
+  @Transactional
+  public void submitWork(UserAssignment ua, String content, List<String> fileS3Keys) {
+    boolean canSubmit =
+        ua.getStatus() == StudentAssignmentStatus.ASSIGNED
+            || ua.getStatus() == StudentAssignmentStatus.TURNED_IN;
+
+    if (!canSubmit) {
+      throw new BadRequestException("Cannot submit assignment in status: " + ua.getStatus());
     }
-    ua.setStatus(StudentAssignmentStatus.TURNED_IN);
-    ua.setTurnedInAt(LocalDateTime.now());
-    userAssignmentRepository.save(ua);
+
+    List<FileMetadata> filesToAttach = new java.util.ArrayList<>();
+
+    for (String s3Key : fileS3Keys) {
+      FileMetadata file =
+          fileMetadataRepository
+              .findByS3Key(s3Key)
+              .orElseThrow(() -> new BadRequestException("File not found for s3Key: " + s3Key));
+
+      if (file.getUploader() == null
+          || !file.getUploader().getId().equals(ua.getStudent().getId())) {
+        throw new BadRequestException("File does not belong to the submitting student: " + s3Key);
+      }
+
+      if (file.getSubmission() != null) {
+        throw new BadRequestException("File is already attached to another submission: " + s3Key);
+      }
+
+      filesToAttach.add(file);
+    }
+
+    Submission submission = new Submission();
+    submission.setUserAssignment(ua);
+    submission.setStudent(ua.getStudent());
+    submission.setContent(content);
+    submission.setSubmittedAt(LocalDateTime.now());
+    Submission savedSubmission = submissionRepository.save(submission);
+
+    for (FileMetadata file : filesToAttach) {
+      file.setSubmission(savedSubmission);
+      fileMetadataRepository.save(file);
+    }
+
+    if (ua.getStatus() == StudentAssignmentStatus.ASSIGNED) {
+      ua.setStatus(StudentAssignmentStatus.TURNED_IN);
+      ua.setTurnedInAt(LocalDateTime.now());
+      userAssignmentRepository.save(ua);
+    }
 
     activityLogService.log(
         ua.getStudent(),
@@ -58,7 +109,7 @@ public class UserAssignmentService {
   @Transactional
   public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
     if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN) {
-      throw new IllegalStateException("Cannot evaluate assignment in status: " + ua.getStatus());
+      throw new BadRequestException("Cannot evaluate assignment in status: " + ua.getStatus());
     }
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
     ua.setGrade(grade);
