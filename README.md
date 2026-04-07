@@ -12,11 +12,18 @@ This project is a modern, high-security case management system designed for scho
 - **Interactive Communication**: Commenting system for ongoing feedback on assignments.
 - **Authentication**: Session-based authentication with GitHub OAuth2 integration.
 
+### Advanced Architecture Features
+- **UUID Primary Keys**: All primary keys across entities, repositories, services, and controllers use UUIDs for enhanced security and scalability
+- **Auditing & Soft Deletes**: `BaseEntity` includes `createdBy`, `updatedBy`, and `deleted` status with `AuditorAware` functionality
+- **Data Seeding**: `DataSeeder` utility (active in `dev` profile) for populating database with sample data
+- **Layered DTOs**: Distinct DTOs (`CourseSurfaceResponse`, `CourseDetailResponse`, `AssignmentSurfaceResponse`, `AssignmentDetailResponse`) control data visibility
+- **Submission Entity**: Dedicated entity for managing multiple drafts/versions of assignments
+
 ## Technology Stack
 - **Backend**: Java 25, Spring Boot 4.0.4
 - **Database**: PostgreSQL (Dockerized)
 - **Security**: Spring Security (Session-based auth + OAuth2 for GitHub login)
-- **File Storage**: S3-compatible (Integration in progress)
+- **File Storage**: S3-compatible
 - **Frontend**: React 19.2.4, Vite 8.0.1, React Router 7.13.2, Axios 1.14.0
 - **Persistence**: Spring Data JPA / Hibernate
 
@@ -71,7 +78,7 @@ frontend/
 1. User clicks "Login using GitHub" on `/login` page
 2. Frontend redirects to `http://localhost:8080/oauth2/authorization/github`
 3. GitHub asks user to authorize the application
-4. On success, GitHub redirects to `/oauth2/callback/github`
+4. On success, GitHub redirects to `/login/oauth2/code/github`
 5. Backend creates session and redirects to `http://localhost:5173/dashboard`
 6. Frontend fetches user data via `GET /api/auth/me`
 
@@ -90,7 +97,7 @@ frontend/
 ## Current State & Progress
 The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic), and Phase 3 (Frontend Integration).
 
-### ✅ Phase 3: Frontend Integration (COMPLETED)
+### ✅ Phase 3: Frontend Integration
 - [x] React 19.2.4 with Vite 8.0.1 setup and configuration
 - [x] React Router 7.13.2 for client-side routing
 - [x] Axios client with session cookie handling (`withCredentials: true`)
@@ -104,12 +111,12 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 - [x] GitHub OAuth2 integration with redirect to dashboard
 - [x] Dashboard page displaying user information
 - [x] Logout functionality with session cleanup
-- [-] Error handling and user-friendly error messages (need more error handling
+- [-] Error handling and user-friendly error messages (needs more error handling)
 - [x] Automatic user fetching on app load
 - [x] Auto-redirect to login for unauthenticated users
 - [x] Auto-redirect to dashboard for authenticated users
 
-### Foundation Infrastructure (COMPLETED)
+### Foundation Infrastructure
 - [x] Dockerized PostgreSQL environment set up
 - [x] Professional project structure implemented
 - [x] Core Entities and Enums defined
@@ -122,18 +129,26 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 - [x] Spring Security configuration with OAuth2 and session-based authentication.
 - [x] REST API endpoints for user registration, login, logout, and current user.
 - [x] CORS configuration for React frontend integration.
+- [x] UUID migration across all entities, repositories, services, and controllers
+- [x] `BaseEntity` with auditing (createdBy, updatedBy) and soft-delete (deleted) support
+- [x] `AuditorAware` implementation for automatic user tracking
+- [x] `DataSeeder` utility for dev environment sample data
+- [x] Layered DTOs for controlled data visibility (Surface vs Detail responses)
+- [x] `Submission` entity for assignment version management
+- [x] `GlobalExceptionHandler` with custom exception classes
+- [x] `DatabaseIntegrationTest` for database validation
 - [x] OAuth2 GitHub login integration.
 
 ## Roadmap & Backlog
 
-### ✅ Phase 2: Core Logic & Security (COMPLETED)
+### ✅ Phase 2: Core Logic & Security
 - [x] Implement Spring Security configuration (Session-based auth + OAuth2).
 - [x] Create User and Auth services for login/registration.
 - [x] Implement Case management business logic.
 - [x] Set up DTOs and Mappers for clean API communication.
 - [x] Configure CORS for React frontend.
 
-### ✅ Phase 3: Frontend Integration (COMPLETED)
+### ✅ Phase 3: Frontend Integration
 - [x] React 19.2.4 + Vite 8.0.1 setup with React Router 7.13.2
 - [x] Axios client with session cookie handling (`withCredentials: true`)
 - [x] Vite dev server proxy configuration for API calls
@@ -149,12 +164,14 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 - [x] Session management with Spring Security 6
 - [x] CORS configuration for development environment
 
-### 🔄 Phase 4: S3 Integration & File Handling (In Progress)
-- [ ] Integrate AWS SDK for Java.
-- [ ] Implement secure file upload and download services.
-- [ ] Link file metadata to assignments and comments.
+### 🔄 Phase 4: S3 Integration & File Handling
+- [x] AWS SDK for Java integration
+- [x] Secure file upload/download with S3Client
+- [x] Pre-signed URLs for secure access (15 min expiry)
+- [x] File metadata linked to assignments via File entity
+- [ ] Configure real AWS credentials in production
 
-### 📋 Phase 5: Communication & Auditing (Planned)
+### 📋 Phase 5: Communication & Auditing
 - [ ] Build the commenting engine.
 - [ ] Implement the `ActivityLogService` for automated event tracking.
 - [ ] Develop real-time update notifications.
@@ -163,6 +180,13 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 - [ ] Create role-specific dashboards.
 - [ ] Build forms for assignment creation and submission.
 - [ ] Implement a history view for case owners.
+
+## Future Proofing Ideas
+- **Multi-Tenancy**: Planning for `School` or `Organization` entity for multi-school support
+- **Event-Driven Architecture**: Consider using Spring Events for decoupling domain events
+- **Advanced Analytics**: Reporting dashboard for assignment statistics and student performance
+- **Plagiarism Detection**: Integration with plagiarism detection services
+- **Automated Workflows**: AI-powered grading/feedback systems
 
 ## Getting Started
 
@@ -189,7 +213,7 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 
 3. **GitHub OAuth2 Setup** (for local development):
    - Create a new OAuth App in GitHub Settings → Developer settings → OAuth Apps
-   - Authorization callback URL: `http://localhost:8080/oauth2/callback/github`
+   - Authorization callback URL: `http://localhost:8080/login/oauth2/code/github`
    - Add `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` to `application-dev.properties`
 
 4. **Run Backend**:
@@ -228,7 +252,7 @@ The project has successfully completed Phase 1 (Foundation), Phase 2 (Core Logic
 
 #### OAuth2
 - `GET /oauth2/authorization/github` - Initiate GitHub login
-- Callback: `/oauth2/callback/github` → Redirects to `http://localhost:5173/dashboard`
+- Callback: `/login/oauth2/code/github` → Redirects to `http://localhost:5173/dashboard`
 
 ### Configuration Profiles
 
