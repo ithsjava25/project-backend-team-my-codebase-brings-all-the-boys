@@ -1,56 +1,93 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.Map;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
-@RequestMapping("/auth")
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
   private final UserService userService;
+  private final AuthenticationManager authenticationManager;
+  private final HttpSessionSecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
 
-  public AuthController(UserService userService) {
+  public AuthController(UserService userService, AuthenticationManager authenticationManager) {
     this.userService = userService;
-  }
-
-  @GetMapping("/register")
-  public String showRegistrationForm(Model model) {
-    model.addAttribute("registrationRequest", new RegistrationRequest());
-    return "register";
+    this.authenticationManager = authenticationManager;
   }
 
   @PostMapping("/register")
-  public String registerUser(
-      @Valid @ModelAttribute("registrationRequest") RegistrationRequest request,
-      BindingResult bindingResult,
-      Model model) {
+  public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest request) {
+    try {
+      User user = userService.registerUser(request);
+      UserResponse response = userService.toUserResponse(user);
 
-    if (bindingResult.hasErrors()) {
-      return "register";
+      return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    } catch (IllegalStateException e) {
+      return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<?> login(
+      @RequestBody Map<String, String> credentials,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+
+    String username = credentials.get("username");
+    String password = credentials.get("password");
+
+    if (username == null || username.isBlank() || password == null || password.isBlank()) {
+      return ResponseEntity.badRequest()
+          .body(Map.of("error", "Username and password are required"));
     }
 
     try {
-      userService.registerUser(request);
-    } catch (IllegalStateException e) {
-      model.addAttribute("errorMessage", e.getMessage());
-      return "register";
+      UsernamePasswordAuthenticationToken token =
+          new UsernamePasswordAuthenticationToken(username, password);
+
+      Authentication auth = authenticationManager.authenticate(token);
+      SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+      securityContext.setAuthentication(auth);
+      SecurityContextHolder.setContext(securityContext);
+      securityContextRepository.saveContext(securityContext, request, response);
+
+      return ResponseEntity.ok(Map.of("message", "Logged in"));
+    } catch (AuthenticationException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(Map.of("error", "Wrong username or password"));
+    }
+  }
+
+  @GetMapping("/me")
+  public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+    if (authentication == null || !authentication.isAuthenticated()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    return "redirect:/auth/login?registered";
-  }
+    String username = authentication.getName();
+    User user =
+        userService
+            .getUserByUsername(username)
+            .orElseThrow(() -> new IllegalStateException("User not found: " + username));
 
-  @GetMapping("/login")
-  public String loginPage() {
-    return "login";
-  }
-
-  @GetMapping("/logout-success")
-  public String logoutSuccess() {
-    return "logout-success";
+    return ResponseEntity.ok(userService.toUserResponse(user));
   }
 }

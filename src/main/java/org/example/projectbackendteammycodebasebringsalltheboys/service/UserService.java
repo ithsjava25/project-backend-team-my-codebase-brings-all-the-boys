@@ -4,10 +4,13 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +34,14 @@ public class UserService {
   }
 
   @Transactional
-  public User registerUser(RegistrationRequest request) {
+  public User registerUser(@NonNull RegistrationRequest request) {
 
     if (userRepository.findByUsername(request.getUsername()).isPresent()) {
       throw new IllegalStateException("User already exists");
+    }
+
+    if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+      throw new IllegalStateException("Email already registered");
     }
 
     if (!request.getPassword().equals(request.getConfirmPassword())) {
@@ -49,8 +56,26 @@ public class UserService {
     User user = new User();
     user.setUsername(request.getUsername());
     user.setPassword(passwordEncoder.encode(request.getPassword()));
+    user.setEmail(request.getEmail());
     user.setRole(defaultRole);
 
     return userRepository.save(user);
+  }
+
+  @Transactional(readOnly = true)
+  public UserResponse toUserResponse(@NonNull User user) {
+    UserResponse response = new UserResponse();
+    response.setId(user.getId());
+    response.setUsername(user.getUsername());
+    response.setEmail(user.getEmail());
+
+    if (user.getRole() != null) {
+      RoleResponse roleResponse = new RoleResponse();
+      roleResponse.setId(user.getRole().getId());
+      roleResponse.setName(user.getRole().getName());
+      response.setRole(roleResponse);
+    }
+
+    return response;
   }
 }

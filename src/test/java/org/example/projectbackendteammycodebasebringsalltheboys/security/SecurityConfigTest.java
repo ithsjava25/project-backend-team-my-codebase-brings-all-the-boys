@@ -2,10 +2,12 @@ package org.example.projectbackendteammycodebasebringsalltheboys.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.AuthController;
 import org.example.projectbackendteammycodebasebringsalltheboys.controller.PageController;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.config.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
@@ -13,6 +15,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestV
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,19 +25,18 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {PageController.class, AuthController.class})
+@WebMvcTest(
+    excludeAutoConfiguration = OAuth2ClientAutoConfiguration.class,
+    controllers = {PageController.class, AuthController.class})
 @Import({SecurityConfig.class, TestViewConfig.class})
 class SecurityConfigTest {
 
   @Autowired private MockMvc mockMvc;
-
   @Autowired private PasswordEncoder passwordEncoder;
-
   @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
-
   @MockitoBean private UserService userService;
-
   @MockitoBean private ClientRegistrationRepository clientRegistrationRepository;
+  @MockitoBean private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
   @Test
   @WithMockUser(roles = "ADMIN")
@@ -51,29 +53,24 @@ class SecurityConfigTest {
   }
 
   @Test
-  @DisplayName("GET /admin unauthenticated redirects to login")
-  void adminPage_unauthenticated_redirectsToLogin() throws Exception {
-    mockMvc.perform(get("/admin")).andExpect(status().is3xxRedirection());
+  @DisplayName("GET /admin unauthenticated returns 401")
+  void adminPage_unauthenticated_returnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/admin")).andExpect(status().isUnauthorized());
   }
 
   // --- Public endpoints ---
-
   @Test
-  @DisplayName("GET /auth/login is accessible without authentication")
-  void authLogin_isPublic() throws Exception {
-    mockMvc.perform(get("/auth/login")).andExpect(status().isOk());
+  @DisplayName("GET /api/auth/me is public (returns 401 when not authenticated)")
+  void apiAuthMe_unauthenticated_returnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
   }
 
   @Test
-  @DisplayName("GET /auth/register is accessible without authentication")
-  void authRegister_isPublic() throws Exception {
-    mockMvc.perform(get("/auth/register")).andExpect(status().isOk());
-  }
-
-  @Test
-  @DisplayName("GET /auth/logout-success is accessible without authentication")
-  void authLogoutSuccess_isPublic() throws Exception {
-    mockMvc.perform(get("/auth/logout-success")).andExpect(status().isOk());
+  @DisplayName("POST /api/auth/register is public")
+  void apiAuthRegister_isPublic() throws Exception {
+    mockMvc
+        .perform(post("/api/auth/register"))
+        .andExpect(status().isBadRequest()); // 400 missing body
   }
 
   @Test
@@ -85,21 +82,15 @@ class SecurityConfigTest {
   // --- Protected endpoints: unauthenticated ---
 
   @Test
-  @DisplayName("GET /dashboard unauthenticated redirects to login")
-  void dashboard_unauthenticated_redirectsToLogin() throws Exception {
-    mockMvc
-        .perform(get("/dashboard"))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/auth/login"));
+  @DisplayName("GET /dashboard unauthenticated returns 401")
+  void dashboard_unauthenticated_returnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/dashboard")).andExpect(status().isUnauthorized());
   }
 
   @Test
-  @DisplayName("GET /admin unauthenticated redirects to login")
-  void admin_unauthenticated_redirectsToLogin() throws Exception {
-    mockMvc
-        .perform(get("/admin"))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrl("/auth/login"));
+  @DisplayName("GET /admin unauthenticated returns 401")
+  void admin_unauthenticated_returnsUnauthorized() throws Exception {
+    mockMvc.perform(get("/admin")).andExpect(status().isUnauthorized());
   }
 
   // --- Protected endpoints: authenticated as USER ---

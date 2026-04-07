@@ -20,7 +20,9 @@ import org.springframework.core.annotation.AliasFor;
       SecurityFilterAutoConfiguration.class,
       UserDetailsServiceAutoConfiguration.class,
       OAuth2ClientWebSecurityAutoConfiguration.class,
-      ServletWebSecurityAutoConfiguration.class
+      ServletWebSecurityAutoConfiguration.class,
+      org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
+          .class
     })
 public @interface NoSecurityWebMvcTest {
   @AliasFor(annotation = WebMvcTest.class, attribute = "value")
