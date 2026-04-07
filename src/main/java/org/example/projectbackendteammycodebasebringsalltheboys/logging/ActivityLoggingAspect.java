@@ -11,10 +11,7 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.Identifiable;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.*;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
 import org.springframework.stereotype.Component;
@@ -124,7 +121,7 @@ public class ActivityLoggingAspect {
 
   private UUID resolveResultId(Object result) {
     if (result instanceof UUID id) return id;
-    if (result instanceof Identifiable i) return i.getId();
+    if (result instanceof BaseEntity be) return be.getId();
     return null;
   }
 }
