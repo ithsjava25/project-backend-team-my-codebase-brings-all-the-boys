@@ -2,6 +2,8 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
@@ -44,5 +46,10 @@ public class CommentService {
   @Transactional(readOnly = true)
   public List<Comment> getCommentsByAssignment(Assignment assignment) {
     return commentRepository.findByAssignmentOrderByCreatedAtAsc(assignment);
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<Comment> getCommentById(UUID id) {
+    return commentRepository.findById(id);
   }
 }

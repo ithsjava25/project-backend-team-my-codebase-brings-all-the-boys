@@ -1,7 +1,6 @@
 # School Portal Case Management System
 
-## Project Overview
-This project is a modern, high-security case management system designed for school environments. It enables teachers to manage assignments (cases) with a full lifecycle, while ensuring strict confidentiality and role-based access control (RBAC). The system features file uploads to S3-compatible storage and automated activity logging for full transparency.
+This project is a high-security case management system designed for school environments. It focuses on managing assignment lifecycles, implementing contextual Role-Based Access Control (RBAC), handling secure file uploads to AWS S3, and maintaining detailed activity logs.
 
 ## Core Features
 - **Assignment Lifecycle**: Creation, assignment, communication, submission, and evaluation.
