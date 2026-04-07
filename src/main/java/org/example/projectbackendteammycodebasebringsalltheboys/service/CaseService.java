@@ -2,9 +2,11 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
@@ -22,10 +24,17 @@ public class CaseService {
   @LogActivity(action = ActivityAction.CREATED, entity = EntityType.ASSIGNMENT, noCase = true)
   @Transactional
   public Assignment createCase(String title, String description, User creator) {
+    return createCase(title, description, creator, null);
+  }
+
+  @LogActivity(action = ActivityAction.CREATED, entity = EntityType.ASSIGNMENT, course = course, noCase = true)
+  @Transactional
+  public Assignment createCase(String title, String description, User creator, Course course) {
     Assignment assignment = new Assignment();
     assignment.setTitle(title);
     assignment.setDescription(description);
     assignment.setCreator(creator);
+    assignment.setCourse(course);
 
     return assignmentRepository.save(assignment);
   }
@@ -36,7 +45,7 @@ public class CaseService {
   }
 
   @Transactional(readOnly = true)
-  public Optional<Assignment> getCaseById(Long id) {
+  public Optional<Assignment> getCaseById(UUID id) {
     return assignmentRepository.findById(id);
   }
 

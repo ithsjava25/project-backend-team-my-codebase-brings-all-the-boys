@@ -2,6 +2,8 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.time.Clock;
 import java.util.Map;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ActivityLog;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
@@ -26,10 +28,10 @@ public class ActivityLogService {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void log(
       User user,
-      Long caseID,
+      UUID caseID,
       ActivityAction action,
       EntityType entityType,
-      Long entityId,
+      UUID entityId,
       Map<String, Object> details,
       ActivityStatus status) {
     ActivityLog log =

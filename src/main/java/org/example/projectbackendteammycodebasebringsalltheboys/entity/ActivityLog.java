@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,12 +22,10 @@ import org.hibernate.type.SqlTypes;
 public class ActivityLog {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-  private Long caseId;
-
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id")
   private User user;
 
@@ -38,7 +37,7 @@ public class ActivityLog {
   @Column(nullable = false)
   private EntityType entityType;
 
-  private Long entityId;
+  private UUID entityId;
 
   @Column(columnDefinition = "jsonb")
   @JdbcTypeCode(SqlTypes.JSON)
@@ -53,15 +52,15 @@ public class ActivityLog {
 
   public ActivityLog(
       User user,
-      Long caseID,
+      UUID caseID,
       ActivityAction action,
       EntityType entityType,
-      Long entityId,
+      UUID entityId,
       Map<String, Object> details,
       ActivityStatus status,
       Clock clock) {
     this.user = user;
-    this.caseId = caseID;
+    this.id = caseID;
     this.action = action;
     this.entityType = entityType;
     this.entityId = entityId;
