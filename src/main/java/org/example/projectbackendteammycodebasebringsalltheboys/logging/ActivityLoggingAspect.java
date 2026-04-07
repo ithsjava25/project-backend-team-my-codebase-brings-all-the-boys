@@ -1,6 +1,8 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.logging;
 
 import java.util.Map;
+import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -43,10 +45,10 @@ public class ActivityLoggingAspect {
         return;
       }
 
-      Long caseId =
+      UUID caseId =
           logActivity.noCase() ? resolveResultId(result) : resolveCaseId(args, logActivity);
 
-      Long entityId = resolveResultId(result);
+      UUID entityId = resolveResultId(result);
 
       Map<String, Object> details = detailsBuilder.build(logActivity, args);
 
@@ -75,7 +77,7 @@ public class ActivityLoggingAspect {
         return;
       }
 
-      Long caseId = logActivity.noCase() ? null : resolveCaseId(args, logActivity);
+      UUID caseId = logActivity.noCase() ? null : resolveCaseId(args, logActivity);
 
       Map<String, Object> details =
           new java.util.HashMap<>(detailsBuilder.build(logActivity, args));
@@ -104,14 +106,14 @@ public class ActivityLoggingAspect {
     return null;
   }
 
-  private Long resolveCaseId(Object[] args, LogActivity logActivity) {
+  private UUID resolveCaseId(Object[] args, LogActivity logActivity) {
     int index = logActivity.caseIdParamIndex();
     if (index < 0 || index >= args.length) {
       log.warn("Invalid caseIdParamIndex {} for args length {}", index, args.length);
       return null;
     }
     Object param = args[index];
-    if (param instanceof Long id) return id;
+    if (param instanceof UUID id) return id;
     if (param instanceof Comment comment) {
       Assignment assignment = comment.getAssignment();
       return assignment != null ? assignment.getId() : null;
@@ -120,8 +122,8 @@ public class ActivityLoggingAspect {
     return null;
   }
 
-  private Long resolveResultId(Object result) {
-    if (result instanceof Long id) return id;
+  private UUID resolveResultId(Object result) {
+    if (result instanceof UUID id) return id;
     if (result instanceof Identifiable i) return i.getId();
     return null;
   }

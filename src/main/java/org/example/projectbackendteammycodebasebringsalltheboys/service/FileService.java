@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.file.GeneratedUpload;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
@@ -92,6 +93,7 @@ public class FileService {
     return fileMetadataRepository.findById(id);
   }
 
+  @LogActivity(action = ActivityAction.ADDED, user = uploader, )
   @Transactional
   public FileMetadata savePresignedMetadata(
       String s3Key,

@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.AssignmentStatus;
 import org.hibernate.annotations.SoftDelete;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "assignments")
 @SoftDelete(columnName = "deleted")
@@ -17,7 +19,7 @@ public class Assignment extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private UUID id;
 
   @Column(nullable = false)
   private String title;
