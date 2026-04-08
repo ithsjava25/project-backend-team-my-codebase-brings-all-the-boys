@@ -46,6 +46,7 @@ frontend/.env
 frontend/.env.local
 frontend/*.log
 frontend/.vite/
+frontend/src/pages/TestPage.jsx
 
 # Backend environment
 .env
