@@ -163,7 +163,6 @@ export default function LoginPage() {
                     >
                         {isLogin ? 'Login' : 'Register'}
                     </button>
-                  <div className="bg-red-500 p-8 text-white">Tailwind test</div>
                 </form>
 
                 {/* Divider */}
