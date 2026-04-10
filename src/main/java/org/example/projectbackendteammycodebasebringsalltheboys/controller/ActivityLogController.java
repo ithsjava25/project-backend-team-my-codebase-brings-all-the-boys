@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ActivityLogResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ActivityLog;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
@@ -59,7 +60,7 @@ public class ActivityLogController {
 
   @GetMapping("/entity/{entityType}/{entityId}")
   public ResponseEntity<Page<ActivityLogResponse>> getEntityActivityLogs(
-      @PathVariable String entityType,
+      @PathVariable EntityType entityType,
       @PathVariable UUID entityId,
       java.security.Principal principal,
       Pageable pageable) {

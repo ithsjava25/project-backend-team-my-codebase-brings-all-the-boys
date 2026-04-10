@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,9 @@ public class ActivityDetailsBuilder {
     switch (logActivity.action()) {
       case CREATED -> handleCreated(logActivity.entityType(), args, details);
       case ADDED -> handleAdded(logActivity.entityType(), args, details);
+      case ASSIGNED -> handleAssigned(logActivity.entityType(), args, details);
+      case UPDATED -> handleUpdated(logActivity.entityType(), args, details);
+      case EVALUATED -> handleEvaluated(logActivity.entityType(), args, details);
       default -> details.put("action", logActivity.action().name());
     }
 
@@ -26,8 +31,48 @@ public class ActivityDetailsBuilder {
   private void handleCreated(EntityType entityType, Object[] args, Map<String, Object> details) {
     switch (entityType) {
       case ASSIGNMENT -> {
-        // createCase(String title, String description, User creator)
+        // createCase(String title, String description, User creator, Course course)
         findFirst(args, String.class).ifPresent(title -> details.put("title", title));
+      }
+      case COURSE -> {
+        // createCourse(String name, String description, SchoolClass, User leadTeacher, User
+        // creator)
+        findFirst(args, String.class).ifPresent(name -> details.put("name", name));
+        findFirst(args, SchoolClass.class).ifPresent(sc -> details.put("class", sc.getName()));
+      }
+      default -> {}
+    }
+  }
+
+  private void handleAssigned(EntityType entityType, Object[] args, Map<String, Object> details) {
+    switch (entityType) {
+      case USER_ASSIGNMENT -> {
+        // assignToStudent(Assignment assignment, User student, User assigner)
+        findFirst(args, Assignment.class)
+            .ifPresent(a -> details.put("assignmentTitle", a.getTitle()));
+        findFirst(args, User.class).ifPresent(u -> details.put("student", u.getUsername()));
+      }
+      default -> {}
+    }
+  }
+
+  private void handleUpdated(EntityType entityType, Object[] args, Map<String, Object> details) {
+    switch (entityType) {
+      case COURSE -> {
+        // updateLeadTeacher(UUID courseId, User newLead, User updater)
+        findFirst(args, User.class).ifPresent(u -> details.put("newLeadTeacher", u.getUsername()));
+      }
+      default -> {}
+    }
+  }
+
+  private void handleEvaluated(EntityType entityType, Object[] args, Map<String, Object> details) {
+    switch (entityType) {
+      case USER_ASSIGNMENT -> {
+        // evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator)
+        List<String> strings = findAll(args, String.class);
+        if (!strings.isEmpty()) details.put("grade", strings.get(0));
+        if (strings.size() > 1) details.put("feedback", preview(strings.get(1)));
       }
       default -> {}
     }

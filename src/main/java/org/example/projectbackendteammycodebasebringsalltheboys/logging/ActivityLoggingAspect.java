@@ -2,7 +2,6 @@ package org.example.projectbackendteammycodebasebringsalltheboys.logging;
 
 import java.util.Map;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -13,7 +12,6 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.*;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
-import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +24,8 @@ public class ActivityLoggingAspect {
   private final ActivityLogService activityLogService;
   private final ActivityDetailsBuilder detailsBuilder;
 
-  @Pointcut("@annotation(org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity)")
+  @Pointcut(
+      "@annotation(org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity)")
   public void logActivityPointcut() {}
 
   @AfterReturning(
@@ -35,14 +34,15 @@ public class ActivityLoggingAspect {
   public void logActivity(JoinPoint joinPoint, LogActivity logActivity, Object result) {
     try {
       Object[] args = joinPoint.getArgs();
-      User user = resolveUser(args);
+      User user = resolveUser(args, logActivity);
 
       if (user == null) {
         log.warn("Activity log skipped — no User found for action {}", logActivity.action());
         return;
       }
 
-      UUID parentId = logActivity.orphan() ? resolveChildId(result) : resolveParentId(args, logActivity);
+      UUID parentId =
+          logActivity.orphan() ? resolveChildId(result) : resolveParentId(args, logActivity);
 
       UUID childId = resolveChildId(result);
 
@@ -66,7 +66,7 @@ public class ActivityLoggingAspect {
   public void logFailedActivity(JoinPoint joinPoint, LogActivity logActivity, Exception ex) {
     try {
       Object[] args = joinPoint.getArgs();
-      User user = resolveUser(args);
+      User user = resolveUser(args, logActivity);
 
       if (user == null) {
         log.warn("Failed activity log skipped — no User found for action {}", logActivity.action());
@@ -94,8 +94,12 @@ public class ActivityLoggingAspect {
     }
   }
 
-  private User resolveUser(Object[] args) {
+  private User resolveUser(Object[] args, LogActivity logActivity) {
     if (args == null) return null;
+    int index = logActivity.actorParamIndex();
+    if (index >= 0 && index < args.length && args[index] instanceof User user) {
+      return user;
+    }
     for (Object arg : args) {
       if (arg instanceof User user) return user;
     }
@@ -115,6 +119,8 @@ public class ActivityLoggingAspect {
       return assignment != null ? assignment.getId() : null;
     }
     if (param instanceof Assignment assignment) return assignment.getId();
+    if (param instanceof SchoolClass sc) return sc.getId();
+    if (param instanceof UserAssignment ua) return ua.getAssignment().getId();
     return null;
   }
 
@@ -123,5 +129,4 @@ public class ActivityLoggingAspect {
     if (result instanceof BaseEntity be) return be.getId();
     return null;
   }
-
 }

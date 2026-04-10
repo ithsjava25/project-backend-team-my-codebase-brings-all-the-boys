@@ -17,4 +17,7 @@ public @interface LogActivity {
   EntityType entityType();
 
   boolean orphan() default false;
+
+  /** Index of the method parameter that is the acting User. -1 = auto-detect first User in args. */
+  int actorParamIndex() default -1;
 }

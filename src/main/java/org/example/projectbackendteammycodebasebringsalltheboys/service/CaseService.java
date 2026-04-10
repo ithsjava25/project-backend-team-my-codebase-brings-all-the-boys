@@ -4,9 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,13 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CaseService {
 
   private final AssignmentRepository assignmentRepository;
-  private final ActivityLogService activityLogService;
 
   @Transactional
   public Assignment createCase(String title, String description, User creator) {
     return createCase(title, description, creator, null);
   }
 
+  @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.ASSIGNMENT, orphan = true)
   @Transactional
   public Assignment createCase(String title, String description, User creator, Course course) {
     Assignment assignment = new Assignment();
@@ -31,16 +34,7 @@ public class CaseService {
     assignment.setCreator(creator);
     assignment.setCourse(course);
 
-    Assignment saved = assignmentRepository.save(assignment);
-
-    String logMessage = "Case created: " + title;
-    if (course != null) {
-      logMessage += " for course: " + course.getName();
-    }
-
-    activityLogService.log(creator, "CREATED_CASE", "Assignment", saved.getId(), logMessage);
-
-    return saved;
+    return assignmentRepository.save(assignment);
   }
 
   @Transactional(readOnly = true)

@@ -4,6 +4,7 @@ public enum EntityType {
   ASSIGNMENT,
   CLASS_ENROLLMENT,
   COMMENT,
+  COMMENT_FILE,
   COURSE,
   FILE,
   ROLE,
