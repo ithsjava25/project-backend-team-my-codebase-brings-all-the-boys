@@ -10,28 +10,29 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+          "border-border bg-primary text-primary-foreground [a]:hover:bg-primary/80",
         secondary:
-          "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+          "border-border bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive:
-          "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+          "border-border bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
         outline:
           "border-border bg-input/30 text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-        link: "text-primary underline-offset-4 hover:underline",
+
+        link: "border-border text-primary underline-offset-4 hover:underline",
 
         passed_date:
-          "bg-destructive/10 text-destructive/50 line-through focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+          "border-border bg-destructive/10 text-destructive/50 line-through focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
         future_date:
-          "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+          "border-border bg-primary text-primary-foreground [a]:hover:bg-primary/80",
 
         purple:
-          "bg-purple-500 text-primary-foreground [a]:hover:bg-purple-500/80",
+          "border-border bg-purple-500 text-primary-foreground [a]:hover:bg-purple-500/80",
         yellow:
-          "bg-yellow-500 text-primary-foreground [a]:hover:bg-yellow-500/80",
+          "border-border bg-yellow-500 text-primary-foreground [a]:hover:bg-yellow-500/80",
         green:
-          "bg-green-500 text-primary-foreground [a]:hover:bg-green-500/80",
+          "border-border bg-green-500 text-primary-foreground [a]:hover:bg-green-500/80",
       },
     },
     defaultVariants: {

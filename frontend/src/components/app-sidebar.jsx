@@ -4,9 +4,6 @@ import * as React from "react"
 import {
   BookOpen,
   Bot,
-  Frame,
-  Map,
-  PieChart,
   Settings2,
   SquareTerminal,
   Code,
@@ -26,7 +23,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// Demo data - hårdkodade kurser, byt till API
+//TODO: Demo data, hårdkodade kurser, byt till API
 const coursesData = [
   {
     name: "Java Backend 1",
@@ -59,7 +56,7 @@ const data = {
     name: "shadcn",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
-    role: { name: "ROLE_ADMIN" } // Testa med ROLE_STUDENT också
+    role: { name: "ROLE_ADMIN" } //TODO: Testa med ROLE_STUDENT också
   },
   courses: coursesData,
   navMain: [
