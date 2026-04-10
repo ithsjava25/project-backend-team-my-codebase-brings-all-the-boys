@@ -5,10 +5,10 @@ import { Tabs as TabsPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 function Tabs({
-  className,
-  orientation = "horizontal",
-  ...props
-}) {
+                className,
+                orientation = "horizontal",
+                ...props
+              }) {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
@@ -34,10 +34,10 @@ const tabsListVariants = cva(
 )
 
 function TabsList({
-  className,
-  variant = "default",
-  ...props
-}) {
+                    className,
+                    variant = "default",
+                    ...props
+                  }) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
@@ -48,9 +48,9 @@ function TabsList({
 }
 
 function TabsTrigger({
-  className,
-  ...props
-}) {
+                       className,
+                       ...props
+                     }) {
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
@@ -66,13 +66,13 @@ function TabsTrigger({
 }
 
 function TabsContent({
-  className,
-  ...props
-}) {
+                       className,
+                       ...props
+                     }) {
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("flex-1 text-sm outline-none", className)}
+      className={cn("flex-1 text-sm outline-none mt-2", className)}
       {...props} />
   );
 }

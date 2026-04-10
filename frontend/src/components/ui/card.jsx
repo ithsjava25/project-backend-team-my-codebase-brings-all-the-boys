@@ -3,16 +3,23 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 function Card({
-  className,
-  size = "default",
-  ...props
-}) {
+                className,
+                size = "default",
+                variant = "default",
+                ...props
+              }) {
   return (
     <div
       data-slot="card"
       data-size={size}
+      data-variant={variant}
       className={cn(
-        "group/card flex flex-col gap-6 overflow-hidden rounded-2xl bg-card py-6 text-sm text-card-foreground ring-1 shadow-md shadow-zinc-300/50 ring-foreground/10 has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col gap-4 overflow-hidden rounded-2xl py-6 has-[>img:first-child]:pt-0",
+        "data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        {
+          default: "bg-card text-card-foreground ring-1 shadow-md shadow-gray-300/50 ring-foreground/10",
+          flat_gray: "bg-gray-50 shadow-none ring-0 gap-2"
+        }[variant],
         className
       )}
       {...props} />
@@ -20,9 +27,9 @@ function Card({
 }
 
 function CardHeader({
-  className,
-  ...props
-}) {
+                      className,
+                      ...props
+                    }) {
   return (
     <div
       data-slot="card-header"
@@ -35,21 +42,21 @@ function CardHeader({
 }
 
 function CardTitle({
-  className,
-  ...props
-}) {
+                     className,
+                     ...props
+                   }) {
   return (
     <div
       data-slot="card-title"
-      className={cn("font-heading text-base font-medium", className)}
+      className={cn("font-heading text-lg font-medium", className)}
       {...props} />
   );
 }
 
 function CardDescription({
-  className,
-  ...props
-}) {
+                           className,
+                           ...props
+                         }) {
   return (
     <div
       data-slot="card-description"
@@ -59,9 +66,9 @@ function CardDescription({
 }
 
 function CardAction({
-  className,
-  ...props
-}) {
+                      className,
+                      ...props
+                    }) {
   return (
     <div
       data-slot="card-action"
@@ -74,9 +81,9 @@ function CardAction({
 }
 
 function CardContent({
-  className,
-  ...props
-}) {
+                       className,
+                       ...props
+                     }) {
   return (
     <div
       data-slot="card-content"
@@ -86,9 +93,9 @@ function CardContent({
 }
 
 function CardFooter({
-  className,
-  ...props
-}) {
+                      className,
+                      ...props
+                    }) {
   return (
     <div
       data-slot="card-footer"
