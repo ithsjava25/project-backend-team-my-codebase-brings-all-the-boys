@@ -78,7 +78,7 @@ public class ActivityLogController {
       throw new ForbiddenException("You are not authorized to view entity logs.");
     }
 
-    Page<ActivityLog> logs = activityLogService.getLogsForEntity(entityType, entityId, pageable);
+    Page<ActivityLog> logs = activityLogService.getLogsForParent(entityType, entityId, pageable);
     Page<ActivityLogResponse> response = logs.map(dtoMapper::toActivityLogResponse);
 
     return ResponseEntity.ok(response);

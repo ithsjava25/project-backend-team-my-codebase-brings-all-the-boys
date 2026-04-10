@@ -139,13 +139,15 @@ class ActivityLogControllerTest {
 
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
     Mockito.when(
-            activityLogService.getLogsForEntity(
-                EntityType.ASSIGNMENT, Mockito.eq(entityId), Mockito.any(Pageable.class)))
+            activityLogService.getLogsForParent(
+                Mockito.eq(EntityType.ASSIGNMENT),
+                Mockito.eq(entityId),
+                Mockito.any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
         .perform(
-            get("/api/activity-logs/entity/{entityType}/{entityId}", "Assignment", entityId)
+            get("/api/activity-logs/entity/{entityType}/{entityId}", "ASSIGNMENT", entityId)
                 .param("page", "0")
                 .param("size", "10"))
         .andExpect(status().isOk());
@@ -168,7 +170,7 @@ class ActivityLogControllerTest {
 
     mockMvc
         .perform(
-            get("/api/activity-logs/entity/{entityType}/{entityId}", "Assignment", entityId)
+            get("/api/activity-logs/entity/{entityType}/{entityId}", "ASSIGNMENT", entityId)
                 .param("page", "0")
                 .param("size", "10"))
         .andExpect(status().isForbidden());

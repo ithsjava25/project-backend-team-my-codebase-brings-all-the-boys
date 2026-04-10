@@ -29,6 +29,8 @@ public class ActivityLog {
   @JoinColumn(name = "user_id")
   private User user;
 
+  private UUID parentId;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private ActivityAction action;
@@ -60,7 +62,7 @@ public class ActivityLog {
       ActivityStatus status,
       Clock clock) {
     this.user = user;
-    this.id = parentId;
+    this.parentId = parentId;
     this.action = action;
     this.entityType = entityType;
     this.childId = childId;

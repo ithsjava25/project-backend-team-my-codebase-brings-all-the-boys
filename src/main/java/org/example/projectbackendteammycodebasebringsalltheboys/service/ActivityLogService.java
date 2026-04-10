@@ -54,9 +54,9 @@ public class ActivityLogService {
   }
 
   @Transactional(readOnly = true)
-  public Page<ActivityLog> getLogsForEntity(
+  public Page<ActivityLog> getLogsForParent(
       EntityType entityType, UUID entityId, Pageable pageable) {
-    return activityLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDescIdDesc(
+    return activityLogRepository.findByEntityTypeAndParentIdOrderByTimestampDescIdDesc(
         entityType, entityId, pageable);
   }
 }

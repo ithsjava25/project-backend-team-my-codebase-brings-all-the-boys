@@ -6,7 +6,7 @@ src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\config\Da
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\config\JpaAuditingConfig.java 2026-04-09T20:22:17.608805400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\config\S3Config.java 2026-04-09T20:22:17.610161400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\config\StorageConfig.java 2026-04-09T20:22:17.610161400Z
-src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\ActivityLogController.java 2026-04-10T11:56:05.882500400Z
+src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\ActivityLogController.java 2026-04-10T13:05:11.852860500Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\AssignmentController.java 2026-04-09T20:22:17.610161400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\AuthController.java 2026-04-09T20:22:17.610161400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\CommentController.java 2026-04-09T20:22:17.610161400Z
@@ -33,7 +33,7 @@ src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\dto\user\
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\dto\user\RegistrationRequest.java 2026-04-09T20:22:17.610161400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\dto\user\RoleResponse.java 2026-04-09T20:22:17.610161400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\dto\user\UserResponse.java 2026-04-09T20:22:17.610161400Z
-src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\entity\ActivityLog.java 2026-04-09T20:47:02.469062100Z
+src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\entity\ActivityLog.java 2026-04-10T12:58:53.279448900Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\entity\Assignment.java 2026-04-09T20:22:17.632068800Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\entity\BaseEntity.java 2026-04-09T20:22:17.632068800Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\entity\ClassEnrollment.java 2026-04-09T20:22:17.632068800Z
@@ -57,11 +57,11 @@ src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\exception
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\exception\GlobalExceptionHandler.java 2026-04-09T20:22:17.672443100Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\exception\NotFoundException.java 2026-04-09T20:22:17.673137300Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\exception\UnauthorizedException.java 2026-04-09T20:22:17.673591400Z
-src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\logging\ActivityDetailsBuilder.java 2026-04-10T11:57:12.208584Z
+src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\logging\ActivityDetailsBuilder.java 2026-04-10T12:54:23.610410400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\logging\ActivityLoggingAspect.java 2026-04-10T11:57:12.259171100Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\mapper\DtoMapper.java 2026-04-10T11:56:05.848531300Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\MyCodebaseBringsAllTheBoysApp.java 2026-03-31T11:43:40.523653Z
-src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\repository\ActivityLogRepository.java 2026-04-09T20:57:33.041214300Z
+src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\repository\ActivityLogRepository.java 2026-04-10T13:28:17.660602400Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\repository\AssignmentRepository.java 2026-04-09T20:22:17.679615Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\repository\ClassEnrollmentRepository.java 2026-04-09T20:22:17.680567Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\repository\CommentRepository.java 2026-04-09T20:22:17.682078Z
@@ -76,8 +76,8 @@ src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\security\
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\security\config\SecurityConfig.java 2026-04-09T20:22:17.691485Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\security\oauth\CustomOAuth2UserService.java 2026-04-09T20:22:17.692886200Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\security\userdetails\CustomUserDetailsService.java 2026-03-31T11:43:40.559691700Z
-src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\security\userdetails\SecurityContextService.java 2026-04-09T20:47:57.811624600Z
-src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\service\ActivityLogService.java 2026-04-10T11:57:12.283260200Z
+src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\security\userdetails\SecurityContextService.java 2026-04-10T13:05:27.190020200Z
+src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\service\ActivityLogService.java 2026-04-10T13:28:17.676565800Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\service\AuthorizationService.java 2026-04-09T20:22:17.694521600Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\service\CaseService.java 2026-04-10T11:44:57.255816800Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\service\ClassEnrollmentService.java 2026-04-10T11:57:12.310925700Z
@@ -90,7 +90,7 @@ src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\service\U
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\storage\LocalStorageService.java 2026-04-09T20:22:17.703374500Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\storage\S3StorageService.java 2026-04-09T20:22:17.704282800Z
 src\main\java\org\example\projectbackendteammycodebasebringsalltheboys\storage\StorageService.java 2026-04-09T20:22:17.704919100Z
-src\test\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\ActivityLogControllerTest.java 2026-04-09T20:22:17.707837600Z
+src\test\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\ActivityLogControllerTest.java 2026-04-10T13:22:43.985551400Z
 src\test\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\AssignmentControllerTest.java 2026-04-09T20:22:17.708751400Z
 src\test\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\AuthControllerTest.java 2026-04-09T20:22:17.710031400Z
 src\test\java\org\example\projectbackendteammycodebasebringsalltheboys\controller\PageControllerTest.java 2026-03-31T11:43:40.575314500Z

@@ -101,7 +101,9 @@ public class ActivityDetailsBuilder {
             .ifPresent(
                 c -> {
                   details.put("commentId", c.getId());
-                  details.put("assignmentTitle", c.getAssignment().getTitle());
+                  if (c.getAssignment() != null) {
+                    details.put("assignmentTitle", c.getAssignment().getTitle());
+                  }
                 });
       }
       default -> {}
