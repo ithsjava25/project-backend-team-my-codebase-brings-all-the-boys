@@ -174,7 +174,7 @@ export default function LoginPage() {
 
                 {/* GitHub OAuth */}
                 <a
-                    href="http://localhost:8080/oauth2/authorization/github"
+                    href={`${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/github`}
                     style={{
                         display: 'block',
                         textAlign: 'center',
