@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
@@ -139,7 +140,7 @@ class ActivityLogControllerTest {
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
     Mockito.when(
             activityLogService.getLogsForEntity(
-                Mockito.eq("Assignment"), Mockito.eq(entityId), Mockito.any(Pageable.class)))
+                EntityType.ASSIGNMENT, Mockito.eq(entityId), Mockito.any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
