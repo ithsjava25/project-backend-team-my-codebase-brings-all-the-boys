@@ -8,6 +8,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import WelcomeHeader from "@/components/dashboard/WelcomeHeader.jsx";
 import {useAuthContext} from "@/context/AuthContext.jsx";
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function DashboardLayout() {
   const { user } = useAuthContext();
@@ -20,8 +21,11 @@ export default function DashboardLayout() {
             <SidebarTrigger className="-ml-1" />
             <WelcomeHeader user={user} />
           </div>
+          <div className="ml-auto flex items-center gap-2 px-4">
+            <ThemeToggle />
+          </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 bg-gray-50 dark:bg-neutral-950">
           <div className="mx-auto w-full max-w-7xl">
             <Outlet />
           </div>

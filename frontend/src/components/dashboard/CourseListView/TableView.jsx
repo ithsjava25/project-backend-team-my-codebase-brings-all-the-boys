@@ -101,7 +101,7 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
                       <TableCell className="font-medium">{course.name}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Badge variant="yellow">Inaktiv</Badge>
+                          <Badge variant="yellow">Ej påbörjade</Badge>
                           <Badge variant="outline">{course.class}</Badge>
                         </div>
                       </TableCell>
