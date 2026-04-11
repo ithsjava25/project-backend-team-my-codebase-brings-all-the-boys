@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Grid3x3, ChevronDown } from 'lucide-react';
+import { Grid3x3, ChevronDown, StarIcon } from 'lucide-react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
+import { DayProgress } from '../DayProgress';
 
 export function TableView({ notStartedCourses, activeCourses, completedCourses, onViewChange }) {
   return (
@@ -35,37 +36,34 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Kurs</TableHead>
-                <TableHead>Klass</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead className="text-right">Uppgifter</TableHead>
-              </TableRow>
-            </TableHeader>
+           <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead style={{ width: '0%' }}>Kurs</TableHead>
+                  <TableHead style={{ width: '0%' }}>Status</TableHead>
+                  <TableHead style={{ width: '0%' }}>Klass</TableHead>
+                  <TableHead style={{ width: '30%' }}>Tidslinje</TableHead>
+                  <TableHead style={{ width: '12%' }}>Moment</TableHead>
+                  <TableHead style={{ width: '10%' }} className="text-right">Favorit</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {activeCourses.map((course) => (
                 <TableRow key={course.id}>
                   <TableCell className="font-medium">{course.name}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="green">Aktiv</Badge>
-                      <Badge variant="outline">{course.class}</Badge>
-                    </div>
+                    <Badge variant="purple">Pågående</Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-full bg-muted rounded-full h-2 max-w-25">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all"
-                          style={{ width: `${course.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-muted-foreground">{course.progress}%</span>
-                    </div>
+                    <Badge variant="outline">{course.class}</Badge>
                   </TableCell>
-                  <TableCell className="text-right">{course.assignments}</TableCell>
+                  <TableCell>
+                    <DayProgress course={course} />
+                  </TableCell>
+                  <TableCell>{course.completed ?? 0}/{course.assignments}</TableCell>
+                  <TableCell className="text-right ">
+                    {course.isFavorite && <StarIcon className="h-4 w-4 items-right text-yellow-500 fill-yellow-500" />}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -73,7 +71,7 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
         </CardContent>
       </Card>
 
-      {notStartedCourses.length > 0 && (
+        {notStartedCourses.length > 0 && (
         <Collapsible className="group/collapsible">
           <Card className="cursor-pointer">
             <CollapsibleTrigger asChild>
@@ -89,34 +87,31 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Kurs</TableHead>
-                    <TableHead>Klass</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead className="text-right">Uppgifter</TableHead>
+                    <TableHead style={{ width: '20%' }}>Kurs</TableHead>
+                    <TableHead style={{ width: '12%' }}>Status</TableHead>
+                    <TableHead style={{ width: '8%' }}>Klass</TableHead>
+                    <TableHead style={{ width: '30%' }}>Tidslinje</TableHead>
+                    <TableHead style={{ width: '12%' }} className="text-right">Moment</TableHead>
+                    <TableHead style={{ width: '10%' }} className="text-center">Favorit</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {notStartedCourses.map((course) => (
                     <TableRow key={course.id}>
-                      <TableCell className="font-medium">{course.name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="yellow">Ej påbörjade</Badge>
-                          <Badge variant="outline">{course.class}</Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-full bg-muted rounded-full h-2 max-w-25">
-                            <div
-                              className="bg-primary h-2 rounded-full transition-all"
-                              style={{ width: `${course.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted-foreground">{course.progress}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">{course.assignments}</TableCell>
+                  <TableCell className="font-medium">{course.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="yellow">Ej påbörjad</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{course.class}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DayProgress course={course} />
+                  </TableCell>
+                  <TableCell className="text-right">{course.completed ?? 0}/{course.assignments}</TableCell>
+                  <TableCell className="text-center">
+                    {course.isFavorite && <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
+                  </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -126,7 +121,7 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
         </Collapsible>
       )}
 
-      {completedCourses.length > 0 && (
+        {completedCourses.length > 0 && (
         <Collapsible className="group/collapsible">
           <Card className="cursor-pointer">
             <CollapsibleTrigger asChild>
@@ -142,34 +137,31 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Kurs</TableHead>
-                    <TableHead>Klass</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead className="text-right">Uppgifter</TableHead>
+                    <TableHead style={{ width: '20%' }}>Kurs</TableHead>
+                    <TableHead style={{ width: '12%' }}>Status</TableHead>
+                    <TableHead style={{ width: '8%' }}>Klass</TableHead>
+                    <TableHead style={{ width: '30%' }}>Tidslinje</TableHead>
+                    <TableHead style={{ width: '12%' }} className="text-right">Moment</TableHead>
+                    <TableHead style={{ width: '10%' }} className="text-center">Favorit</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {completedCourses.map((course) => (
                     <TableRow key={course.id}>
-                      <TableCell className="font-medium">{course.name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">Avslutad</Badge>
-                          <Badge variant="outline">{course.class}</Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-full bg-muted rounded-full h-2 max-w-25">
-                            <div
-                              className="bg-primary h-2 rounded-full transition-all"
-                              style={{ width: `${course.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-muted-foreground">{course.progress}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">{course.assignments}</TableCell>
+                  <TableCell className="font-medium">{course.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">Avslutad</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{course.class}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DayProgress course={course} />
+                  </TableCell>
+                  <TableCell className="text-right">{course.completed ?? 0}/{course.assignments}</TableCell>
+                  <TableCell className="text-center">
+                    {course.isFavorite && <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
+                  </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -14,7 +14,7 @@ function Card({
       data-size={size}
       data-variant={variant}
       className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-2xl py-6 has-[>img:first-child]:pt-0",
+        "group/card flex flex-col gap-2 overflow-hidden rounded-2xl py-4 has-[>img:first-child]:pt-0",
         "data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
         {
           default: "bg-card text-card-foreground ring-1 drop-shadow-md dark:drop-shadow-none drop-shadow-gray-300/50 ring-foreground/10",

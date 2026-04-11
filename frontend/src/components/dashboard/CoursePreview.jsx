@@ -2,7 +2,12 @@ import { CourseCard } from './CourseCard';
 import { Grid } from '@/components/ui/grid';
 
 export default function CoursePreview({ courses }) {
-  const activeCourses = courses.filter(course => course.progress < 100);
+  const now = new Date();
+  const activeCourses = courses.filter(course => {
+    const start = new Date(course.startDate);
+    const end = new Date(course.endDate);
+    return now >= start && now <= end;
+  });
 
   const favorites = activeCourses
     .filter(c => c.isFavorite)

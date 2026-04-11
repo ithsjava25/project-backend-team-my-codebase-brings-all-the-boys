@@ -11,9 +11,9 @@ export default function CourseList({ courses }) {
   const activeCourses = courses.filter(course => {
     const start = new Date(course.startDate);
     const end = new Date(course.endDate);
-    return now >= start && now <= end && course.progress < 100;
+    return now >= start && now <= end;
   });
-  const completedCourses = courses.filter(course => course.progress === 100 || new Date(course.endDate) < now);
+  const completedCourses = courses.filter(course => new Date(course.endDate) < now);
 
   if (viewMode === 'table') {
     return <TableView
