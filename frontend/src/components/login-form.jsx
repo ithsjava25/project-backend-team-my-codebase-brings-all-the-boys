@@ -49,7 +49,7 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <CardTitle>
-            {activeTab === 'login' ? 'Welcome Back' : 'Create Account'}
+            {activeTab === 'login' ? 'ITBS Studentportal' : 'Create Account'}
           </CardTitle>
           <CardDescription>
             {activeTab === 'login' 
