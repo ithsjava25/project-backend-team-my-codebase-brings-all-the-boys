@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ActivityLogResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ActivityLog;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
@@ -59,7 +60,7 @@ public class ActivityLogController {
 
   @GetMapping("/entity/{entityType}/{entityId}")
   public ResponseEntity<Page<ActivityLogResponse>> getEntityActivityLogs(
-      @PathVariable String entityType,
+      @PathVariable EntityType entityType,
       @PathVariable UUID entityId,
       java.security.Principal principal,
       Pageable pageable) {
@@ -77,7 +78,7 @@ public class ActivityLogController {
       throw new ForbiddenException("You are not authorized to view entity logs.");
     }
 
-    Page<ActivityLog> logs = activityLogService.getLogsForEntity(entityType, entityId, pageable);
+    Page<ActivityLog> logs = activityLogService.getLogsForParent(entityType, entityId, pageable);
     Page<ActivityLogResponse> response = logs.map(dtoMapper::toActivityLogResponse);
 
     return ResponseEntity.ok(response);

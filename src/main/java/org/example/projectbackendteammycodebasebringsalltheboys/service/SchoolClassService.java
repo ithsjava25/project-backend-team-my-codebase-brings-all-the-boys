@@ -4,7 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,13 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class SchoolClassService {
 
   private final SchoolClassRepository schoolClassRepository;
-  private final ActivityLogService activityLogService;
 
+  @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.SCHOOL_CLASS, orphan = true)
   @Transactional
-  public SchoolClass createClass(
-      String name,
-      String description,
-      org.example.projectbackendteammycodebasebringsalltheboys.entity.User creator) {
+  public SchoolClass createClass(String name, String description, User creator) {
     if (schoolClassRepository.findByName(name).isPresent()) {
       throw new IllegalArgumentException("Class with name " + name + " already exists");
     }
@@ -29,12 +30,7 @@ public class SchoolClassService {
     schoolClass.setName(name);
     schoolClass.setDescription(description);
 
-    SchoolClass saved = schoolClassRepository.save(schoolClass);
-
-    activityLogService.log(
-        creator, "CREATED_CLASS", "SchoolClass", saved.getId(), "Class created: " + name);
-
-    return saved;
+    return schoolClassRepository.save(schoolClass);
   }
 
   @Transactional(readOnly = true)
