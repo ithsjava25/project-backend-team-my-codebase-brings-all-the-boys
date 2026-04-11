@@ -45,7 +45,7 @@ public class ActivityLogService {
 
   @Transactional(readOnly = true)
   public Page<ActivityLog> getLogsForCase(UUID caseId, Pageable pageable) {
-    return activityLogRepository.findByIdOrderByTimestampDescIdDesc(caseId, pageable);
+    return activityLogRepository.findByParentIdOrderByTimestampDescIdDesc(caseId, pageable);
   }
 
   @Transactional(readOnly = true)

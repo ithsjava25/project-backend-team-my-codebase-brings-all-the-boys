@@ -16,5 +16,5 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, UUID> 
   Page<ActivityLog> findByEntityTypeAndParentIdOrderByTimestampDescIdDesc(
       EntityType entityType, UUID parentId, Pageable pageable);
 
-  Page<ActivityLog> findByIdOrderByTimestampDescIdDesc(UUID caseId, Pageable pageable);
+  Page<ActivityLog> findByParentIdOrderByTimestampDescIdDesc(UUID caseId, Pageable pageable);
 }
