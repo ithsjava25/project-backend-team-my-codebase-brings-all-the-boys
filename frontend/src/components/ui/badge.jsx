@@ -28,11 +28,11 @@ const badgeVariants = cva(
           "border-border bg-primary text-primary-foreground [a]:hover:bg-primary/80",
 
         purple:
-          "border-border bg-purple-500 text-primary-foreground [a]:hover:bg-purple-500/80",
+          "border-border bg-purple-400 text-primary-foreground [a]:hover:bg-purple-500/80",
         yellow:
-          "border-border bg-yellow-500 text-primary-foreground [a]:hover:bg-yellow-500/80",
+          "border-border bg-yellow-400 text-primary-foreground [a]:hover:bg-yellow-500/80",
         green:
-          "border-border bg-green-500 text-primary-foreground [a]:hover:bg-green-500/80",
+          "border-border bg-green-400 text-primary-foreground [a]:hover:bg-green-500/80",
       },
     },
     defaultVariants: {

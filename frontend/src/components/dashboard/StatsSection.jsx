@@ -22,7 +22,7 @@ export default function StatsSection({ role, user }) {
         return [
           { label: 'Aktiva kurser', value: '3', icon: BookOpen },
           { label: 'Kommande uppgifter', value: '3', icon: Calendar },
-          { label: 'Senaste inlämning', value: '2 dagar', icon: Clock },
+          { label: 'Kommande inlämningsdatum', value: '2 dagar', icon: Clock },
           { label: 'Avslutade uppgifter', value: '12', icon: CheckCircle2 },
         ];
     }
