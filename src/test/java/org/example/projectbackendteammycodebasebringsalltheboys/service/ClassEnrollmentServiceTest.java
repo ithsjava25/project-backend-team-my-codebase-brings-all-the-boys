@@ -40,16 +40,20 @@ class ClassEnrollmentServiceTest {
     schoolClass.setId(UUID.randomUUID());
     User actor = new User();
 
-    when(enrollmentRepository.findByUserAndSchoolClass(user, schoolClass)).thenReturn(Optional.empty());
-    when(enrollmentRepository.save(any(ClassEnrollment.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(enrollmentRepository.findByUserAndSchoolClass(user, schoolClass))
+        .thenReturn(Optional.empty());
+    when(enrollmentRepository.save(any(ClassEnrollment.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
 
-    ClassEnrollment result = enrollmentService.enrollUser(user, schoolClass, ClassRole.STUDENT, actor);
+    ClassEnrollment result =
+        enrollmentService.enrollUser(user, schoolClass, ClassRole.STUDENT, actor);
 
     assertThat(result.getUser()).isEqualTo(user);
     assertThat(result.getSchoolClass()).isEqualTo(schoolClass);
     assertThat(result.getClassRole()).isEqualTo(ClassRole.STUDENT);
     verify(enrollmentRepository).save(any(ClassEnrollment.class));
-    verify(activityLogService).log(eq(actor), eq(schoolClass.getId()), any(), any(), any(), any(), any());
+    verify(activityLogService)
+        .log(eq(actor), eq(schoolClass.getId()), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -63,14 +67,18 @@ class ClassEnrollmentServiceTest {
     ClassEnrollment existing = new ClassEnrollment();
     existing.setClassRole(ClassRole.STUDENT);
 
-    when(enrollmentRepository.findByUserAndSchoolClass(user, schoolClass)).thenReturn(Optional.of(existing));
-    when(enrollmentRepository.save(any(ClassEnrollment.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(enrollmentRepository.findByUserAndSchoolClass(user, schoolClass))
+        .thenReturn(Optional.of(existing));
+    when(enrollmentRepository.save(any(ClassEnrollment.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
 
-    ClassEnrollment result = enrollmentService.enrollUser(user, schoolClass, ClassRole.MENTOR, actor);
+    ClassEnrollment result =
+        enrollmentService.enrollUser(user, schoolClass, ClassRole.MENTOR, actor);
 
     assertThat(result.getClassRole()).isEqualTo(ClassRole.MENTOR);
     verify(enrollmentRepository).save(existing);
-    verify(activityLogService).log(eq(actor), eq(schoolClass.getId()), any(), any(), any(), any(), any());
+    verify(activityLogService)
+        .log(eq(actor), eq(schoolClass.getId()), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -78,7 +86,8 @@ class ClassEnrollmentServiceTest {
   void isUserInClass_found_returnsTrue() {
     User user = new User();
     SchoolClass sc = new SchoolClass();
-    when(enrollmentRepository.findByUserAndSchoolClass(user, sc)).thenReturn(Optional.of(new ClassEnrollment()));
+    when(enrollmentRepository.findByUserAndSchoolClass(user, sc))
+        .thenReturn(Optional.of(new ClassEnrollment()));
 
     assertThat(enrollmentService.isUserInClass(user, sc)).isTrue();
   }

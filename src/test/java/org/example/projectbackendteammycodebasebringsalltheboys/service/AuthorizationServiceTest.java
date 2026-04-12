@@ -29,7 +29,8 @@ class AuthorizationServiceTest {
 
   @BeforeEach
   void setUp() {
-    authorizationService = new AuthorizationService(userAssignmentRepository, classEnrollmentRepository);
+    authorizationService =
+        new AuthorizationService(userAssignmentRepository, classEnrollmentRepository);
   }
 
   private User createUser(String roleName) {

@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +37,12 @@ class UserAssignmentServiceTest {
 
   @BeforeEach
   void setUp() {
-    userAssignmentService = new UserAssignmentService(userAssignmentRepository, submissionRepository, fileMetadataRepository, activityLogService);
+    userAssignmentService =
+        new UserAssignmentService(
+            userAssignmentRepository,
+            submissionRepository,
+            fileMetadataRepository,
+            activityLogService);
   }
 
   @Test

@@ -1,7 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.time.Clock;
@@ -46,7 +45,14 @@ class ActivityLogServiceTest {
     UUID entityId = UUID.randomUUID();
     Map<String, Object> details = Map.of("key", "value");
 
-    activityLogService.log(user, parentId, ActivityAction.CREATED, EntityType.COURSE, entityId, details, ActivityStatus.SUCCESS);
+    activityLogService.log(
+        user,
+        parentId,
+        ActivityAction.CREATED,
+        EntityType.COURSE,
+        entityId,
+        details,
+        ActivityStatus.SUCCESS);
 
     ArgumentCaptor<ActivityLog> captor = ArgumentCaptor.forClass(ActivityLog.class);
     verify(activityLogRepository).save(captor.capture());

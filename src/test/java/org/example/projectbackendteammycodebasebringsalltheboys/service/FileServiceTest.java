@@ -7,8 +7,6 @@ import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Optional;
-import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
@@ -44,9 +42,11 @@ class FileServiceTest {
     String fileName = "test.txt";
     InputStream is = new ByteArrayInputStream("hello".getBytes());
     when(storageService.uploadFile(anyString(), any(), anyLong(), anyString())).thenReturn("s3key");
-    when(fileMetadataRepository.save(any(FileMetadata.class))).thenAnswer(inv -> inv.getArgument(0));
+    when(fileMetadataRepository.save(any(FileMetadata.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
 
-    FileMetadata result = fileService.uploadAssignmentFile(assignment, uploader, fileName, is, 5L, "text/plain");
+    FileMetadata result =
+        fileService.uploadAssignmentFile(assignment, uploader, fileName, is, 5L, "text/plain");
 
     assertThat(result.getS3Key()).isEqualTo("s3key");
     assertThat(result.getFileName()).isEqualTo(fileName);
@@ -62,20 +62,27 @@ class FileServiceTest {
     when(storageService.uploadFile(anyString(), any(), anyLong(), anyString())).thenReturn("s3key");
     when(fileMetadataRepository.save(any())).thenThrow(new RuntimeException("DB error"));
 
-    assertThatThrownBy(() -> fileService.uploadAssignmentFile(assignment, uploader, "file", null, 0L, "type"))
+    assertThatThrownBy(
+            () -> fileService.uploadAssignmentFile(assignment, uploader, "file", null, 0L, "type"))
         .isInstanceOf(RuntimeException.class);
 
     verify(storageService).deleteFile("s3key");
   }
 
   @Test
-  @DisplayName("savePresignedMetadata throws exception if both assignment and comment are null or both present")
+  @DisplayName(
+      "savePresignedMetadata throws exception if both assignment and comment are null or both present")
   void savePresignedMetadata_invalidInput_throwsException() {
     User uploader = new User();
-    assertThatThrownBy(() -> fileService.savePresignedMetadata("key", "file", 0L, "type", uploader, null, null))
+    assertThatThrownBy(
+            () ->
+                fileService.savePresignedMetadata("key", "file", 0L, "type", uploader, null, null))
         .isInstanceOf(IllegalArgumentException.class);
 
-    assertThatThrownBy(() -> fileService.savePresignedMetadata("key", "file", 0L, "type", uploader, new Assignment(), new Comment()))
+    assertThatThrownBy(
+            () ->
+                fileService.savePresignedMetadata(
+                    "key", "file", 0L, "type", uploader, new Assignment(), new Comment()))
         .isInstanceOf(IllegalArgumentException.class);
   }
 

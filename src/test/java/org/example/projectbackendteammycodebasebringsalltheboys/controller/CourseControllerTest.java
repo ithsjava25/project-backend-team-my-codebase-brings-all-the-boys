@@ -1,21 +1,19 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
-import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
-import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
-import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -38,7 +38,8 @@ class CourseServiceTest {
   @Test
   @DisplayName("createCourse throws BadRequestException if schoolClass is null")
   void createCourse_nullClass_throwsException() {
-    assertThatThrownBy(() -> courseService.createCourse("Name", "Desc", null, new User(), new User()))
+    assertThatThrownBy(
+            () -> courseService.createCourse("Name", "Desc", null, new User(), new User()))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("SchoolClass cannot be null");
   }
@@ -51,7 +52,8 @@ class CourseServiceTest {
     User creator = new User();
     when(courseRepository.save(any(Course.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    Course result = courseService.createCourse("Math", "Algebra", schoolClass, leadTeacher, creator);
+    Course result =
+        courseService.createCourse("Math", "Algebra", schoolClass, leadTeacher, creator);
 
     assertThat(result.getName()).isEqualTo("Math");
     assertThat(result.getSchoolClass()).isEqualTo(schoolClass);
