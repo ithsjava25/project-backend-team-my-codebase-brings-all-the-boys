@@ -1,14 +1,20 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Submission;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
@@ -26,6 +32,11 @@ public class UserAssignmentService {
   private final FileMetadataRepository fileMetadataRepository;
   private final ActivityLogService activityLogService;
 
+  @LogActivity(
+      action = ActivityAction.ASSIGNED,
+      entityType = EntityType.USER_ASSIGNMENT,
+      parentIdParamIndex = 0,
+      actorParamIndex = 2)
   @Transactional
   public UserAssignment assignToStudent(Assignment assignment, User student, User assigner) {
     UserAssignment ua = new UserAssignment();
@@ -33,16 +44,7 @@ public class UserAssignmentService {
     ua.setStudent(student);
     ua.setStatus(StudentAssignmentStatus.ASSIGNED);
 
-    UserAssignment saved = userAssignmentRepository.save(ua);
-
-    activityLogService.log(
-        assigner,
-        "ASSIGNED_CASE",
-        "UserAssignment",
-        saved.getId(),
-        "Assigned case: " + assignment.getTitle() + " to student: " + student.getUsername());
-
-    return saved;
+    return userAssignmentRepository.save(ua);
   }
 
   @Transactional
@@ -98,14 +100,24 @@ public class UserAssignmentService {
       userAssignmentRepository.save(ua);
     }
 
+    Map<String, Object> submitDetails = new LinkedHashMap<>();
+    submitDetails.put("assignmentTitle", ua.getAssignment().getTitle());
+    submitDetails.put("fileCount", fileS3Keys.size());
     activityLogService.log(
         ua.getStudent(),
-        "SUBMITTED_ASSIGNMENT",
-        "UserAssignment",
-        ua.getId(),
-        "Student turned in assignment: " + ua.getAssignment().getTitle());
+        ua.getAssignment().getId(),
+        ActivityAction.ADDED,
+        EntityType.SUBMISSION,
+        null,
+        submitDetails,
+        ActivityStatus.SUCCESS);
   }
 
+  @LogActivity(
+      action = ActivityAction.EVALUATED,
+      entityType = EntityType.USER_ASSIGNMENT,
+      parentIdParamIndex = 0,
+      actorParamIndex = 3)
   @Transactional
   public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
     if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN) {
@@ -115,13 +127,6 @@ public class UserAssignmentService {
     ua.setGrade(grade);
     ua.setFeedback(feedback);
     userAssignmentRepository.save(ua);
-
-    activityLogService.log(
-        evaluator,
-        "EVALUATED_ASSIGNMENT",
-        "UserAssignment",
-        ua.getId(),
-        "Teacher evaluated assignment with grade: " + grade);
   }
 
   @Transactional(readOnly = true)

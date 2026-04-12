@@ -1,12 +1,17 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
@@ -20,6 +25,11 @@ public class CourseService {
   private final CourseRepository courseRepository;
   private final ActivityLogService activityLogService;
 
+  @LogActivity(
+      action = ActivityAction.CREATED,
+      entityType = EntityType.COURSE,
+      orphan = true,
+      actorParamIndex = 4)
   @Transactional
   public Course createCourse(
       String name, String description, SchoolClass schoolClass, User leadTeacher, User creator) {
@@ -32,18 +42,14 @@ public class CourseService {
     course.setSchoolClass(schoolClass);
     course.setLeadTeacher(leadTeacher);
 
-    Course saved = courseRepository.save(course);
-
-    activityLogService.log(
-        creator,
-        "CREATED_COURSE",
-        "Course",
-        saved.getId(),
-        "Course " + name + " created for class: " + schoolClass.getName());
-
-    return saved;
+    return courseRepository.save(course);
   }
 
+  @LogActivity(
+      action = ActivityAction.UPDATED,
+      entityType = EntityType.COURSE,
+      parentIdParamIndex = 0,
+      actorParamIndex = 2)
   @Transactional
   public void updateLeadTeacher(UUID courseId, User newLead, User updater) {
     if (newLead == null || newLead.getId() == null) {
@@ -58,13 +64,6 @@ public class CourseService {
             .orElseThrow(() -> new NotFoundException("Course not found"));
     course.setLeadTeacher(newLead);
     courseRepository.save(course);
-
-    activityLogService.log(
-        updater,
-        "UPDATED_COURSE_LEAD",
-        "Course",
-        course.getId(),
-        "Updated lead teacher to: " + newLead.getUsername());
   }
 
   @Transactional
@@ -87,10 +86,12 @@ public class CourseService {
 
       activityLogService.log(
           updater,
-          "ADDED_COURSE_ASSISTANT",
-          "Course",
           course.getId(),
-          "Added assistant: " + assistant.getUsername());
+          ActivityAction.ADDED,
+          EntityType.COURSE,
+          null,
+          Map.of("addedAssistant", assistant.getUsername()),
+          ActivityStatus.SUCCESS);
     }
   }
 
@@ -111,10 +112,12 @@ public class CourseService {
 
       activityLogService.log(
           updater,
-          "REMOVED_COURSE_ASSISTANT",
-          "Course",
           course.getId(),
-          "Removed assistant: " + assistant.getUsername());
+          ActivityAction.REMOVED,
+          EntityType.COURSE,
+          null,
+          Map.of("removedAssistant", assistant.getUsername()),
+          ActivityStatus.SUCCESS);
     }
   }
 

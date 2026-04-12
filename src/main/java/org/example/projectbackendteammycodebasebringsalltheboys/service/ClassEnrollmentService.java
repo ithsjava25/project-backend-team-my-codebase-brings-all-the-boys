@@ -1,12 +1,16 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ClassEnrollment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,13 +31,16 @@ public class ClassEnrollmentService {
     if (existing.isPresent()) {
       ClassEnrollment enrollment = existing.get();
       enrollment.setClassRole(role);
+      ClassEnrollment saved = enrollmentRepository.save(enrollment);
       activityLogService.log(
           actor,
-          "UPDATED_ENROLLMENT",
-          "SchoolClass",
           schoolClass.getId(),
-          "Updated " + user.getUsername() + " role to " + role + " in " + schoolClass.getName());
-      return enrollmentRepository.save(enrollment);
+          ActivityAction.UPDATED,
+          EntityType.CLASS_ENROLLMENT,
+          saved.getId(),
+          Map.of("enrolledUser", user.getUsername(), "role", role.name()),
+          ActivityStatus.SUCCESS);
+      return saved;
     }
 
     ClassEnrollment enrollment = new ClassEnrollment();
@@ -45,10 +52,12 @@ public class ClassEnrollmentService {
 
     activityLogService.log(
         actor,
-        "ENROLLED_USER",
-        "SchoolClass",
         schoolClass.getId(),
-        "Enrolled " + user.getUsername() + " as " + role + " in " + schoolClass.getName());
+        ActivityAction.ADDED,
+        EntityType.CLASS_ENROLLMENT,
+        saved.getId(),
+        Map.of("enrolledUser", user.getUsername(), "role", role.name()),
+        ActivityStatus.SUCCESS);
 
     return saved;
   }

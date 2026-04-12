@@ -86,7 +86,7 @@ public class DtoMapper {
     response.setId(log.getId());
     response.setAction(log.getAction());
     response.setEntityType(log.getEntityType());
-    response.setEntityId(log.getEntityId());
+    response.setEntityId(log.getChildId());
     response.setDetails(log.getDetails());
     response.setTimestamp(log.getTimestamp());
     return response;
