@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { ChevronsUpDown, House, Shield } from "lucide-react"
+import { useNavigate } from 'react-router-dom';
 
 import {
   DropdownMenu,
@@ -20,9 +21,10 @@ import {
 
 export function CourseSwitcher({ courses, user }) {
   const { isMobile } = useSidebar()
-  const [activeCourse, setActiveCourse] = React.useState(courses[0])
+  const navigate = useNavigate();
+  const [activeItem, setActiveItem] = React.useState(courses[0])
 
-  if (!activeCourse) {
+  if (!activeItem) {
     return null
   }
 
@@ -38,12 +40,12 @@ export function CourseSwitcher({ courses, user }) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <SidebarMenuItem className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <activeCourse.logo className="size-4" />
-              </SidebarMenuItem>
-              <SidebarMenuItem className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{activeCourse.name}</span>
-              </SidebarMenuItem>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <activeItem.logo className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{activeItem.name}</span>
+              </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -58,7 +60,10 @@ export function CourseSwitcher({ courses, user }) {
             </DropdownMenuLabel>
 
             <DropdownMenuItem
-              onClick={() => setActiveCourse({ name: 'Startsida', logo: House })}
+              onClick={() => {
+                setActiveItem({ name: 'Startsida', logo: House });
+                navigate('/dashboard');  // ← NYTT!
+              }}
               className="gap-2 p-2"
             >
               <div className="flex size-6 items-center justify-center rounded-md border bg-sidebar-accent">
@@ -70,10 +75,13 @@ export function CourseSwitcher({ courses, user }) {
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Kurser</DropdownMenuLabel>
 
-            {courses.map((course, index) => (
+            {courses.map((course) => (
               <DropdownMenuItem
-                key={course.name}
-                onClick={() => setActiveCourse(course)}
+                key={course.id}
+                onClick={() => {
+                  setActiveItem(course);
+                  navigate(course.url);
+                }}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
@@ -92,7 +100,10 @@ export function CourseSwitcher({ courses, user }) {
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setActiveCourse({ name: 'Admin', logo: Shield })}
+                  onClick={() => {
+                    setActiveItem({ name: 'Admin', logo: Shield });
+                    navigate('/admin');
+                  }}
                   className="gap-2 p-2"
                 >
                   <div className="flex size-6 items-center justify-center rounded-md border bg-red-500/10">

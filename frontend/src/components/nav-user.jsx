@@ -9,7 +9,6 @@ import {
 import {
   Avatar,
   AvatarFallback,
-  AvatarImage,
 } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -35,14 +34,14 @@ function UserDisplay({ user, wrapperClassName }) {
           <UserRoundIcon className="h-4 w-4"/>
         </AvatarFallback>
       </Avatar>
-      <SidebarMenuSubItem className="grid flex-1 text-sm">
+      <div className="grid flex-1 text-sm">
         <SidebarMenuSubItem className="truncate">
           {user.username}
         </SidebarMenuSubItem>
         <SidebarMenuSubItem className="truncate text-xs text-muted-foreground">
           {user.email}
         </SidebarMenuSubItem>
-      </SidebarMenuSubItem>
+      </div>
     </SidebarMenuItem>
   )
 }
