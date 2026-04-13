@@ -38,7 +38,7 @@ public class AdminInitializer implements CommandLineRunner {
 
       Role admin =
           roleRepository
-              .findByName("ADMIN")
+              .findByName("ROLE_ADMIN")
               .orElseThrow(() -> new IllegalStateException("ADMIN role not found"));
 
       defaultAdmin.setRole(admin);
