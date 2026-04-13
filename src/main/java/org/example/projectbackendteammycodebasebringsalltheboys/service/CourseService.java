@@ -25,11 +25,17 @@ public class CourseService {
   private final CourseRepository courseRepository;
   private final ActivityLogService activityLogService;
 
+  @Transactional
+  public Course createCourse(
+      String name, String description, SchoolClass schoolClass, User leadTeacher, User creator) {
+    return createCourse(name, description, schoolClass, leadTeacher, creator, null);
+  }
+
   @LogActivity(
       action = ActivityAction.CREATED,
       entityType = EntityType.COURSE,
       orphan = true,
-      actorParamIndex = 4)
+      actorParamIndex = 5)
   @Transactional
   public Course createCourse(
       String name,
