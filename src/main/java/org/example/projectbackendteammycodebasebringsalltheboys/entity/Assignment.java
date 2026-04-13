@@ -33,6 +33,5 @@ public class Assignment extends BaseEntity {
   @Column(nullable = false)
   private AssignmentStatus status = AssignmentStatus.CREATED;
 
-  @Column
-  private java.time.LocalDateTime deadline;
+  @Column private java.time.LocalDateTime deadline;
 }

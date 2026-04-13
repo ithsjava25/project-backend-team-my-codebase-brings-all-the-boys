@@ -21,15 +21,25 @@ public class CaseService {
   private final AssignmentRepository assignmentRepository;
 
   @Transactional
-  public Assignment createCase(String title, String description, User creator, java.time.LocalDateTime deadline) {
+  public Assignment createCase(
+      String title, String description, User creator, java.time.LocalDateTime deadline) {
     return createCase(title, description, creator, null, deadline);
   }
 
   @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.ASSIGNMENT, orphan = true)
   @Transactional
-  public Assignment createCase(String title, String description, User creator, Course course, java.time.LocalDateTime deadline) {
-    if (course != null && course.getEndDate() != null && deadline != null && deadline.isAfter(course.getEndDate())) {
-      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException("Assignment deadline cannot be after course end date.");
+  public Assignment createCase(
+      String title,
+      String description,
+      User creator,
+      Course course,
+      java.time.LocalDateTime deadline) {
+    if (course != null
+        && course.getEndDate() != null
+        && deadline != null
+        && deadline.isAfter(course.getEndDate())) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .BadRequestException("Assignment deadline cannot be after course end date.");
     }
     Assignment assignment = new Assignment();
     assignment.setTitle(title);

@@ -46,7 +46,8 @@ public class AssignmentController {
             .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
     Assignment assignment =
-        caseService.createCase(request.getTitle(), request.getDescription(), currentUser, request.getDeadline());
+        caseService.createCase(
+            request.getTitle(), request.getDescription(), currentUser, request.getDeadline());
 
     URI location =
         ServletUriComponentsBuilder.fromCurrentRequest()

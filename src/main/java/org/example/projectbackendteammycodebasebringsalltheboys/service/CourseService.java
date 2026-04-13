@@ -32,7 +32,12 @@ public class CourseService {
       actorParamIndex = 5)
   @Transactional
   public Course createCourse(
-      String name, String description, SchoolClass schoolClass, User leadTeacher, User creator, java.time.LocalDateTime endDate) {
+      String name,
+      String description,
+      SchoolClass schoolClass,
+      User leadTeacher,
+      User creator,
+      java.time.LocalDateTime endDate) {
     if (schoolClass == null) {
       throw new BadRequestException("SchoolClass cannot be null");
     }
