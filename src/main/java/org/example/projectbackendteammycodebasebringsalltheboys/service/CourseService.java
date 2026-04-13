@@ -26,6 +26,11 @@ public class CourseService {
   private final ActivityLogService activityLogService;
 
   @Transactional
+  @LogActivity(
+      action = ActivityAction.CREATED,
+      entityType = EntityType.COURSE,
+      orphan = true,
+      actorParamIndex = 4)
   public Course createCourse(
       String name, String description, SchoolClass schoolClass, User leadTeacher, User creator) {
     return createCourse(name, description, schoolClass, leadTeacher, creator, null);
@@ -35,7 +40,7 @@ public class CourseService {
       action = ActivityAction.CREATED,
       entityType = EntityType.COURSE,
       orphan = true,
-      actorParamIndex = 5)
+      actorParamIndex = 4)
   @Transactional
   public Course createCourse(
       String name,
