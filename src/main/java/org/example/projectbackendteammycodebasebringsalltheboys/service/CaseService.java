@@ -20,6 +20,7 @@ public class CaseService {
 
   private final AssignmentRepository assignmentRepository;
 
+  @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.ASSIGNMENT, orphan = true)
   @Transactional
   public Assignment createCase(
       String title, String description, User creator, java.time.LocalDateTime deadline) {

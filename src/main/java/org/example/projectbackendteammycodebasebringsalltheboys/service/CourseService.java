@@ -29,7 +29,7 @@ public class CourseService {
       action = ActivityAction.CREATED,
       entityType = EntityType.COURSE,
       orphan = true,
-      actorParamIndex = 5)
+      actorParamIndex = 4)
   @Transactional
   public Course createCourse(
       String name,
