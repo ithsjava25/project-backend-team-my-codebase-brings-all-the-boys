@@ -39,7 +39,7 @@ class CourseServiceTest {
   @Test
   @DisplayName("createCourse throws BadRequestException if schoolClass is null")
   void createCourse_nullClass_throwsException() {
-    LocalDateTime endDate = LocalDateTime.of(2026, 11, 11, 12, 0);
+    LocalDateTime endDate = LocalDateTime.now().plusDays(1);
     assertThatThrownBy(
             () -> courseService.createCourse("Name", "Desc", null, new User(), new User(), endDate))
         .isInstanceOf(BadRequestException.class)
@@ -49,7 +49,7 @@ class CourseServiceTest {
   @Test
   @DisplayName("createCourse saves course when valid")
   void createCourse_valid_savesCourse() {
-    LocalDateTime endDate = LocalDateTime.of(2026, 11, 11, 12, 0);
+    LocalDateTime endDate = LocalDateTime.now().plusDays(1);
     SchoolClass schoolClass = new SchoolClass();
     User leadTeacher = new User();
     User creator = new User();

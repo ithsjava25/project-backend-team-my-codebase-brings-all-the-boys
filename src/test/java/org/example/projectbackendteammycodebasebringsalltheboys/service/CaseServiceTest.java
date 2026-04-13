@@ -34,7 +34,7 @@ class CaseServiceTest {
   @Test
   @DisplayName("createCase saves assignment with correct details")
   void createCase_savesAssignment() {
-    LocalDateTime endDate = LocalDateTime.of(2026, 11, 11, 12, 0);
+    LocalDateTime endDate = LocalDateTime.now().plusDays(1);
     User creator = new User();
     creator.setId(UUID.randomUUID());
     Course course = new Course();
