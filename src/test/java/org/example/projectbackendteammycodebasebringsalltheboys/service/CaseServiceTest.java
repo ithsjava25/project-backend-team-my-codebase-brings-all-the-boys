@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +34,7 @@ class CaseServiceTest {
   @Test
   @DisplayName("createCase saves assignment with correct details")
   void createCase_savesAssignment() {
+    LocalDateTime endDate = LocalDateTime.of(2026, 11, 11, 12, 0);
     User creator = new User();
     creator.setId(UUID.randomUUID());
     Course course = new Course();
@@ -40,7 +42,7 @@ class CaseServiceTest {
 
     when(assignmentRepository.save(any(Assignment.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    Assignment result = caseService.createCase("Title", "Description", creator, course);
+    Assignment result = caseService.createCase("Title", "Description", creator, course, endDate);
 
     assertThat(result.getTitle()).isEqualTo("Title");
     assertThat(result.getDescription()).isEqualTo("Description");

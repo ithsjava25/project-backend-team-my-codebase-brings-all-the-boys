@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,8 +39,9 @@ class CourseServiceTest {
   @Test
   @DisplayName("createCourse throws BadRequestException if schoolClass is null")
   void createCourse_nullClass_throwsException() {
+    LocalDateTime endDate = LocalDateTime.of(2026, 11, 11, 12, 0);
     assertThatThrownBy(
-            () -> courseService.createCourse("Name", "Desc", null, new User(), new User()))
+            () -> courseService.createCourse("Name", "Desc", null, new User(), new User(), endDate))
         .isInstanceOf(BadRequestException.class)
         .hasMessage("SchoolClass cannot be null");
   }
@@ -47,13 +49,14 @@ class CourseServiceTest {
   @Test
   @DisplayName("createCourse saves course when valid")
   void createCourse_valid_savesCourse() {
+    LocalDateTime endDate = LocalDateTime.of(2026, 11, 11, 12, 0);
     SchoolClass schoolClass = new SchoolClass();
     User leadTeacher = new User();
     User creator = new User();
     when(courseRepository.save(any(Course.class))).thenAnswer(inv -> inv.getArgument(0));
 
     Course result =
-        courseService.createCourse("Math", "Algebra", schoolClass, leadTeacher, creator);
+        courseService.createCourse("Math", "Algebra", schoolClass, leadTeacher, creator, endDate);
 
     assertThat(result.getName()).isEqualTo("Math");
     assertThat(result.getSchoolClass()).isEqualTo(schoolClass);
