@@ -42,11 +42,10 @@ export const mapToCardFormat = (courses) => {
 
   return courses.map(course => ({
     id: course.id,
-    title: course.name,
-    schoolClass: course.schoolClassName,
-    link: `/courses/${course.id}`
-    // Add more fields when dashboard needs it
-  }));
+    name: course.name,
+    class: course.schoolClassName,
+    // Add dates, favorite and so on when/if implemented
+  }));c
 };
 
 /**

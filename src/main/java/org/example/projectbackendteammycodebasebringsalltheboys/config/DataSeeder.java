@@ -57,9 +57,11 @@ public class DataSeeder implements CommandLineRunner {
     getOrCreateEnrollment(student3, class2026A, ClassRole.STUDENT);
 
     // 5. Course
-    Course javaBackend1 =
-        getOrCreateCourse(
+    Course javaBackend1 = getOrCreateCourse(
             "Java Backend 1", "Introduction to Spring Boot and JPA", class2026A, teacher);
+    Course testEnd = getOrCreateCourse(
+            "Testend 2", "A test course to use for testing", class2026A,teacher);
+
 
     // 6. Assignments
 

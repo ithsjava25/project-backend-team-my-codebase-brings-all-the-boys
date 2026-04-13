@@ -20,10 +20,7 @@ export default function StatsSection({ role, user }) {
         ];
       default:
         return [
-          { label: 'Aktiva kurser', value: '3', icon: BookOpen },
-          { label: 'Kommande uppgifter', value: '3', icon: Calendar },
-          { label: 'Kommande deadline', value: '2 dagar', icon: Clock },
-          { label: 'Avslutade uppgifter', value: '12', icon: CheckCircle2 },
+          { label: 'PLACEHOLDER', value: '3', icon: BookOpen },
         ];
     }
   };
@@ -34,7 +31,7 @@ export default function StatsSection({ role, user }) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {stats.map((stat) => (
         <Card key={stat.label} size="sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
             <stat.icon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
