@@ -26,6 +26,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from "@/context/AuthContext.jsx";
+
 function UserDisplay({ user, wrapperClassName }) {
   return (
     <SidebarMenuItem className={wrapperClassName}>
@@ -48,6 +51,18 @@ function UserDisplay({ user, wrapperClassName }) {
 
 export function NavUser({ user }) {
   const { isMobile } = useSidebar()
+  const navigate = useNavigate();
+  const { logout } = useAuthContext();  // ← NY
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      navigate('/login');
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -71,7 +86,7 @@ export function NavUser({ user }) {
               <UserDisplay user={user} wrapperClassName="flex items-center gap-2" />
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOutIcon />
                 Logga out
               </DropdownMenuItem>

@@ -5,6 +5,7 @@ import * as React from "react"
 import { NavMain } from "@/components/nav-main"
 import { NavFavorites } from "@/components/nav-favorites"
 import { NavUser } from "@/components/nav-user"
+import { NavHome } from "@/components/nav-home"
 import { CourseSwitcher } from "@/components/course-switcher"
 import { useAuthContext } from "@/context/AuthContext.jsx";
 import {mapToSidebarFormat} from "@/mappers/courseMapper.js";
@@ -36,6 +37,7 @@ export function AppSidebar({ ...props }) {
         <CourseSwitcher courses={sidebarCourses} user={user} />
       </SidebarHeader>
       <SidebarContent>
+        <NavHome/>
         <NavMain items={navItems} />
         <NavFavorites favorites={[]} />
       </SidebarContent>
