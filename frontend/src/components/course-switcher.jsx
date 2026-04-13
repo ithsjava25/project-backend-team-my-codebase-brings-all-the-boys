@@ -38,20 +38,17 @@ export function CourseSwitcher({ courses, user }) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <SidebarMenuItem className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <activeCourse.logo className="size-4" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              </SidebarMenuItem>
+              <SidebarMenuItem className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{activeCourse.name}</span>
-                {activeCourse.description && (
-                  <span className="truncate text-xs">{activeCourse.description}</span>
-                )}
-              </div>
+              </SidebarMenuItem>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-auto rounded-lg"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
@@ -61,7 +58,7 @@ export function CourseSwitcher({ courses, user }) {
             </DropdownMenuLabel>
 
             <DropdownMenuItem
-              onClick={() => setActiveCourse({ name: 'Startsida', logo: House, url: '/dashboard' })}
+              onClick={() => setActiveCourse({ name: 'Startsida', logo: House })}
               className="gap-2 p-2"
             >
               <div className="flex size-6 items-center justify-center rounded-md border bg-sidebar-accent">
@@ -95,7 +92,7 @@ export function CourseSwitcher({ courses, user }) {
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setActiveCourse({ name: 'Admin', logo: Shield, url: '/admin' })}
+                  onClick={() => setActiveCourse({ name: 'Admin', logo: Shield })}
                   className="gap-2 p-2"
                 >
                   <div className="flex size-6 items-center justify-center rounded-md border bg-red-500/10">

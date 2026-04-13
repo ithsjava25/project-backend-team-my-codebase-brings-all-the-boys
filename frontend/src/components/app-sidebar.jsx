@@ -2,19 +2,15 @@
 
 import * as React from "react"
 import {
-  BookOpen,
-  Bot,
-  Settings2,
-  SquareTerminal,
-  Code,
-  GraduationCap,
-  Database
+  BookOpenIcon
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavFavorites } from "@/components/nav-favorites"
 import { NavUser } from "@/components/nav-user"
 import { CourseSwitcher } from "@/components/course-switcher"
+import { useAuthContext } from "@/context/AuthContext.jsx";
+import { useCourses } from '@/hooks/useCourses';
 import {
   Sidebar,
   SidebarContent,
@@ -22,163 +18,42 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import {mapToSidebarFormat} from "@/mappers/courseMapper.js";
 
-//TODO: Demo data, hårdkodade kurser, byt till API
-const coursesData = [
+const navMainData = [
   {
-    name: "Java Backend 1",
-    logo: Code,
-    schoolClassName: "TE24A",
-    description: "Backend-utveckling med Java"
+    title: "Kurser",
+    url: "#",
+    icon: BookOpenIcon,
+    isActive: true,
+    items: [
+      { title: "History", url: "#" },
+    ],
   },
-  {
-    name: "React Frontend 2",
-    logo: Code,
-    schoolClassName: "TE24B",
-    description: "Frontend med React"
-  },
-  {
-    name: "Databasteknik",
-    logo: Database,
-    schoolClassName: "TE24A",
-    description: "SQL och NoSQL"
-  },
-  {
-    name: "Webbutveckling",
-    logo: GraduationCap,
-    schoolClassName: "TE24C",
-    description: "HTML, CSS, JavaScript"
-  }
-]
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-    role: { name: "ROLE_ADMIN" } //TODO: Testa med ROLE_STUDENT också
-  },
-  courses: coursesData,
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  favorites: [
-    {
-      name: "Java Backend 1",
-      url: "/courses/java-backend-1",
-      icon: Code
-    },
-    {
-      name: "Databasteknik",
-      url: "/courses/databases",
-      icon: Database
-    },
-    {
-      name: "React Frontend",
-      url: "/courses/react-frontend",
-      icon: BookOpen
-    }
-  ],
-}
+];
 
 export function AppSidebar({ ...props }) {
-  const { user } = data // TODO: Byt till useAuthContext() senare
+  const { user } = useAuthContext()
+  const { courses, loading, error } = useCourses();
+
+  // Replace with proper error handling
+  if (loading) return <Sidebar collapsible="icon" {...props}>Laddar kurser...</Sidebar>;
+  if (error) return <Sidebar collapsible="icon" {...props}>Ett fel uppstod: {error}</Sidebar>;
+
+  // Map backend data to sidebar format
+  const sidebarCourses = mapToSidebarFormat(courses);
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <CourseSwitcher courses={data.courses} user={user} />
+        <CourseSwitcher courses={sidebarCourses} user={user} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavFavorites favorites={data.favorites} />
+        <NavMain items={navMainData} />
+        <NavFavorites favorites={[]} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

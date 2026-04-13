@@ -1,5 +1,5 @@
 import { useAuthContext } from '@/context/AuthContext';
-import { coursesData } from '@/data/coursesData';
+import { coursesDataPlaceholder } from '@/data/coursesDataPlaceholder.js';
 import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
 import StatsSection from '@/components/dashboard/StatsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -70,14 +70,14 @@ export default function Dashboard() {
                 <CardTitle>Pågående kurser</CardTitle>
               </CardHeader>
               <CardContent>
-                <CoursePreview courses={coursesData} />
+                <CoursePreview courses={coursesDataPlaceholder} />
               </CardContent>
             </Card>
           )}
         </TabsContent>
 
         <TabsContent value="courses">
-          <CourseList courses={coursesData} />
+          <CourseList courses={coursesDataPlaceholder} />
         </TabsContent>
 
         <TabsContent value="assignments">

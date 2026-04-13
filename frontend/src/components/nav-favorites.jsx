@@ -1,7 +1,5 @@
 "use client"
 
-import {MoreHorizontal, StarIcon} from "lucide-react"
-
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -28,12 +26,6 @@ export function NavFavorites({ favorites }) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )
