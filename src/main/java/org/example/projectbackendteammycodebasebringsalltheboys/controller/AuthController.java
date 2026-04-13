@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.Map;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ExternalRegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
@@ -34,9 +34,9 @@ public class AuthController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest request) {
+  public ResponseEntity<?> registerUser(@Valid @RequestBody ExternalRegistrationRequest request) {
     try {
-      User user = userService.registerUser(request);
+      User user = userService.externalUserRegistration(request);
       UserResponse response = userService.toUserResponse(user);
 
       return ResponseEntity.status(HttpStatus.CREATED).body(response);

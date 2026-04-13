@@ -1,11 +1,9 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleResponse;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.*;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
@@ -33,9 +31,7 @@ public class UserService {
     return userRepository.findById(id);
   }
 
-  @Transactional
-  public User registerUser(@NonNull RegistrationRequest request) {
-
+  public User userRegistration(@NonNull RegistrationRequest request, @NonNull Role role) {
     if (userRepository.findByUsername(request.getUsername()).isPresent()) {
       throw new IllegalStateException("User already exists");
     }
@@ -43,6 +39,18 @@ public class UserService {
     if (userRepository.findByEmail(request.getEmail()).isPresent()) {
       throw new IllegalStateException("Email already registered");
     }
+
+    User user = new User();
+    user.setUsername(request.getUsername().trim());
+    user.setPassword(passwordEncoder.encode(request.getPassword().trim()));
+    user.setEmail(request.getEmail().trim());
+    user.setRole(role);
+
+    return userRepository.save(user);
+  }
+
+  @Transactional
+  public User externalUserRegistration(@NonNull ExternalRegistrationRequest request) {
 
     if (!request.getPassword().equals(request.getConfirmPassword())) {
       throw new IllegalStateException("Passwords do not match");
@@ -53,13 +61,32 @@ public class UserService {
             .findByName("ROLE_STUDENT")
             .orElseThrow(() -> new IllegalStateException("Default role not found"));
 
-    User user = new User();
-    user.setUsername(request.getUsername());
-    user.setPassword(passwordEncoder.encode(request.getPassword()));
-    user.setEmail(request.getEmail());
-    user.setRole(defaultRole);
+    return userRegistration(request, defaultRole);
+  }
 
-    return userRepository.save(user);
+  @Transactional
+  public Map<User, String> InternalUserRegistration(@NonNull String email, @NonNull Role role) {
+    InternalRegistrationRequest request = new InternalRegistrationRequest();
+    request.setUsername(email);
+    request.setEmail(email);
+
+    String password = RandomStringUtils.insecure().nextAlphanumeric(8);
+    request.setPassword(password);
+
+    return Map.of(userRegistration(request, role), password);
+  }
+
+  @Transactional
+  public Map<User, String> bulkCreateUsers(@NonNull List<String> emails, @NonNull Role role) {
+    Map<User, String> users = new HashMap<>();
+    for (String email : emails) {
+      try {
+        users.putAll(InternalUserRegistration(email, role));
+      } catch (Exception e) {
+        // log somehow but register the none failing emails
+      }
+    }
+    return users;
   }
 
   @Transactional(readOnly = true)
