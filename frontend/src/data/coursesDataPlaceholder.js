@@ -1,5 +1,5 @@
 // placeholder data
-export const coursesData = [
+export const coursesDataPlaceholder = [
   {
     id: 1,
     name: 'Java Backend 1',
@@ -8,14 +8,14 @@ export const coursesData = [
     completed: 3,
     completedAll: false,
     isFavorite: true,
-    lastActive: '2026-04-09',
-    startDate: '2026-04-09',
-    endDate: '2026-04-30',
+    lastActive: '2026-04-12',
+    startDate: '2026-04-01',
+    endDate: '2026-05-30',
     importantDates: [
       {
-        date: '2026-04-15',
+        date: '2026-04-08',
         type: 'deadline',
-        label: 'Inlämning',
+        label: 'Spring Boot-projekt',
         userAssignmentStatus: 'EVALUATED',
         grade: 'A'
       },
@@ -23,7 +23,7 @@ export const coursesData = [
         date: '2026-04-28',
         type: 'exam',
         label: 'Tentamen',
-        userAssignmentStatus: 'TURNED_IN',
+        userAssignmentStatus: '',
         grade: null
       },
     ]
@@ -36,16 +36,16 @@ export const coursesData = [
     completed: 1,
     completedAll: false,
     isFavorite: true,
-    lastActive: '2026-04-08',
-    startDate: '2026-04-08',
-    endDate: '2026-05-08',
+    lastActive: '2026-03-25',
+    startDate: '2026-03-25',
+    endDate: '2026-04-20',
     importantDates: [
       {
-        date: '2026-04-20',
+        date: '2026-04-8',
         type: 'deadline',
         label: 'Project',
-        userAssignmentStatus: 'EVALUATED',
-        grade: 'B'
+        userAssignmentStatus: null,
+        grade: null
       },
     ]
   },
@@ -59,13 +59,13 @@ export const coursesData = [
     isFavorite: false,
     lastActive: '2026-04-01',
     startDate: '2025-12-01',
-    endDate: '2026-03-31',
+    endDate: '2025-12-15',
     importantDates: [
       {
-        date: '2026-01-15',
+        date: '2025-12-13',
         type: 'deadline',
         label: 'Inlämning projekt',
-        userAssignmentStatus: 'EVALUATED',
+        userAssignmentStatus: 'ASSIGNED',
         grade: 'A'
       },
       {
@@ -94,18 +94,18 @@ export const coursesData = [
     isFavorite: false,
     lastActive: '2026-04-10',
     startDate: '2026-04-01',
-    endDate: '2026-04-12',
+    endDate: '2026-04-15',
     importantDates: [
       {
-        date: '2026-04-11',
+        date: '2026-04-05',
         type: 'deadline',
-        label: 'Inlämning',
+        label: 'Inlämning JS',
         userAssignmentStatus: 'EVALUATED',
         grade: 'A'
       },
       {
-        date: '2026-04-12',
-        type: 'exam',
+        date: '2026-04-10',
+        type: 'deadline',
         label: 'Tentamen',
         userAssignmentStatus: 'EVALUATED',
         grade: 'B'
@@ -122,26 +122,19 @@ export const coursesData = [
     isFavorite: true,
     lastActive: '2026-04-10',
     startDate: '2026-04-11',
-    endDate: '2026-06-11',
+    endDate: '2026-04-30',
     importantDates: [
       {
-        date: '2026-04-15',
+        date: '2026-04-20',
         type: 'deadline',
         label: 'Inlämning',
         userAssignmentStatus: 'ASSIGNED',
-        grade: null
+        grade: null,
       },
       {
-        date: '2026-05-10',
+        date: '2026-04-25',
         type: 'exam',
         label: 'Tentamen',
-        userAssignmentStatus: null,
-        grade: null
-      },
-      {
-        date: '2026-05-30',
-        type: 'deadline',
-        label: 'Inlämning',
         userAssignmentStatus: null,
         grade: null
       },
@@ -157,17 +150,17 @@ export const coursesData = [
     isFavorite: false,
     lastActive: null,
     startDate: '2026-08-15',
-    endDate: '2026-12-15',
+    endDate: '2026-09-15',
     importantDates: [
       {
-        date: '2026-10-01',
+        date: '2026-09-01',
         type: 'deadline',
         label: 'Inlämning 1',
         userAssignmentStatus: null,
         grade: null
       },
       {
-        date: '2026-11-15',
+        date: '2026-09-14',
         type: 'exam',
         label: 'Tentamen',
         userAssignmentStatus: null,

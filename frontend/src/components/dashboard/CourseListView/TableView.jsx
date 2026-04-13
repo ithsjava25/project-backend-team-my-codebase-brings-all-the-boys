@@ -21,7 +21,7 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row justify-between">
           <div className="space-y-1">
             <CardTitle>Mina Kurser</CardTitle>
             <p className="text-sm text-muted-foreground">{activeCourses.length} pågående</p>
@@ -35,34 +35,35 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
             Grid
           </Button>
         </CardHeader>
+
         <CardContent>
            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead style={{ width: '0%' }}>Kurs</TableHead>
-                  <TableHead style={{ width: '0%' }}>Status</TableHead>
-                  <TableHead style={{ width: '0%' }}>Klass</TableHead>
-                  <TableHead style={{ width: '30%' }}>Tidslinje</TableHead>
-                  <TableHead style={{ width: '12%' }}>Moment</TableHead>
-                  <TableHead style={{ width: '10%' }} className="text-right">Favorit</TableHead>
+                  <TableHead style={{ width: '10%' }} className="text-left">Kurs</TableHead>
+                  <TableHead style={{ width: '10%' }} className="text-center">Status</TableHead>
+                  <TableHead style={{ width: '10%' }} className="text-center">Klass</TableHead>
+                  <TableHead style={{ width: '30%' }} className="text-center">Tidslinje</TableHead>
+                  <TableHead style={{ width: '12%' }} className="text-center">Moment</TableHead>
+                  <TableHead style={{ width: '0%' }} className="text-right">Favorit</TableHead>
                 </TableRow>
               </TableHeader>
             <TableBody>
               {activeCourses.map((course) => (
                 <TableRow key={course.id}>
-                  <TableCell className="font-medium">{course.name}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium text-left">{course.name}</TableCell>
+                  <TableCell className="font-medium text-center">
                     <Badge variant="purple">Pågående</Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium text-center">
                     <Badge variant="outline">{course.class}</Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium text-center">
                     <DayProgress course={course} />
                   </TableCell>
-                  <TableCell>{course.completed ?? 0}/{course.assignments}</TableCell>
-                  <TableCell className="text-right ">
-                    {course.isFavorite && <StarIcon className="h-4 w-4 items-right text-yellow-500 fill-yellow-500" />}
+                  <TableCell className="font-medium text-center">{course.completed ?? 0}/{course.assignments}</TableCell>
+                  <TableCell className="font-medium items-right text-right">
+                    {course.isFavorite && <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
                   </TableCell>
                 </TableRow>
               ))}
@@ -108,7 +109,7 @@ export function TableView({ notStartedCourses, activeCourses, completedCourses, 
                   <TableCell>
                     <DayProgress course={course} />
                   </TableCell>
-                  <TableCell className="text-right">{course.completed ?? 0}/{course.assignments}</TableCell>
+                  <TableCell>{course.completed ?? 0}/{course.assignments}</TableCell>
                   <TableCell className="text-center">
                     {course.isFavorite && <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />}
                   </TableCell>
