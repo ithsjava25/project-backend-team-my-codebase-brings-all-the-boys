@@ -32,4 +32,7 @@ public class Assignment extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private AssignmentStatus status = AssignmentStatus.CREATED;
+
+  @Column
+  private java.time.LocalDateTime deadline;
 }

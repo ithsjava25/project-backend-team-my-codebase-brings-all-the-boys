@@ -15,4 +15,6 @@ public class CourseDetailResponse {
   private UserResponse leadTeacher;
   private List<UserResponse> assistants;
   private List<AssignmentResponse> assignments;
+
+  private java.time.LocalDateTime endDate;
 }

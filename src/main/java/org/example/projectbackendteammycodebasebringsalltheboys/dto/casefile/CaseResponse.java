@@ -15,4 +15,5 @@ public class CaseResponse {
   private AssignmentStatus status;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
+  private LocalDateTime deadline;
 }

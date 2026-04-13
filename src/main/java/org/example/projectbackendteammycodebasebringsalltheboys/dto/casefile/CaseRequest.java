@@ -9,4 +9,6 @@ public class CaseRequest {
   private String title;
 
   private String description;
+
+  private java.time.LocalDateTime deadline;
 }
