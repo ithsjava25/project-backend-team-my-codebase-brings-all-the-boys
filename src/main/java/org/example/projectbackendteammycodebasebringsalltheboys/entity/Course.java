@@ -39,4 +39,6 @@ public class Course extends BaseEntity {
 
   @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Assignment> assignments = new ArrayList<>();
+
+  @Column private java.time.LocalDateTime endDate;
 }

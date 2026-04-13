@@ -35,6 +35,7 @@ public class DtoMapper {
     response.setStatus(assignment.getStatus());
     response.setCreatedAt(assignment.getCreatedAt());
     response.setUpdatedAt(assignment.getUpdatedAt());
+    response.setDeadline(assignment.getDeadline());
     return response;
   }
 
@@ -100,6 +101,7 @@ public class DtoMapper {
     if (course.getSchoolClass() != null) {
       response.setSchoolClassName(course.getSchoolClass().getName());
     }
+    response.setEndDate(course.getEndDate());
     return response;
   }
 
@@ -123,6 +125,7 @@ public class DtoMapper {
                 .map(this::toAssignmentResponse)
                 .collect(Collectors.toList())
             : Collections.emptyList());
+    response.setEndDate(course.getEndDate());
     return response;
   }
 
@@ -134,6 +137,7 @@ public class DtoMapper {
     response.setStatus(assignment.getStatus());
     response.setCreatedAt(assignment.getCreatedAt());
     response.setUpdatedAt(assignment.getUpdatedAt());
+    response.setDeadline(assignment.getDeadline());
     return response;
   }
 
@@ -147,6 +151,7 @@ public class DtoMapper {
     response.setStatus(assignment.getStatus());
     response.setCreatedAt(assignment.getCreatedAt());
     response.setUpdatedAt(assignment.getUpdatedAt());
+    response.setDeadline(assignment.getDeadline());
     // Files and comments would need lists, assuming they are available on the entity
     return response;
   }

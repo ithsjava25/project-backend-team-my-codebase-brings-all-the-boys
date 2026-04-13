@@ -32,7 +32,12 @@ public class CourseService {
       actorParamIndex = 4)
   @Transactional
   public Course createCourse(
-      String name, String description, SchoolClass schoolClass, User leadTeacher, User creator) {
+      String name,
+      String description,
+      SchoolClass schoolClass,
+      User leadTeacher,
+      User creator,
+      java.time.LocalDateTime endDate) {
     if (schoolClass == null) {
       throw new BadRequestException("SchoolClass cannot be null");
     }
@@ -41,6 +46,7 @@ public class CourseService {
     course.setDescription(description);
     course.setSchoolClass(schoolClass);
     course.setLeadTeacher(leadTeacher);
+    course.setEndDate(endDate);
 
     return courseRepository.save(course);
   }

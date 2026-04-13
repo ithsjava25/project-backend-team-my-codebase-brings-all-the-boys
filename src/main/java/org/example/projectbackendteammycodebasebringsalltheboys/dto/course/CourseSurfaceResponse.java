@@ -8,4 +8,6 @@ public class CourseSurfaceResponse {
   private UUID id;
   private String name;
   private String schoolClassName;
+
+  private java.time.LocalDateTime endDate;
 }

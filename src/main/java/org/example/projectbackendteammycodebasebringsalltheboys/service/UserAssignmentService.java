@@ -54,6 +54,17 @@ public class UserAssignmentService {
 
   @Transactional
   public void submitWork(UserAssignment ua, String content, List<String> fileS3Keys) {
+    if (ua.getAssignment().getDeadline() != null
+        && LocalDateTime.now().isAfter(ua.getAssignment().getDeadline())) {
+      throw new BadRequestException("The deadline for this assignment has passed.");
+    }
+
+    if (ua.getAssignment().getCourse() != null
+        && ua.getAssignment().getCourse().getEndDate() != null
+        && LocalDateTime.now().isAfter(ua.getAssignment().getCourse().getEndDate())) {
+      throw new BadRequestException("The course for this assignment has ended.");
+    }
+
     boolean canSubmit =
         ua.getStatus() == StudentAssignmentStatus.ASSIGNED
             || ua.getStatus() == StudentAssignmentStatus.TURNED_IN;

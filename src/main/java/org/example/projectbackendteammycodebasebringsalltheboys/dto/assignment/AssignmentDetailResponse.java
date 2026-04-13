@@ -18,6 +18,7 @@ public class AssignmentDetailResponse {
   private AssignmentStatus status;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
+  private LocalDateTime deadline;
   private List<CommentResponse> comments;
   private List<FileResponse> files; // Assuming FileResponse exists
 }
