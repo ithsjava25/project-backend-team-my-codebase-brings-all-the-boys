@@ -1,10 +1,10 @@
 import { CourseCard } from './CourseCard';
 import { AssignmentList } from './AssignmentList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { coursesData } from '@/data/coursesData.js';
+import { coursesDataPlaceholder } from '@/data/coursesDataPlaceholder.js';
 
 export default function StudentOverview() {
-  const myCourses = coursesData;
+  const myCourses = coursesDataPlaceholder;
 
   return (
     <div className="space-y-6">

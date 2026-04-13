@@ -5,7 +5,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Separator } from '@/components/ui/separator';
 import WelcomeHeader from "@/components/dashboard/WelcomeHeader.jsx";
 import {useAuthContext} from "@/context/AuthContext.jsx";
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -25,7 +24,7 @@ export default function DashboardLayout() {
             <ThemeToggle />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 bg-gray-50 dark:bg-neutral-950">
+        <div className="flex flex-1 flex-col gap-4 p-4 bg-gray-50 dark:bg-neutral-900/20">
           <div className="mx-auto w-full max-w-7xl">
             <Outlet />
           </div>

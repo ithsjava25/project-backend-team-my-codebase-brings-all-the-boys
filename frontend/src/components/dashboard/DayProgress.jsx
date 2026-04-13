@@ -1,4 +1,4 @@
-import { CircleHelp, XIcon, CheckIcon } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +41,7 @@ export function DayProgress({ course }) {
     });
   }
 
-  // Max 30 squares displayed
+  // Max 90 days displayed
   const maxSquares = 90;
   const squaresToDisplay = Math.min(totalDays, maxSquares);
 
@@ -98,7 +98,7 @@ export function DayProgress({ course }) {
             <div
               key={i}
               className={`
-                h-4 flex-1 transition-all relative
+                h-4 flex-1 transition-all relative rounded-xs
                 ${importantDate
                   ? importantDate.type === 'exam'
                     ? 'bg-orange-500'
@@ -121,7 +121,7 @@ export function DayProgress({ course }) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <CircleHelp className={`h-5 w-5 ml-2 flex-shrink-0 transition-colors ${isComplete ? 'text-green-500' : 'text-muted-foreground'}`} />
+              <CircleHelp className="h-5 w-5 ml-2 flex-shrink-0 transition-colors text-muted-foreground"/>
             </TooltipTrigger>
             <TooltipContent>
               {getLegendContent()}

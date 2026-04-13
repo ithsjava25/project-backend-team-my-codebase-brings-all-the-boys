@@ -33,7 +33,7 @@ export function CourseCard({ course, status }) {
         return { label: 'Avslutad', variant: 'secondary' };
       case 'active':
       default:
-        return { label: 'Pågående', variant: 'purple' };
+        return { label: 'Pågående', variant: 'default' };
     }
   };
 
