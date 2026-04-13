@@ -20,6 +20,26 @@ public class CaseService {
 
   private final AssignmentRepository assignmentRepository;
 
+  @Transactional
+  @LogActivity(
+      action = ActivityAction.CREATED,
+      entityType = EntityType.ASSIGNMENT,
+      orphan = true,
+      actorParamIndex = 2)
+  public Assignment createCase(String title, String description, User creator) {
+    return createCase(title, description, creator, null, null);
+  }
+
+  @Transactional
+  @LogActivity(
+      action = ActivityAction.CREATED,
+      entityType = EntityType.ASSIGNMENT,
+      orphan = true,
+      actorParamIndex = 2)
+  public Assignment createCase(String title, String description, User creator, Course course) {
+    return createCase(title, description, creator, course, null);
+  }
+
   @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.ASSIGNMENT, orphan = true)
   @Transactional
   public Assignment createCase(

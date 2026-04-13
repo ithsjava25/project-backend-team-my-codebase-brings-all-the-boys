@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,7 +49,9 @@ class UserAssignmentServiceTest {
   @Test
   @DisplayName("submitWork throws BadRequestException if status not ASSIGNED or TURNED_IN")
   void submitWork_invalidStatus_throwsException() {
+    Assignment assignment = new Assignment();
     UserAssignment ua = new UserAssignment();
+    ua.setAssignment(assignment);
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
 
     assertThatThrownBy(() -> userAssignmentService.submitWork(ua, "content", List.of()))
@@ -112,8 +115,10 @@ class UserAssignmentServiceTest {
     student.setId(UUID.randomUUID());
     User other = new User();
     other.setId(UUID.randomUUID());
+    Assignment assignment = new Assignment();
     UserAssignment ua = new UserAssignment();
     ua.setStudent(student);
+    ua.setAssignment(assignment);
     ua.setStatus(StudentAssignmentStatus.ASSIGNED);
 
     FileMetadata file = new FileMetadata();
@@ -124,6 +129,20 @@ class UserAssignmentServiceTest {
     assertThatThrownBy(() -> userAssignmentService.submitWork(ua, "content", List.of("key1")))
         .isInstanceOf(BadRequestException.class)
         .hasMessageContaining("File does not belong");
+  }
+
+  @Test
+  @DisplayName("submitWork throws BadRequestException if deadline has passed")
+  void submitWork_deadlinePassed_throwsException() {
+    Assignment assignment = new Assignment();
+    assignment.setDeadline(LocalDateTime.now().minusHours(1));
+    UserAssignment ua = new UserAssignment();
+    ua.setAssignment(assignment);
+    ua.setStatus(StudentAssignmentStatus.ASSIGNED);
+
+    assertThatThrownBy(() -> userAssignmentService.submitWork(ua, "too late", List.of()))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining("The deadline for this assignment has passed.");
   }
 
   @Test
