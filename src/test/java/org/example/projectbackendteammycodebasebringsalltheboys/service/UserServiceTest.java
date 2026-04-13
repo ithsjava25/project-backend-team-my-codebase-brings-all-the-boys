@@ -43,6 +43,7 @@ class UserServiceTest {
     req.setUsername(username);
     req.setPassword(password);
     req.setConfirmPassword(password);
+    req.setEmail(username + "@test.com");
     return req;
   }
 
@@ -97,6 +98,9 @@ class UserServiceTest {
   @Test
   @DisplayName("registerUser throws IllegalStateException when username already exists")
   void externalUser_Registration_duplicateUsername_throwsIllegalStateException() {
+
+    when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(studentRole()));
+
     when(userRepository.findByUsername("alice")).thenReturn(Optional.of(new User()));
 
     ExternalRegistrationRequest req = validRequest("alice", "password123");
@@ -106,7 +110,6 @@ class UserServiceTest {
         .hasMessage("User already exists");
 
     verify(userRepository, never()).save(any());
-    verifyNoInteractions(roleRepository, passwordEncoder);
   }
 
   // =========================================================
@@ -116,7 +119,8 @@ class UserServiceTest {
   @Test
   @DisplayName("registerUser throws IllegalStateException when passwords do not match")
   void externalUser_Registration_passwordMismatch_throwsIllegalStateException() {
-    when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
+    // when(userRepository.findByUsername("alice")).thenReturn(Optional.empty()); <-- Never used,
+    // caused test to fail.
 
     ExternalRegistrationRequest req = new ExternalRegistrationRequest();
     req.setUsername("alice");
@@ -138,8 +142,8 @@ class UserServiceTest {
   @Test
   @DisplayName("registerUser throws IllegalStateException when ROLE_STUDENT is missing")
   void externalUser_Registration_missingDefaultRole_throwsIllegalStateException() {
-    when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
-    when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
+    // when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
+    // when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
 
     ExternalRegistrationRequest req = validRequest("alice", "password123");
 

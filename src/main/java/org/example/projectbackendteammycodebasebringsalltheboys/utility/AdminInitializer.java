@@ -28,20 +28,24 @@ public class AdminInitializer implements CommandLineRunner {
   @Override
   public void run(String @NonNull ... args) {
     String adminEmail = "admin@example.com";
+    String adminRoleName = "ROLE_ADMIN";
 
-    // Only create admin if it doesn't already exist
+    Role adminRole =
+        roleRepository
+            .findByName(adminRoleName)
+            .orElseGet(
+                () -> {
+                  Role role = new Role();
+                  role.setName(adminRoleName);
+                  return roleRepository.save(role);
+                });
+
     if (userRepository.findByEmail(adminEmail).isEmpty()) {
       User defaultAdmin = new User();
       defaultAdmin.setUsername("admin");
       defaultAdmin.setEmail(adminEmail);
       defaultAdmin.setPassword(passwordEncoder.encode("admin"));
-
-      Role admin =
-          roleRepository
-              .findByName("ROLE_ADMIN")
-              .orElseThrow(() -> new IllegalStateException("ADMIN role not found"));
-
-      defaultAdmin.setRole(admin);
+      defaultAdmin.setRole(adminRole);
 
       userRepository.save(defaultAdmin);
 
