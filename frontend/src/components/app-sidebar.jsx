@@ -9,20 +9,65 @@ import { NavHome } from "@/components/nav-home"
 import { CourseSwitcher } from "@/components/course-switcher"
 import { useAuthContext } from "@/context/AuthContext.jsx";
 import {mapToSidebarFormat} from "@/mappers/courseMapper.js";
-import { useNavigationItems } from '@/hooks/useNavigationItems';
 import { useCourses } from '@/hooks/useCourses';
+import { useLocation } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
+  SidebarRail, SidebarSeparator,
 } from "@/components/ui/sidebar"
+import {BookOpenIcon, FileTextIcon, LayersIcon} from "lucide-react";
+import {useMemo} from "react";
 
 export function AppSidebar({ ...props }) {
   const { user } = useAuthContext()
   const { courses, loading, error } = useCourses();
-  const navItems = useNavigationItems();
+  const location = useLocation();
+
+  const showHomeButton = useMemo(() => {
+    const path = location.pathname;
+
+    if (path !== '/dashboard') {
+      return <NavHome/>
+    }
+    return null
+  })
+
+  const navItems = useMemo(() => {
+    const path = location.pathname;
+
+    if (path === '/dashboard') {
+      return [{
+        title: "Kurser",
+        url: "/dashboard",
+        icon: BookOpenIcon,
+        isActive: true,
+        items: courses.map(course => ({
+          title: course.name,
+          url: `/courses/${course.id}`
+        }))
+      }];
+    }
+
+    if (path.startsWith('/courses/')) {
+      const courseId = path.split('/')[2];
+      return [{
+        title: "Kursnavigering",
+        url: `/courses/${courseId}`,
+        icon: BookOpenIcon,
+        isActive: true,
+        items: [
+          { title: "Översikt", url: `/courses/${courseId}` },
+          { title: "Uppgifter", url: `/courses/${courseId}/assignments`, icon: FileTextIcon },
+          { title: "Kursplan", url: `/courses/${courseId}/resources`, icon: LayersIcon },
+        ]
+      }];
+    }
+
+    return [];
+  }, [location.pathname, courses]);
 
   // TODO: replace with proper error handling
   if (loading) return <Sidebar collapsible="icon" {...props}>Laddar kurser...</Sidebar>;
@@ -37,7 +82,7 @@ export function AppSidebar({ ...props }) {
         <CourseSwitcher courses={sidebarCourses} user={user} />
       </SidebarHeader>
       <SidebarContent>
-        <NavHome/>
+        {showHomeButton && <NavHome/>}
         <NavMain items={navItems} />
         <NavFavorites favorites={[]} />
       </SidebarContent>

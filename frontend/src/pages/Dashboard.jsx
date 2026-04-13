@@ -1,19 +1,20 @@
 import { useAuthContext } from '@/context/AuthContext';
-import { coursesDataPlaceholder } from '@/data/coursesDataPlaceholder.js';
-import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
+import { mapToCardFormat } from '@/mappers/courseMapper';
+import { useCourses } from '@/hooks/useCourses';
 import StatsSection from '@/components/dashboard/StatsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StudentOverview from '@/components/dashboard/StudentOverview';
 import TeacherOverview from '@/components/dashboard/TeacherOverview';
 import AdminOverview from '@/components/dashboard/AdminOverview';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import CoursePreview from '@/components/dashboard/CoursePreview';
-import CourseList from '@/components/dashboard/CourseList';
 
 export default function Dashboard() {
-  const { user, loading } = useAuthContext();
+  const { user, loading: authLoading } = useAuthContext();
+  const { courses, loading: coursesLoading, error: coursesError } = useCourses();
 
-  if (loading) {
+  const mappedCourses = mapToCardFormat(courses);
+  const role = user?.role?.name;
+
+  if (authLoading || coursesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <p>Laddar...</p>
@@ -21,7 +22,13 @@ export default function Dashboard() {
     );
   }
 
-  const role = user?.role?.name;
+  if (coursesError) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-destructive">Fel: {coursesError}</p>
+      </div>
+    );
+  }
 
   const getTabs = () => {
     switch (role) {
@@ -64,24 +71,23 @@ export default function Dashboard() {
         <TabsContent value="overview" className="space-y-4">
           {role === 'ROLE_ADMIN' && <AdminOverview user={user} />}
           {role === 'ROLE_TEACHER' && <TeacherOverview user={user} />}
-          {role === 'ROLE_STUDENT' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Pågående kurser</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CoursePreview courses={coursesDataPlaceholder} />
-              </CardContent>
-            </Card>
-          )}
+          {role === 'ROLE_STUDENT' && <StudentOverview courses={mappedCourses} />}
         </TabsContent>
 
         <TabsContent value="courses">
-          <CourseList courses={coursesDataPlaceholder} />
+          <StudentOverview courses={mappedCourses} />
         </TabsContent>
 
         <TabsContent value="assignments">
           <div>Uppgifter kommer synas här</div>
+        </TabsContent>
+
+        <TabsContent value="users">
+          <div>Användare kommer synas här</div>
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <div>Aktivitet kommer synas här</div>
         </TabsContent>
       </Tabs>
     </div>

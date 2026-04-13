@@ -3,6 +3,7 @@
 import * as React from "react"
 import { ChevronsUpDown, House, Shield } from "lucide-react"
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import {
   DropdownMenu,
@@ -22,7 +23,27 @@ import {
 export function CourseSwitcher({ courses, user }) {
   const { isMobile } = useSidebar()
   const navigate = useNavigate();
-  const [activeItem, setActiveItem] = React.useState(courses[0])
+  const location = useLocation();
+
+  const activeItem = React.useMemo(() => {
+    const path = location.pathname;
+
+    if (path === '/dashboard') {
+      return { name: 'Startsida', logo: House };
+    }
+
+    if (path.startsWith('/courses/')) {
+      const courseId = path.split('/courses/')[1]?.split('/')[0];
+      const course = courses.find(c => c.id === courseId);
+      if (course) return course;
+    }
+
+    if (path.startsWith('/admin')) {
+      return { name: 'Admin', logo: Shield };
+    }
+
+    return courses[0];
+  }, [location.pathname, courses]);
 
   if (!activeItem) {
     return null
@@ -61,8 +82,7 @@ export function CourseSwitcher({ courses, user }) {
 
             <DropdownMenuItem
               onClick={() => {
-                setActiveItem({ name: 'Startsida', logo: House });
-                navigate('/dashboard');  // ← NYTT!
+                navigate('/dashboard');
               }}
               className="gap-2 p-2"
             >
@@ -78,11 +98,8 @@ export function CourseSwitcher({ courses, user }) {
             {courses.map((course) => (
               <DropdownMenuItem
                 key={course.id}
-                onClick={() => {
-                  setActiveItem(course);
-                  navigate(course.url);
-                }}
-                className="gap-2 p-2"
+                onClick={() => {navigate(course.url);}}
+                className={"gap-2 p-2" + activeItem.id === course.id ? "bg-accent" : ""}
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
                   <course.logo className="size-3.5 shrink-0" />
@@ -101,7 +118,6 @@ export function CourseSwitcher({ courses, user }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
-                    setActiveItem({ name: 'Admin', logo: Shield });
                     navigate('/admin');
                   }}
                   className="gap-2 p-2"

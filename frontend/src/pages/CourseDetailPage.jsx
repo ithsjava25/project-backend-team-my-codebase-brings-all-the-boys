@@ -16,7 +16,7 @@ export default function CourseDetailPage() {
       <h1>{courseData.name}</h1>
       <p>{courseData.description}</p>
       <p>Klass: {courseData.schoolClassName}</p>
-      {/* TODO: Mer content */}
+      {/* TODO: Mer content och styling */}
     </div>
   );
 }

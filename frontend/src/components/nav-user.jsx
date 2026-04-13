@@ -31,21 +31,21 @@ import { useAuthContext } from "@/context/AuthContext.jsx";
 
 function UserDisplay({ user, wrapperClassName }) {
   return (
-    <SidebarMenuItem className={wrapperClassName}>
+    <div className={wrapperClassName}>
       <Avatar className="h-8 w-8">
         <AvatarFallback>
           <UserRoundIcon className="h-4 w-4"/>
         </AvatarFallback>
       </Avatar>
       <div className="grid flex-1 text-sm">
-        <SidebarMenuSubItem className="truncate">
+        <span className="truncate font-medium">
           {user.username}
-        </SidebarMenuSubItem>
-        <SidebarMenuSubItem className="truncate text-xs text-muted-foreground">
+        </span>
+        <span className="truncate text-xs text-muted-foreground">
           {user.email}
-        </SidebarMenuSubItem>
+        </span>
       </div>
-    </SidebarMenuItem>
+    </div>
   )
 }
 
