@@ -73,6 +73,9 @@ public class DataSeeder implements CommandLineRunner {
     Assignment finalProject =
         getOrCreateAssignment(
             "Final Project", "Build a full case management system", javaBackend1, teacher);
+      Assignment testProject =
+              getOrCreateAssignment(
+                      "Test projecct", "A test project", testEnd, teacher);
 
     // 7. Student Assignments
     getOrCreateUserAssignment(
