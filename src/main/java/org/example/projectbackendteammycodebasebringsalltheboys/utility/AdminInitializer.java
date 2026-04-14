@@ -19,8 +19,10 @@ public class AdminInitializer implements CommandLineRunner {
 
   @Value("${bootstrap.admin.username}")
   private String adminUsername;
+
   @Value("${bootstrap.admin.email}")
   private String adminEmail;
+
   @Value("${bootstrap.admin.password}")
   private String adminPassword;
 
@@ -37,7 +39,7 @@ public class AdminInitializer implements CommandLineRunner {
   public void run(String @NonNull ... args) {
     if (adminPassword == null || adminPassword.length() < 12) {
       throw new IllegalStateException("bootstrap.admin.password must be set and strong");
-      }
+    }
     String adminRoleName = "ROLE_ADMIN";
 
     Role adminRole =
