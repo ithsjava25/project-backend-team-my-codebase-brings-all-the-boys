@@ -48,6 +48,7 @@ class CaseServiceTest {
     assertThat(result.getDescription()).isEqualTo("Description");
     assertThat(result.getCreator()).isEqualTo(creator);
     assertThat(result.getCourse()).isEqualTo(course);
+    assertThat(result.getDeadline()).isEqualTo(endDate);
 
     verify(assignmentRepository).save(any(Assignment.class));
   }
