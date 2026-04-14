@@ -32,18 +32,22 @@ public class UserService {
   }
 
   public User userRegistration(@NonNull RegistrationRequest request, @NonNull Role role) {
-    if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+    String username = request.getUsername().trim();
+    String email = request.getEmail().trim();
+    String password = request.getPassword();
+
+    if (userRepository.findByUsername(username).isPresent()) {
       throw new IllegalStateException("User already exists");
     }
 
-    if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+    if (userRepository.findByEmail(email).isPresent()) {
       throw new IllegalStateException("Email already registered");
     }
 
     User user = new User();
-    user.setUsername(request.getUsername().trim());
-    user.setPassword(passwordEncoder.encode(request.getPassword().trim()));
-    user.setEmail(request.getEmail().trim());
+    user.setUsername(username);
+    user.setPassword(passwordEncoder.encode(password));
+    user.setEmail(email);
     user.setRole(role);
 
     return userRepository.save(user);
