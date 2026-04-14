@@ -74,13 +74,13 @@ public class UserService {
     request.setUsername(email);
     request.setEmail(email);
 
-    String password = RandomStringUtils.insecure().nextAlphanumeric(8);
+    String password = RandomStringUtils.secure().nextAlphanumeric(8);
     request.setPassword(password);
 
     return Map.of(userRegistration(request, role), password);
   }
 
-  @Transactional
+  @Transactional(noRollbackFor = Exception.class)
   public Map<User, String> bulkCreateUsers(@NonNull List<String> emails, @NonNull Role role) {
     Map<User, String> users = new HashMap<>();
     for (String email : emails) {
