@@ -36,38 +36,17 @@ export function AppSidebar({ ...props }) {
   })
 
   const navItems = useMemo(() => {
-    const path = location.pathname;
-
-    if (path === '/dashboard') {
-      return [{
-        title: "Kurser",
-        url: "/dashboard",
-        icon: BookOpenIcon,
-        isActive: true,
-        items: courses.map(course => ({
-          title: course.name,
-          url: `/courses/${course.id}`
-        }))
-      }];
-    }
-
-    if (path.startsWith('/courses/')) {
-      const courseId = path.split('/')[2];
-      return [{
-        title: "Kursnavigering",
-        url: `/courses/${courseId}`,
-        icon: BookOpenIcon,
-        isActive: true,
-        items: [
-          { title: "Översikt", url: `/courses/${courseId}` },
-          { title: "Uppgifter", url: `/courses/${courseId}/assignments`, icon: FileTextIcon },
-          { title: "Kursplan", url: `/courses/${courseId}/resources`, icon: LayersIcon },
-        ]
-      }];
-    }
-
-    return [];
-  }, [location.pathname, courses]);
+    return [{
+      title: "Kurser",
+      url: "/dashboard",
+      icon: BookOpenIcon,
+      isActive: true,
+      items: courses.map(course => ({
+        title: course.name,
+        url: `/courses/${course.id}`
+      }))
+    }];
+  }, [courses]);
 
   // TODO: replace with proper error handling
   if (loading) return <Sidebar collapsible="icon" {...props}>Laddar kurser...</Sidebar>;
@@ -84,7 +63,6 @@ export function AppSidebar({ ...props }) {
       <SidebarContent>
         {showHomeButton && <NavHome/>}
         <NavMain items={navItems} />
-        <NavFavorites favorites={[]} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

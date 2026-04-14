@@ -22,7 +22,6 @@ import {
 export function NavMain({ items }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Kursnavigering</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible

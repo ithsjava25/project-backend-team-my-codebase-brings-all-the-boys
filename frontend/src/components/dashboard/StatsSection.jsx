@@ -1,4 +1,11 @@
-import { BookOpen, Users, FileText, Clock, Activity, Shield, CheckCircle2, Calendar } from 'lucide-react';
+import {
+  BookOpen,
+  Users,
+  FileText,
+  Activity,
+  ClockIcon,
+  BookOpenIcon
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function StatsSection({ role, user }) {
@@ -13,14 +20,11 @@ export default function StatsSection({ role, user }) {
         ];
       case 'ROLE_TEACHER':
         return [
-          { label: 'Mina kurser', value: '2', icon: BookOpen },
-          { label: 'Totalt studenter', value: '60', icon: Users },
-          { label: 'Ej rättade', value: '2', icon: FileText },
-          { label: 'Senaste aktivitet', value: '1h', icon: Clock },
+          { label: 'Inlämningar att betygsätta', value: '2', icon: BookOpenIcon },
         ];
       default:
         return [
-          { label: 'PLACEHOLDER', value: '3', icon: BookOpen },
+          { label: 'Närmaste inlämningsdatum', value: '24/7-26', test: 'test', icon: ClockIcon },
         ];
     }
   };
