@@ -57,11 +57,11 @@ public class DataSeeder implements CommandLineRunner {
     getOrCreateEnrollment(student3, class2026A, ClassRole.STUDENT);
 
     // 5. Course
-    Course javaBackend1 = getOrCreateCourse(
+    Course javaBackend1 =
+        getOrCreateCourse(
             "Java Backend 1", "Introduction to Spring Boot and JPA", class2026A, teacher);
-    Course testEnd = getOrCreateCourse(
-            "Testend 2", "A test course to use for testing", class2026A,teacher);
-
+    Course testEnd =
+        getOrCreateCourse("Testend 2", "A test course to use for testing", class2026A, teacher);
 
     // 6. Assignments
     Assignment introJava =
@@ -72,9 +72,6 @@ public class DataSeeder implements CommandLineRunner {
     Assignment finalProject =
         getOrCreateAssignment(
             "Final Project", "Build a full case management system", javaBackend1, teacher);
-      Assignment testProject =
-              getOrCreateAssignment(
-                      "Test projecct", "A test project", testEnd, teacher);
 
     // 7. Student Assignments
     getOrCreateUserAssignment(
