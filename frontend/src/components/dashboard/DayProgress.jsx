@@ -23,7 +23,6 @@ export function DayProgress({ course }) {
   startNormalized.setHours(0, 0, 0, 0);
   const daysPassed = Math.max(0, Math.min(totalDays, Math.floor((today - startNormalized) / (1000 * 60 * 60 * 24)) + 1));
 
-  // Helper to get state color for important dates
   const getStateColor = (importantDate) => {
     if (!importantDate?.userAssignmentStatus) return null;
 
