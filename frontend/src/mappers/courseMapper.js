@@ -26,6 +26,7 @@ export const mapToSidebarFormat = (courses) => {
   if (!courses) return [];
 
   return courses.map(course => ({
+    id: course.id,
     name: course.name,
     logo: GraduationCap, // Replace with actual logo component if implemented
     schoolClassName: course.schoolClassName,

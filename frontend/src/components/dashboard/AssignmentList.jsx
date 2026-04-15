@@ -14,7 +14,6 @@ export function AssignmentList({ assignments }) {
       <TableHeader>
         <TableRow>
           <TableHead>Uppgift</TableHead>
-          <TableHead>Kurs</TableHead>
           <TableHead className="text-right">Deadline</TableHead>
           <TableHead className="text-right">Status</TableHead>
         </TableRow>
@@ -23,9 +22,8 @@ export function AssignmentList({ assignments }) {
         {assignments?.map((assignment) => (
           <TableRow key={assignment.id}>
             <TableCell className="font-medium">{assignment.title}</TableCell>
-            <TableCell className="text-muted-foreground">{assignment.course}</TableCell>
             <TableCell className="text-right">
-              <Badge variant="outline">{assignment.deadline}</Badge>
+              <Badge variant="outline">{assignment.endDate}</Badge>
             </TableCell>
             <TableCell className="text-right">
               <Badge variant={assignment.status === 'Submitted' ? 'success' : 'default'}>

@@ -31,6 +31,15 @@ const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
+const getSidebarStateFromCookie = () => {
+  if (typeof document === "undefined") return null
+  const cookies = document.cookie.split(';')
+  const cookie = cookies.find(c => c.trim().startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+  if (!cookie) return null
+  const value = cookie.split('=')[1]?.trim()
+  return value === 'true'
+}
+
 const SidebarContext = React.createContext(null)
 
 function useSidebar() {
@@ -55,8 +64,11 @@ function SidebarProvider({
   const [openMobile, setOpenMobile] = React.useState(false)
 
   // This is the internal state of the sidebar.
-  // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen)
+  // We use openProp and openProp for control from outside the component.
+  const [_open, _setOpen] = React.useState(() => {
+    const savedState = getSidebarStateFromCookie()
+    return savedState !== null ? savedState : defaultOpen
+  })
   const open = openProp ?? _open
   const setOpen = React.useCallback((value) => {
     const openState = typeof value === "function" ? value(open) : value
@@ -78,9 +90,16 @@ function SidebarProvider({
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
     const handleKeyDown = (event) => {
+      const target = event.target
+      const isEditable = target instanceof HTMLInputElement ||
+                         target instanceof HTMLTextAreaElement ||
+                         target instanceof HTMLSelectElement ||
+                         target.isContentEditable
+
       if (
         event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
+        (event.metaKey || event.ctrlKey) &&
+        !isEditable
       ) {
         event.preventDefault()
         toggleSidebar()
