@@ -45,7 +45,7 @@ export const mapToCardFormat = (courses) => {
     name: course.name,
     class: course.schoolClassName,
     // Add dates, favorite and so on when/if implemented
-  }));c
+  }));
 };
 
 /**
