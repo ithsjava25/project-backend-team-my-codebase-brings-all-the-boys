@@ -32,7 +32,7 @@ export function AppSidebar({ ...props }) {
       return <NavHome/>
     }
     return null
-  })
+  }, [location.pathname])
 
   const navItems = useMemo(() => {
     return [{

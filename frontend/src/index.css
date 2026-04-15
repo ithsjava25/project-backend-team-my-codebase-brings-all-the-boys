@@ -5,8 +5,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@variant dark (&:is(.dark *));
-
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -248,7 +246,7 @@ body {
     @apply bg-background text-foreground;
   }
   html {
-    font-family: var(--font-sans);
+    font-family: var(--font-sans), serif;
     @apply font-sans;
   }
   * {

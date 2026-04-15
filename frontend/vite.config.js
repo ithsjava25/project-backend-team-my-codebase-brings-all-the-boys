@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
+import process from 'node:process'
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({

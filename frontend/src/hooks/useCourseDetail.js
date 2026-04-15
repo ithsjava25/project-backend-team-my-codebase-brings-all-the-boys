@@ -7,7 +7,11 @@ export function useCourseDetail(courseId) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let isCurrent = true;
+
     if (!courseId) {
+      setCourse(null);
+      setError(null);
       setLoading(false);
       return;
     }
@@ -15,16 +19,27 @@ export function useCourseDetail(courseId) {
     const fetchCourse = async () => {
       try {
         setLoading(true);
+        setError(null);
         const data = await courseApi.getCourseById(courseId);
-        setCourse(data);
+        if (isCurrent) {
+          setCourse(data);
+        }
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch course');
+        if (isCurrent) {
+          setError(err.response?.data?.message || 'Failed to fetch course');
+        }
       } finally {
-        setLoading(false);
+        if (isCurrent) {
+          setLoading(false);
+        }
       }
     };
 
     void fetchCourse();
+
+    return () => {
+      isCurrent = false;
+    };
   }, [courseId]);
 
   return { course, loading, error };

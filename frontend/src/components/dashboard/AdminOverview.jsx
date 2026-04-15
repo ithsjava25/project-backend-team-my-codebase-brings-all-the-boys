@@ -37,15 +37,15 @@ export default function AdminOverview() {
         <h3 className="text-xl font-semibold mb-4">Snabbåtgärder</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {quickActions.map((action) => (
-            <Card key={action.id} className="hover:bg-muted/50 transition-colors cursor-pointer">
+            <Card key={action.id} className="border border-border/50">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{action.icon}</span>
-                  <CardTitle className="text-lg">{action.title}</CardTitle>
+                  <CardTitle className="text-lg text-muted-foreground">{action.title}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{action.description}</p>
+                <p className="text-sm text-muted-foreground/70">{action.description}</p>
               </CardContent>
             </Card>
           ))}

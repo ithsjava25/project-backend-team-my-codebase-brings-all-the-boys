@@ -8,12 +8,17 @@ import {
 
 export function DayProgress({ course }) {
   const now = new Date();
-  const start = new Date(course.startDate);
-  const end = new Date(course.endDate);
 
-  const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-  const daysPassed = Math.max(0, Math.min(totalDays, Math.ceil((now - start) / (1000 * 60 * 60 * 24))));
-  const isComplete = daysPassed >= totalDays;
+  const parseLocalDate = (dateStr) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  const start = parseLocalDate(course.startDate);
+  const end = parseLocalDate(course.endDate);
+
+  const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  const daysPassed = Math.max(0, Math.min(totalDays, Math.ceil((now - start) / (1000 * 60 * 60 * 24)) + 1));
 
   // Helper to get state color for important dates
   const getStateColor = (importantDate) => {
@@ -24,6 +29,8 @@ export function DayProgress({ course }) {
         return importantDate.grade ? 'green' : 'yellow';
       case 'TURNED_IN':
         return 'yellow';
+      case 'FAILED':
+        return 'red';
       default:
         return null;
     }
@@ -33,7 +40,7 @@ export function DayProgress({ course }) {
   const importantDatesMap = {};
   if (course.importantDates && course.importantDates.length > 0) {
     course.importantDates.forEach(({ date, type, label, userAssignmentStatus, grade }) => {
-      const eventDate = new Date(date);
+      const eventDate = parseLocalDate(date);
       const dayIndex = Math.floor((eventDate - start) / (1000 * 60 * 60 * 24));
       if (dayIndex >= 0 && dayIndex < totalDays) {
         importantDatesMap[dayIndex] = { type, label, userAssignmentStatus, grade };
@@ -77,10 +84,6 @@ export function DayProgress({ course }) {
             <div className="w-2 h-2 bg-green-500" />
             <span>Godkänd</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-500" />
-            <span>Underkänd</span>
-          </div>
         </div>
       </div>
     );
@@ -121,7 +124,7 @@ export function DayProgress({ course }) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <CircleHelp className="h-5 w-5 ml-2 flex-shrink-0 transition-colors text-muted-foreground"/>
+              <CircleHelp className="h-5 w-5 ml-2 shrink-0 transition-colors text-muted-foreground"/>
             </TooltipTrigger>
             <TooltipContent>
               {getLegendContent()}

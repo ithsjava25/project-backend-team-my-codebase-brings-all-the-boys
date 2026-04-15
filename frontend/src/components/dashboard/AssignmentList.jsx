@@ -20,7 +20,7 @@ export function AssignmentList({ assignments }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {assignments.map((assignment) => (
+        {assignments?.map((assignment) => (
           <TableRow key={assignment.id}>
             <TableCell className="font-medium">{assignment.title}</TableCell>
             <TableCell className="text-muted-foreground">{assignment.course}</TableCell>

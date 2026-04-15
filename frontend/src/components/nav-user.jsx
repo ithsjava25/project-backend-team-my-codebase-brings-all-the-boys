@@ -22,7 +22,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar"
 
@@ -60,7 +59,7 @@ export function NavUser({ user }) {
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
-      navigate('/login');
+      alert('Utloggning misslyckades. Försök igen.');
     }
   };
 
