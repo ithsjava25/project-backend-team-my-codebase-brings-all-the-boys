@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AssignmentListView } from '@/components/dashboard/AssignmentListView';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
@@ -26,13 +27,12 @@ export default function CourseDetailPage() {
     const baseTabs = [
       { value: 'overview', label: 'Översikt' },
       { value: 'assignments', label: 'Uppgifter' },
-      { value: 'resources', label: 'Kursplan' },
     ];
 
     if (role === 'ROLE_TEACHER' || role === 'ROLE_ADMIN') {
       return [
         ...baseTabs,
-        { value: 'grading', label: 'Rättning' },
+        { value: 'grading', label: 'Bedömning' },
         { value: 'participants', label: 'Deltagare' },
       ];
     }
@@ -95,47 +95,19 @@ export default function CourseDetailPage() {
 
         {/* Uppgifter */}
         <TabsContent value="assignments">
-          <Card>
-            <CardHeader>
-              <CardTitle>Uppgifter</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {courseData.assignments.length > 0 ? (
-                <ul className="space-y-2">
-                  {courseData.assignments.map((assignment) => (
-                    <li key={assignment.id} className="p-2 border rounded">
-                      <p className="font-medium">{assignment.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Status: {assignment.status}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">Inga uppgifter än.</p>
-              )}
-            </CardContent>
-          </Card>
+          <AssignmentListView
+            assignments={courseData.assignments}
+            title={`Uppgifter i ${courseData.name}`}
+            subtitle={`${courseData.assignments.length} uppgift(er)`}
+          />
         </TabsContent>
 
-        {/* Kursplan */}
-        <TabsContent value="resources">
-          <Card>
-            <CardHeader>
-              <CardTitle>Kursplan och material</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Kursplan kommer snart...</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Lärare: Rättning */}
+        {/* Lärare: Bedömning */}
         {(role === 'ROLE_TEACHER' || role === 'ROLE_ADMIN') && (
           <TabsContent value="grading">
             <Card>
               <CardHeader>
-                <CardTitle>Rättning</CardTitle>
+                <CardTitle>Bedömning</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">Inlämningar att rätta kommer snart...</p>

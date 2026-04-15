@@ -1,16 +1,134 @@
-# React + Vite
+# Frontend Documentation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+## 📚 Dokumentation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 🚀 [DATA_FLOW.md](./DATA_FLOW.md) - **Börja här!**
+Komplett guide om hur data flödar från API till visning:
+- API endpoints
+- API clients
+- Hooks
+- Mappers
+- Components
+- Fullständiga exempel
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🏗️ Projektstruktur
 
-## Expanding the ESLint configuration
+```
+frontend/src/
+├── api/              # API calls till backend
+├── components/       # Återanvändbara UI-komponenter
+│   ├── dashboard/   # Dashboard-specifika komponenter
+│   └── ui/          # Shadcn/ui komponenter
+├── hooks/           # Custom React hooks
+├── mappers/         # Data transformation
+├── pages/           # Sidor (routes)
+└── context/         # React Context (Auth, Theme)
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🎯 Snabbstart
+
+### 1. Installera dependencies
+```bash
+cd frontend
+npm install
+```
+
+### 2. Starta dev server
+```bash
+npm run dev
+```
+
+Applikationen öppnas på `http://localhost:5173`
+
+### 3. Bygg för production
+```bash
+npm run build
+```
+
+---
+
+## 🔑 Viktiga komponenter
+
+### Dashboard Views
+- **`CourseListView`** - Visar kurser (grid eller table)
+- **`AssignmentListView`** - Visar uppdrag
+
+### Pages
+- **`Dashboard`** - Huvuddashboard (role-baserad)
+- **`CourseDetailPage`** - Kursdetaljer
+
+### Hooks
+- **`useCourses`** - Hämta alla kurser
+- **`useCourseDetail`** - Hämta en kurs med detaljer
+- **`useAssignments`** - Hämta uppdrag
+- **`useAuth`** - Authentication
+
+---
+
+## 📖 Hur lägger jag till ny funktionalitet?
+
+Se [DATA_FLOW.md](./DATA_FLOW.md) avsnitt **"8. Lägga till ny funktionalitet"** för en steg-för-steg guide.
+
+---
+
+## 🛠️ Tillgängliga scripts
+
+| Script | Beskrivning |
+|--------|-------------|
+| `npm run dev` | Starta dev server |
+| `npm run build` | Bygg för production |
+| `npm run lint` | Kör ESLint |
+| `npm run preview` | Förhandsgranska production build |
+
+---
+
+## 📌 Viktigt om dataflöde
+
+Alla data hämtas enligt detta mönster:
+
+```
+Backend API
+    ↓
+API Client (api/)
+    ↓
+Hook (hooks/)
+    ↓
+Mapper (mappers/) [valfritt]
+    ↓
+Component (components/)
+    ↓
+Page (pages/)
+```
+
+Läs mer i [DATA_FLOW.md](./DATA_FLOW.md)!
+
+---
+
+## 💡 Tips
+
+- **Lägg till ny endpoint:** Skapa API client → Hook → Component → Page
+- **Transformera data:** Använd mappers i `mappers/`
+- **Visa data:** Använd t.ex. `CourseListView` eller `AssignmentListView`
+- **Role-baserad UI:** Använd `role` prop på view-komponenter
+
+---
+
+## 📝 Tech Stack
+
+- **React 18** - UI framework
+- **Vite** - Build tool
+- **React Router** - Routing
+- **Axios** - HTTP client
+- **Shadcn/ui** - UI components
+- **Tailwind CSS** - Styling
+- **Lucide Icons** - Icons
+
+---
+
+För frågor eller problem, se [DATA_FLOW.md](./DATA_FLOW.md) för detaljerad information.

@@ -1,15 +1,18 @@
 import { useAuthContext } from '@/context/AuthContext';
 import { mapToCardFormat } from '@/mappers/courseMapper';
 import { useCourses } from '@/hooks/useCourses';
+import { useAssignments } from '@/hooks/useAssignments';
 import StatsSection from '@/components/dashboard/StatsSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import StudentOverview from '@/components/dashboard/StudentOverview';
+import { CourseListView } from '@/components/dashboard/CourseListView';
+import { AssignmentListView } from '@/components/dashboard/AssignmentListView';
 import TeacherOverview from '@/components/dashboard/TeacherOverview';
 import AdminOverview from '@/components/dashboard/AdminOverview';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuthContext();
   const { courses, loading: coursesLoading, error: coursesError } = useCourses();
+  const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
 
   const mappedCourses = mapToCardFormat(courses);
   const role = user?.role?.name;
@@ -42,7 +45,7 @@ export default function Dashboard() {
         return [
           { value: 'overview', label: 'Översikt' },
           { value: 'courses', label: 'Mina Kurser' },
-          { value: 'grading', label: 'Rättning' },
+          { value: 'grading', label: 'Bedömning' },
         ];
       default:
         return [
@@ -71,15 +74,19 @@ export default function Dashboard() {
         <TabsContent value="overview" className="space-y-4">
           {role === 'ROLE_ADMIN' && <AdminOverview user={user} />}
           {role === 'ROLE_TEACHER' && <TeacherOverview user={user} />}
-          {role === 'ROLE_STUDENT' && <StudentOverview courses={mappedCourses} />}
+          {role === 'ROLE_STUDENT' && <CourseListView courses={mappedCourses} view="grid" role="student" />}
         </TabsContent>
 
         <TabsContent value="courses">
-          <StudentOverview courses={mappedCourses} />
+          <CourseListView courses={mappedCourses} view="grid" role="student" />
         </TabsContent>
 
         <TabsContent value="assignments">
-          <div>Uppgifter kommer synas här</div>
+          <AssignmentListView
+            assignments={assignments}
+            loading={assignmentsLoading}
+            error={assignmentsError}
+          />
         </TabsContent>
 
         <TabsContent value="users">

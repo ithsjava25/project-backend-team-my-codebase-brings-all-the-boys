@@ -33,7 +33,7 @@ export default function Dashboard() {
         return [
           { value: 'overview', label: 'Översikt' },
           { value: 'courses', label: 'Mina Kurser' },
-          { value: 'grading', label: 'Rättning' },
+          { value: 'grading', label: 'Bedömning' },
         ];
       default:
         return [

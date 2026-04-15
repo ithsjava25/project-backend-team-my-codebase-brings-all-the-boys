@@ -14,9 +14,6 @@ export default function StatsSection({ role, user }) {
       case 'ROLE_ADMIN':
         return [
           { label: 'Totalt användare', value: '156', icon: Users },
-          { label: 'Aktiva kurser', value: '8', icon: BookOpen },
-          { label: 'Uppgifter', value: '45', icon: FileText },
-          { label: 'Activity logs', value: '1.2K', icon: Activity },
         ];
       case 'ROLE_TEACHER':
         return [
