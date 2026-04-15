@@ -99,7 +99,7 @@ export function CourseSwitcher({ courses, user }) {
               <DropdownMenuItem
                 key={course.id}
                 onClick={() => {navigate(course.url);}}
-                className={"gap-2 p-2" + activeItem.id === course.id ? "bg-accent" : ""}
+                className={`gap-2 p-2 ${activeItem.id === course.id ? "bg-accent" : ""}`}
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
                   <course.logo className="size-3.5 shrink-0" />

@@ -2,9 +2,11 @@ import { CourseCard } from './CourseCard';
 import { Grid } from '@/components/ui/grid';
 
 export default function CoursePreview({ courses }) {
+  if (!courses) return null;
+
   const sortedCourses = [...courses]
     .sort((a, b) => a.name.localeCompare(b.name));
-  
+
   const previewCourses = sortedCourses.slice(0, 3);
 
   return (
