@@ -9,23 +9,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Shield } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 export default function AdminOverview() {
   // Hårdkodad data BYT UT
   const quickActions = [
     { id: 1, title: 'Hantera Användare', description: 'Lägg till, redigera eller ta bort användare', icon: '👥' },
     { id: 2, title: 'Skapa Kurs', description: 'Skapa en ny kurs eller uppdatera befintlig', icon: '📚' },
-    { id: 3, title: 'Systeminställningar', description: 'Konfigurera systemet', icon: '⚙️' },
   ];
 
   // Hårdkodad data - senaste aktivitet
   const recentActivity = [
     { id: 1, action: 'User registered', user: 'Ny Student (anna@example.com)', time: '5 min sedan' },
-    { id: 2, action: 'Assignment created', user: 'Teacher: Erik (erik@example.com)', time: '15 min sedan' },
-    { id: 3, action: 'Course updated', user: 'Admin: You', time: '1 timme sedan' },
-    { id: 4, action: 'User role changed', user: 'Student → Teacher', time: '2 timmar sedan' },
-    { id: 5, action: 'Assignment graded', user: 'Teacher: Lisa', time: '3 timmar sedan' },
   ];
 
   return (
@@ -34,11 +28,9 @@ export default function AdminOverview() {
         <div className="flex items-center gap-3">
           <Shield className="h-8 w-8 text-red-600" />
           <div>
-            <h2 className="text-2xl font-bold">Admin Panel</h2>
-            <p className="text-sm text-muted-foreground">Systemadministrationsvy</p>
+            <h2 className="text-2xl font-bold">Adminpanel</h2>
           </div>
         </div>
-        <Button>Gå till Admin</Button>
       </div>
 
       <div>

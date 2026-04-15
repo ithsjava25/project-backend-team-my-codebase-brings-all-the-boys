@@ -1,34 +1,5 @@
-import { CourseCard } from './CourseCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CourseListView } from './CourseListView';
 
 export default function StudentOverview({ courses }) {
-  if (!courses || courses.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Mina Kurser</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Inga kurser att visa.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Mina Kurser</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {courses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <CourseListView courses={courses} view="grid" role="student" />;
 }
