@@ -75,12 +75,6 @@ export default function Dashboard() {
             role === 'ROLE_TEACHER' ? 'teacher' : 'student'} />
         </TabsContent>
 
-        <TabsContent value="courses">
-          <CourseListView courses={mappedCourses} view="grid" role={
-            role === 'ROLE_ADMIN' ? 'admin' :
-            role === 'ROLE_TEACHER' ? 'teacher' : 'student'} />
-        </TabsContent>
-
         <TabsContent value="assignments">
           <AssignmentListView
             assignments={assignments}

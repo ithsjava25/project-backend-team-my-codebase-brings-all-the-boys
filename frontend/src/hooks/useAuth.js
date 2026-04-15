@@ -9,7 +9,12 @@ export function useAuth() {
         setLoading(true);
         return client.get('/auth/me')
             .then(res => setUser(res.data))
-            .catch(() => setUser(null))
+            .catch((error) => {
+                if (error.response?.status === 401 || error.response?.status === 403) {
+                    setUser(null);
+                }
+                throw error;
+            })
             .finally(() => setLoading(false));
     }, []);
 
