@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function LoginForm({ 
   onSubmit, 
@@ -48,9 +49,12 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle>
-            {activeTab === 'login' ? 'ITBS Studentportal' : 'Create Account'}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              {activeTab === 'login' ? 'ITBS Studentportal' : 'Create Account'}
+            </CardTitle>
+            <ThemeToggle />
+          </div>
           <CardDescription>
             {activeTab === 'login' 
               ? 'Enter your credentials to access your account'

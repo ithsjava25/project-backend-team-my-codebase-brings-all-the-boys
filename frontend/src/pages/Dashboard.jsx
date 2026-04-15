@@ -70,7 +70,9 @@ export default function Dashboard() {
         </TabsContent>
 
         <TabsContent value="courses">
-          <CourseListView courses={mappedCourses} view="grid" role="student" />
+          <CourseListView courses={mappedCourses} view="grid" role={
+            role === 'ROLE_ADMIN' ? 'admin' :
+            role === 'ROLE_TEACHER' ? 'teacher' : 'student'} />
         </TabsContent>
 
         <TabsContent value="assignments">
@@ -86,6 +88,10 @@ export default function Dashboard() {
 
         <TabsContent value="activity">
           <div>Aktivitet kommer synas här</div>
+        </TabsContent>
+
+        <TabsContent value="grading">
+          <div>Bedömning kommer synas här</div>
         </TabsContent>
       </Tabs>
     </div>
