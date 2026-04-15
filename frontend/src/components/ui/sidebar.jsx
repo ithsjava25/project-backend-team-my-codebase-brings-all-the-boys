@@ -77,10 +77,11 @@ function SidebarProvider({
     } else {
       _setOpen(openState)
     }
-
-    // This sets the cookie to keep the sidebar state.
-    document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
   }, [setOpenProp, open])
+
+  React.useEffect(() => {
+    document.cookie = `${SIDEBAR_COOKIE_NAME}=${open}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+  }, [open])
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
@@ -253,6 +254,7 @@ function SidebarTrigger({
       className={cn(className)}
       onClick={(event) => {
         onClick?.(event)
+        if (event.defaultPrevented) return
         toggleSidebar()
       }}
       {...props}>
@@ -270,6 +272,7 @@ function SidebarRail({
 
   return (
     <button
+      type="button"
       data-sidebar="rail"
       data-slot="sidebar-rail"
       aria-label="Toggle Sidebar"
@@ -413,6 +416,7 @@ function SidebarGroupAction({
 
   return (
     <Comp
+      type={asChild ? undefined : "button"}
       data-slot="sidebar-group-action"
       data-sidebar="group-action"
       className={cn(
@@ -498,6 +502,7 @@ function SidebarMenuButton({
 
   const button = (
     <Comp
+      type={asChild ? undefined : "button"}
       data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
       data-size={size}
@@ -538,6 +543,7 @@ function SidebarMenuAction({
 
   return (
     <Comp
+      type={asChild ? undefined : "button"}
       data-slot="sidebar-menu-action"
       data-sidebar="menu-action"
       className={cn(
