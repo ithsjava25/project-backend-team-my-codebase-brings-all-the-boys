@@ -13,7 +13,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
-import { DayProgress } from './DayProgress';
 
 export function CourseListView({ courses, view: initialView = 'grid', role = 'student' }) {
   const [view, setView] = useState(initialView);
@@ -91,7 +90,7 @@ export function CourseListView({ courses, view: initialView = 'grid', role = 'st
                     <TableCell><Badge variant="outline">{course.class}</Badge></TableCell>
                     {role === 'student' && (
                       <>
-                        <TableCell><Badge variant="purple">Pågående</Badge></TableCell>
+                        <span>PLACEHOLDER</span>
                       </>
                     )}
                     {role === 'teacher' && (

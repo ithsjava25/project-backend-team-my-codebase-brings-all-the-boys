@@ -12,14 +12,14 @@ import { AssignmentListView } from '@/components/dashboard/AssignmentListView';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
-  const { course, loading, error } = useCourseDetail(courseId);
+  const { course, error } = useCourseDetail(courseId);
   const { user } = useAuthContext();
   const role = user?.role?.name;
 
   const [activeTab, setActiveTab] = useState('overview');
 
-  if (loading) return <div>Laddar kurs...</div>;
   if (error) return <div>Ett fel uppstod: {error}</div>;
+  if (!course) return null; // Don't render anything while loading
 
   const courseData = mapToCourseDetailFormat(course);
 

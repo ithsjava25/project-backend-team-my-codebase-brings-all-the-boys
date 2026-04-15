@@ -1,14 +1,11 @@
 import {
-  BookOpen,
   Users,
-  FileText,
-  Activity,
   ClockIcon,
   BookOpenIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function StatsSection({ role, user }) {
+export default function StatsSection({ role }) {
   const getStats = () => {
     switch (role) {
       case 'ROLE_ADMIN':
@@ -21,7 +18,7 @@ export default function StatsSection({ role, user }) {
         ];
       default:
         return [
-          { label: 'Närmaste inlämningsdatum', value: '24/7-26', test: 'test', icon: ClockIcon },
+          { label: 'Närmaste inlämningsdatum', value: 'PLACEHOLDER', test: 'test', icon: ClockIcon },
         ];
     }
   };

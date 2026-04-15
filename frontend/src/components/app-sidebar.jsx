@@ -3,7 +3,6 @@
 import * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavFavorites } from "@/components/nav-favorites"
 import { NavUser } from "@/components/nav-user"
 import { NavHome } from "@/components/nav-home"
 import { CourseSwitcher } from "@/components/course-switcher"
@@ -16,14 +15,14 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail, SidebarSeparator,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import {BookOpenIcon, FileTextIcon, LayersIcon} from "lucide-react";
+import {BookOpenIcon} from "lucide-react";
 import {useMemo} from "react";
 
 export function AppSidebar({ ...props }) {
   const { user } = useAuthContext()
-  const { courses, loading, error } = useCourses();
+  const { courses, error } = useCourses();
   const location = useLocation();
 
   const showHomeButton = useMemo(() => {
@@ -49,7 +48,6 @@ export function AppSidebar({ ...props }) {
   }, [courses]);
 
   // TODO: replace with proper error handling
-  if (loading) return <Sidebar collapsible="icon" {...props}>Laddar kurser...</Sidebar>;
   if (error) return <Sidebar collapsible="icon" {...props}>Ett fel uppstod: {error}</Sidebar>;
 
   // Map backend data to sidebar format

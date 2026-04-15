@@ -13,20 +13,9 @@ export function AssignmentListView({
   assignments,
   title = "Uppgifter",
   subtitle,
-  loading = false,
   error,
   emptyMessage = "Inga uppgifter än."
 }) {
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Laddar uppgifter...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   if (error) {
     return (
       <Card>

@@ -10,20 +10,12 @@ import TeacherOverview from '@/components/dashboard/TeacherOverview';
 import AdminOverview from '@/components/dashboard/AdminOverview';
 
 export default function Dashboard() {
-  const { user, loading: authLoading } = useAuthContext();
-  const { courses, loading: coursesLoading, error: coursesError } = useCourses();
-  const { assignments, loading: assignmentsLoading, error: assignmentsError } = useAssignments();
+  const { user } = useAuthContext();
+  const { courses, error: coursesError } = useCourses();
+  const { assignments, error: assignmentsError } = useAssignments();
 
   const mappedCourses = mapToCardFormat(courses);
   const role = user?.role?.name;
-
-  if (authLoading || coursesLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p>Laddar...</p>
-      </div>
-    );
-  }
 
   if (coursesError) {
     return (
@@ -84,7 +76,6 @@ export default function Dashboard() {
         <TabsContent value="assignments">
           <AssignmentListView
             assignments={assignments}
-            loading={assignmentsLoading}
             error={assignmentsError}
           />
         </TabsContent>
