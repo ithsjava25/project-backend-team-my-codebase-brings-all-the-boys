@@ -2,7 +2,7 @@ import { CourseCard } from './CourseCard';
 import { Grid } from '@/components/ui/grid';
 
 export default function CoursePreview({ courses }) {
-  if (!courses) return null;
+  if (!Array.isArray(courses)) return [];
 
   const sortedCourses = [...courses]
     .sort((a, b) => a.name.localeCompare(b.name));
