@@ -12,8 +12,8 @@ export const mapToCourseDetailFormat = (course) => {
       username: course.leadTeacher.username,
       email: course.leadTeacher.email
     } : null,
-    assistants: course.assistants || [],
-    assignments: course.assignments || []
+    assistants: Array.isArray(course.assistants) ? course.assistants : [],
+    assignments: Array.isArray(course.assignments) ? course.assignments : []
   };
 };
 
@@ -23,7 +23,7 @@ export const mapToCourseDetailFormat = (course) => {
  * @returns {Array} - Formatted
  */
 export const mapToSidebarFormat = (courses) => {
-  if (!courses) return [];
+  if (!Array.isArray(courses)) return [];
 
   return courses.map(course => ({
     id: course.id,
@@ -39,7 +39,7 @@ export const mapToSidebarFormat = (courses) => {
  * TODO: Implementera när dashboard ska byggas
  */
 export const mapToCardFormat = (courses) => {
-  if (!courses) return [];
+  if (!Array.isArray(courses)) return [];
 
   return courses.map(course => ({
     id: course.id,
@@ -54,7 +54,7 @@ export const mapToCardFormat = (courses) => {
  * TODO: Implementera när admin-panel ska byggas
  */
 export const mapToTableRowFormat = (courses) => {
-  if (!courses) return [];
+  if (!Array.isArray(courses)) return [];
 
   return courses.map(course => ({
     id: course.id,
