@@ -29,7 +29,7 @@ export function CourseSwitcher({ courses, user }) {
     const path = location.pathname;
 
     if (path === '/dashboard') {
-      return { name: 'Startsida', logo: House };
+      return { name: 'Dashboard', logo: House };
     }
 
     if (path.startsWith('/courses/')) {
@@ -89,7 +89,7 @@ export function CourseSwitcher({ courses, user }) {
               <div className="flex size-6 items-center justify-center rounded-md border bg-sidebar-accent">
                 <House className="size-3.5 shrink-0" />
               </div>
-              Startsida
+              Dashboard
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
