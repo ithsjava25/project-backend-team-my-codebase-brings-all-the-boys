@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 // Context provider for authentication
 import { createContext, useContext } from 'react';
 import { useAuth } from '../hooks/useAuth';

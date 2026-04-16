@@ -1,0 +1,35 @@
+import { Outlet } from 'react-router-dom';
+import { AppSidebar } from '@/components/app-sidebar';
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import WelcomeHeader from "@/components/dashboard/WelcomeHeader.jsx";
+import {useAuthContext} from "@/context/AuthContext.jsx";
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+export default function DashboardLayout() {
+  const { user } = useAuthContext();
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <WelcomeHeader user={user} />
+          </div>
+          <div className="ml-auto flex items-center gap-2 px-4">
+            <ThemeToggle />
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 bg-gray-50 dark:bg-neutral-900/20">
+          <div className="mx-auto w-full max-w-7xl">
+            <Outlet />
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}

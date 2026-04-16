@@ -62,7 +62,6 @@ public class DataSeeder implements CommandLineRunner {
             "Java Backend 1", "Introduction to Spring Boot and JPA", class2026A, teacher);
 
     // 6. Assignments
-
     Assignment introJava =
         getOrCreateAssignment(
             "Introduction to Java", "Basic syntax and logic", javaBackend1, teacher);

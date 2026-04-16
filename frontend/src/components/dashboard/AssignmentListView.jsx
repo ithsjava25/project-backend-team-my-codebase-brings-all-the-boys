@@ -1,0 +1,104 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge';
+
+export function AssignmentListView({
+  assignments,
+  title = "Uppgifter",
+  subtitle,
+  error,
+  emptyMessage = "Inga uppgifter än."
+}) {
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <p className="text-destructive">Fel: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!assignments || assignments.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">{emptyMessage}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'OPEN': return 'default';
+      case 'CLOSED': return 'secondary';
+      case 'CREATED': return 'outline';
+      default: return 'outline';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'OPEN': return 'Öppen';
+      case 'CLOSED': return 'Stängd';
+      case 'CREATED': return 'Skapad';
+      default: return status;
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('sv-SE');
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {subtitle && (
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        )}
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Uppgift</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Slutdatum</TableHead>
+              <TableHead className="text-right">Skapad</TableHead>
+              <TableHead className="text-right">Uppdaterad</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {assignments.map((assignment) => (
+              <TableRow key={assignment.id}>
+                <TableCell className="font-medium">{assignment.title}</TableCell>
+                <TableCell>
+                  <Badge variant={getStatusVariant(assignment.status)}>
+                    {getStatusLabel(assignment.status)}
+                  </Badge>
+                </TableCell>
+                <TableCell>{assignment.endDate}</TableCell>
+                <TableCell className="text-right">{formatDate(assignment.createdAt)}</TableCell>
+                <TableCell className="text-right">{formatDate(assignment.updatedAt)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}

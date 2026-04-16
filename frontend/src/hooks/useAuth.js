@@ -1,21 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../api/client';
 
 export function useAuth() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const fetchUser = () => {
+    const fetchUser = useCallback(() => {
         setLoading(true);
         return client.get('/auth/me')
             .then(res => setUser(res.data))
-            .catch(() => setUser(null))
+            .catch((error) => {
+                if (error.response?.status === 401 || error.response?.status === 403) {
+                    setUser(null);
+                }
+                throw error;
+            })
             .finally(() => setLoading(false));
-    };
+    }, []);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchUser();
-    }, []);
+    }, [fetchUser]);
 
     const refetch = () => {
         return fetchUser();
