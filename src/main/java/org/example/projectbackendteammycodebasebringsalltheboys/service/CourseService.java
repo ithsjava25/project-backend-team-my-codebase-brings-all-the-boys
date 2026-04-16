@@ -152,4 +152,17 @@ public class CourseService {
   public List<Course> getAllCourses() {
     return courseRepository.findAll();
   }
+
+  @Transactional
+  @LogActivity(
+      action = ActivityAction.DELETED,
+      entityType = EntityType.COURSE,
+      parentIdParamIndex = 0,
+      actorParamIndex = 1)
+  public void deleteCourse(UUID id, User updater) {
+    if (!courseRepository.existsById(id)) {
+      throw new NotFoundException("Course not found with id: " + id);
+    }
+    courseRepository.deleteById(id);
+  }
 }

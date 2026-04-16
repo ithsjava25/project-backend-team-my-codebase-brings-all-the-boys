@@ -1,41 +1,43 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
+import {AuthProvider} from './context/AuthContext';
+import {ThemeProvider} from './context/ThemeContext';
+import {ProtectedRoute} from './components/ProtectedRoute';
 import {TooltipProvider} from "@/components/ui/tooltip.jsx";
 import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
 import AssignmentDetailPage from './pages/AssignmentDetailPage';
+import UserManagementPage from './pages/admin/UserManagementPage';
+import CourseManagementPage from './pages/admin/CourseManagementPage';
 
 export default function App() {
-  return (
-    <TooltipProvider>
-      <ThemeProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/login" element={<LoginPage />} />
+    return (
+        <TooltipProvider>
+            <ThemeProvider>
+                <BrowserRouter>
+                    <AuthProvider>
+                        <Routes>
+                            <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
+                            <Route path="/login" element={<LoginPage/>}/>
 
-              <Route element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/courses/:courseId" element={<CourseDetailPage />} />
-                <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage />} />
-              </Route>
+                            <Route element={
+                                <ProtectedRoute>
+                                    <DashboardLayout/>
+                                </ProtectedRoute>}>
+                                <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
+                                <Route path="/dashboard" element={<Dashboard/>}/>
+                                <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
+                                <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
+                            </Route>
 
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
+                            <Route path="*" element={<Navigate to="/dashboard" replace/>}/>
+                        </Routes>
 
-          </AuthProvider>
-        </BrowserRouter>
-      </ThemeProvider>
-    </TooltipProvider>
+                    </AuthProvider>
+                </BrowserRouter>
+            </ThemeProvider>
+        </TooltipProvider>
 
-  );
+    );
 }

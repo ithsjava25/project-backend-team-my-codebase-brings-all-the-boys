@@ -13,4 +13,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
   List<Course> findBySchoolClass(SchoolClass schoolClass);
 
   Optional<Course> findByNameAndSchoolClass(String name, SchoolClass schoolClass);
+
+  boolean existsById(UUID id); // Added for checking existence before deletion
 }
