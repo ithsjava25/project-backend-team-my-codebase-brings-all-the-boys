@@ -62,7 +62,7 @@ class CourseControllerTest {
     when(courseService.getCourseById(id)).thenReturn(Optional.of(course));
     when(dtoMapper.toCourseDetailResponse(course)).thenReturn(new CourseDetailResponse());
 
-    mockMvc.perform(get("/admin/courses/" + id)).andExpect(status().isOk());
+    mockMvc.perform(get("/api/admin/courses/" + id)).andExpect(status().isOk());
   }
 
   @Test
@@ -75,6 +75,6 @@ class CourseControllerTest {
     when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(mockUser()));
     when(courseService.getCourseById(id)).thenReturn(Optional.empty());
 
-    mockMvc.perform(get("/admin/courses/" + id)).andExpect(status().isNotFound());
+    mockMvc.perform(get("/api/admin/courses/" + id)).andExpect(status().isNotFound());
   }
 }
