@@ -80,7 +80,7 @@ function SidebarProvider({
   }, [setOpenProp, open])
 
   React.useEffect(() => {
-    document.cookie = `${SIDEBAR_COOKIE_NAME}=${open}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+    document.cookie = `${SIDEBAR_COOKIE_NAME}=${open}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax`
   }, [open])
 
   // Helper to toggle the sidebar.
