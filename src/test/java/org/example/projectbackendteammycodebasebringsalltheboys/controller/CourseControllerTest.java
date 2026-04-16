@@ -49,8 +49,10 @@ class CourseControllerTest {
   }
 
   @Test
-  @DisplayName("GET /api/courses/{id} returns 200 when found")
-  @WithMockUser(username = "testuser")
+  @DisplayName("GET /admin/courses/{id} returns 200 when found")
+  @WithMockUser(
+      username = "testuser",
+      roles = {"ADMIN"})
   void getCourseById_found_returns200() throws Exception {
     UUID id = UUID.randomUUID();
     Course course = new Course();
@@ -60,17 +62,19 @@ class CourseControllerTest {
     when(courseService.getCourseById(id)).thenReturn(Optional.of(course));
     when(dtoMapper.toCourseDetailResponse(course)).thenReturn(new CourseDetailResponse());
 
-    mockMvc.perform(get("/api/courses/" + id)).andExpect(status().isOk());
+    mockMvc.perform(get("/admin/courses/" + id)).andExpect(status().isOk());
   }
 
   @Test
-  @DisplayName("GET /api/courses/{id} returns 404 when not found")
-  @WithMockUser(username = "testuser")
+  @DisplayName("GET /admin/courses/{id} returns 404 when not found")
+  @WithMockUser(
+      username = "testuser",
+      roles = {"ADMIN"})
   void getCourseById_notFound_returns404() throws Exception {
     UUID id = UUID.randomUUID();
     when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(mockUser()));
     when(courseService.getCourseById(id)).thenReturn(Optional.empty());
 
-    mockMvc.perform(get("/api/courses/" + id)).andExpect(status().isNotFound());
+    mockMvc.perform(get("/admin/courses/" + id)).andExpect(status().isNotFound());
   }
 }

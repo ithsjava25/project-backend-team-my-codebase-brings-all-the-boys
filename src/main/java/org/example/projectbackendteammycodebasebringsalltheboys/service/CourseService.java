@@ -155,6 +155,16 @@ public class CourseService {
 
   @Transactional
   @LogActivity(
+      action = ActivityAction.UPDATED,
+      entityType = EntityType.COURSE,
+      parentIdParamIndex = 0,
+      actorParamIndex = 1)
+  public Course updateCourse(Course course) {
+    return courseRepository.save(course);
+  }
+
+  @Transactional
+  @LogActivity(
       action = ActivityAction.DELETED,
       entityType = EntityType.COURSE,
       parentIdParamIndex = 0,

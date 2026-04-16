@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { userApi } from '@/api/users';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/table'; // Assuming shadcn/ui DataTable component is available
-import { ColumnDef } from '@tanstack/react-table';
+import { Table } from '@/components/ui/table'; // Assuming shadcn/ui DataTable component is available
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { useAuthContext } from '@/context/AuthContext';
 
 // Define the columns for the DataTable
-const columns: ColumnDef<any>[] = [
+const columns = [
   {
     accessorKey: "username",
     header: "Användarnamn",
@@ -73,7 +72,7 @@ const columns: ColumnDef<any>[] = [
   },
 ];
 
-export function UserManagementPage() {
+export default function UserManagementPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -124,7 +123,7 @@ export function UserManagementPage() {
           {error && <p className="text-destructive">Fel: {error}</p>}
           {!loading && !error && users.length === 0 && <p>Inga användare hittades.</p>}
           {!loading && !error && users.length > 0 && (
-            <DataTable columns={columns} data={users} />
+            <Table columns={columns} data={users} />
           )}
         </CardContent>
       </Card>

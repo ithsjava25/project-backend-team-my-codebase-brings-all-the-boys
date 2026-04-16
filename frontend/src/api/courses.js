@@ -2,12 +2,12 @@ import client from './client';
 
 export const courseApi = {
   getAllCourses: async () => {
-    const response = await client.get('/admin/courses'); // Changed to admin endpoint
+    const response = await client.get('/admin/courses');
     return response.data;
   },
 
   getCourseById: async (id) => {
-    const response = await client.get(`/admin/courses/${id}`); // Changed to admin endpoint
+    const response = await client.get(`/admin/courses/${id}`);
     return response.data;
   },
 

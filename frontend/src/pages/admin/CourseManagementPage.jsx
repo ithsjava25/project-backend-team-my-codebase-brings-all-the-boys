@@ -3,12 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { courseApi } from '@/api/courses';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/table';
-import { ColumnDef } from '@tanstack/react-table';
+import { Table } from '@/components/ui/table';
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { useAuthContext } from '@/context/AuthContext';
-import { SchoolClassService } from '@/services/SchoolClassService'; // Assuming this exists or will be created
-import { UserService } from '@/services/UserService'; // Assuming this exists or will be created
 
 // Define the columns for the DataTable
 const columns = [
@@ -88,7 +85,7 @@ const columns = [
   },
 ];
 
-export function CourseManagementPage() {
+export default function CourseManagementPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -139,7 +136,7 @@ export function CourseManagementPage() {
           {error && <p className="text-destructive">Fel: {error}</p>}
           {!loading && !error && courses.length === 0 && <p>Inga kurser hittades.</p>}
           {!loading && !error && courses.length > 0 && (
-            <DataTable columns={columns} data={courses} />
+            <Table columns={columns} data={courses} />
           )}
         </CardContent>
       </Card>

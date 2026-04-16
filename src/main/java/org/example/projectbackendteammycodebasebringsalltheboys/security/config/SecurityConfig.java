@@ -51,7 +51,7 @@ public class SecurityConfig {
         .exceptionHandling(
             ex ->
                 ex.authenticationEntryPoint(
-                    (_, response, _) ->
+                    (req, response, authException) ->
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
         .oauth2Login(
             oauth ->

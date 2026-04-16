@@ -27,7 +27,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>25</java.version>
+        <java.version>21</java.version>
         <aws.java.sdk.version>2.42.23</aws.java.sdk.version>
     </properties>
     <dependencyManagement>
@@ -189,6 +189,14 @@
                         </googleJavaFormat>
                     </java>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

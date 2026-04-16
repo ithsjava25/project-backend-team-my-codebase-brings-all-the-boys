@@ -8,5 +8,6 @@ public enum ActivityAction {
   CLOSED,
   ADDED,
   REMOVED,
-  EVALUATED
+  EVALUATED,
+  DELETED
 }

@@ -114,27 +114,7 @@ public class CourseController {
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
     // CourseService.deleteCourse is already implemented and secured by @PreAuthorize
-    courseService.deleteCourse(
-        id, userService.getCurrentUser()); // Assuming getCurrentUser method exists
+    courseService.deleteCourse(id, userService.getCurrentUser());
     return ResponseEntity.noContent().build();
-  }
-
-  // --- Helper method to get current user for admin actions ---
-  // This method should ideally be in a common utility or security context
-  // For demonstration, assuming it exists and retrieves the authenticated user
-  private User getCurrentUser() {
-    // In a real application, this would fetch the authenticated user from SecurityContextHolder
-    // or via a dedicated service method.
-    // Example:
-    // return
-    // userService.getUserByUsername(SecurityContextHolder.getContext().getAuthentication().getName())
-    //         .orElseThrow(() -> new UnauthorizedException("Current user not found"));
-
-    // Placeholder for now:
-    User adminUser = new User();
-    adminUser.setId(UUID.randomUUID()); // Placeholder ID
-    adminUser.setUsername("admin");
-    adminUser.setRole(roleRepository.findByName("ROLE_ADMIN").orElseThrow());
-    return adminUser;
   }
 }
