@@ -13,7 +13,7 @@ export const fileApi = {
   },
 
   finalizeUpload: async (s3Key, fileName, contentType, fileSize, assignmentId = null, commentId = null) => {
-    const response = await client.post(`/files/finalize?s3Key=${s3Key}`, {
+    const response = await client.post(`/files/finalize?s3Key=${encodeURIComponent(s3Key)}`, {
       fileName,
       contentType,
       fileSize,

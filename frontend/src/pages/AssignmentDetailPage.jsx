@@ -98,9 +98,9 @@ export default function AssignmentDetailPage() {
             </CardContent>
           </Card>
 
-          <FileSection 
-            files={assignment.files} 
-            assignmentId={assignmentId} 
+          <FileSection
+            files={assignment.files ?? []}
+            assignmentId={assignmentId}
           />
         </div>
       </div>

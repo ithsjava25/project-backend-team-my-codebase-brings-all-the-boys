@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/admin/courses")
+@RequestMapping("/api/admin/courses")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')") // Restrict all endpoints in this controller to ADMIN role
 public class CourseController {
