@@ -1,17 +1,26 @@
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider, TestAuthProvider } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
 
-// Gives context to all components (AuthContext, Router, Theme, etc.)
 export function renderWithProviders(ui, options = {}) {
-  const Wrapper = ({ children }) => (
-    <MemoryRouter>
-      <ThemeProvider>
-        <AuthProvider>{children}</AuthProvider>
-      </ThemeProvider>
-    </MemoryRouter>
-  );
+  const { auth, ...renderOptions } = options;
 
-  return render(ui, { wrapper: Wrapper, ...options });
+  const AuthProviderWrapper = auth
+    ? ({ children }) => (
+        <MemoryRouter>
+          <ThemeProvider>
+            <TestAuthProvider value={auth}>{children}</TestAuthProvider>
+          </ThemeProvider>
+        </MemoryRouter>
+      )
+    : ({ children }) => (
+        <MemoryRouter>
+          <ThemeProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ThemeProvider>
+        </MemoryRouter>
+      );
+
+  return render(ui, { wrapper: AuthProviderWrapper, ...renderOptions });
 }

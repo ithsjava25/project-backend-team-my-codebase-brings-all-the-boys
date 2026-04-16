@@ -57,7 +57,7 @@ describe('mapToSidebarFormat', () => {
     expect(result[0].schoolClassName).toBe('TE23');
   });
 
-  it('return an empty array if input is not an array ', () => {
+  it('returns an empty array if input is not an array', () => {
     expect(mapToSidebarFormat(null)).toEqual([]);
     expect(mapToSidebarFormat(undefined)).toEqual([]);
   });

@@ -14,6 +14,14 @@ export function AuthProvider({ children }) {
     );
 }
 
+export function TestAuthProvider({ children, value }) {
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
+
 export const useAuthContext = () => {
     const context = useContext(AuthContext);
     if (context === null) {

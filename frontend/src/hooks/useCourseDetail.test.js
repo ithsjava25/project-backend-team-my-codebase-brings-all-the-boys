@@ -102,14 +102,18 @@ describe('useCourseDetail', () => {
     });
   });
 
-  it('does not update sactate after component unmounts', async () => {
+  it('does not update state after component unmounts', async () => {
     vi.mocked(courseApi.getCourseById).mockResolvedValue(mockCourseFromApi);
-
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { result, unmount } = renderHook(() => useCourseDetail('course-123'));
 
     unmount();
+    await new Promise(resolve => setTimeout(resolve, 0));
 
-    // No errors after mount
     expect(result.current.course).toBe(null);
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('unmounted component')
+    );
+    errorSpy.mockRestore();
   });
 });

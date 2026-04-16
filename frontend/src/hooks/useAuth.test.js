@@ -12,13 +12,15 @@ describe('useAuth', () => {
     vi.clearAllMocks();
   });
 
-  it('starts with loading true and user null', () => {
+  it('starts with loading true and user null', async () => {
     vi.mocked(client.get).mockResolvedValue({ data: mockUser });
 
     const { result } = renderHook(() => useAuth());
 
     expect(result.current.user).toBe(null);
     expect(result.current.loading).toBe(true);
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it('fetches user on mount', async () => {

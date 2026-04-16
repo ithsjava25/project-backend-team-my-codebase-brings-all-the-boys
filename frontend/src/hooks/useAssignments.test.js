@@ -1,4 +1,4 @@
-import { it, expect, vi, beforeEach } from 'vitest';
+import { it, expect, vi, beforeEach, describe } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAssignments } from './useAssignments';
 import { assignmentApi } from '../api/assignments';
@@ -11,7 +11,7 @@ describe('useAssignments', () => {
     vi.clearAllMocks();
   });
 
-  it('starts with loading true, assignments empty and error null', () => {
+  it('starts with loading true, assignments empty and error null', async () => {
     vi.mocked(assignmentApi.getAllAssignments).mockResolvedValue([mockAssignment]);
 
     const { result } = renderHook(() => useAssignments());
@@ -19,6 +19,8 @@ describe('useAssignments', () => {
     expect(result.current.assignments).toEqual([]);
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it('fetches assignments on mount', async () => {

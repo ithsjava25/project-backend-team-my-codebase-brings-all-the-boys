@@ -127,7 +127,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(getByText('Invalid credentials')).toBeInTheDocument();
-      expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -193,7 +193,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(getByText('Unexpected error. Please try again.')).toBeInTheDocument();
-      expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });
