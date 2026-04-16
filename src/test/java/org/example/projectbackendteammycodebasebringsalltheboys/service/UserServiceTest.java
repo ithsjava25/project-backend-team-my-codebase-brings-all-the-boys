@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ExternalRegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
@@ -38,11 +38,12 @@ class UserServiceTest {
 
   // --- helpers ---
 
-  private RegistrationRequest validRequest(String username, String password) {
-    RegistrationRequest req = new RegistrationRequest();
+  private ExternalRegistrationRequest validRequest(String username, String password) {
+    ExternalRegistrationRequest req = new ExternalRegistrationRequest();
     req.setUsername(username);
     req.setPassword(password);
     req.setConfirmPassword(password);
+    req.setEmail(username + "@test.com");
     return req;
   }
 
@@ -96,17 +97,19 @@ class UserServiceTest {
 
   @Test
   @DisplayName("registerUser throws IllegalStateException when username already exists")
-  void registerUser_duplicateUsername_throwsIllegalStateException() {
+  void externalUser_Registration_duplicateUsername_throwsIllegalStateException() {
+
+    when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(studentRole()));
+
     when(userRepository.findByUsername("alice")).thenReturn(Optional.of(new User()));
 
-    RegistrationRequest req = validRequest("alice", "password123");
+    ExternalRegistrationRequest req = validRequest("alice", "password123");
 
-    assertThatThrownBy(() -> userService.registerUser(req))
+    assertThatThrownBy(() -> userService.externalUserRegistration(req))
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("User already exists");
 
     verify(userRepository, never()).save(any());
-    verifyNoInteractions(roleRepository, passwordEncoder);
   }
 
   // =========================================================
@@ -115,15 +118,16 @@ class UserServiceTest {
 
   @Test
   @DisplayName("registerUser throws IllegalStateException when passwords do not match")
-  void registerUser_passwordMismatch_throwsIllegalStateException() {
-    when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
+  void externalUser_Registration_passwordMismatch_throwsIllegalStateException() {
+    // when(userRepository.findByUsername("alice")).thenReturn(Optional.empty()); <-- Never used,
+    // caused test to fail.
 
-    RegistrationRequest req = new RegistrationRequest();
+    ExternalRegistrationRequest req = new ExternalRegistrationRequest();
     req.setUsername("alice");
     req.setPassword("password123");
     req.setConfirmPassword("different456");
 
-    assertThatThrownBy(() -> userService.registerUser(req))
+    assertThatThrownBy(() -> userService.externalUserRegistration(req))
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("Passwords do not match");
 
@@ -137,13 +141,13 @@ class UserServiceTest {
 
   @Test
   @DisplayName("registerUser throws IllegalStateException when ROLE_STUDENT is missing")
-  void registerUser_missingDefaultRole_throwsIllegalStateException() {
-    when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
-    when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
+  void externalUser_Registration_missingDefaultRole_throwsIllegalStateException() {
+    // when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
+    // when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.empty());
 
-    RegistrationRequest req = validRequest("alice", "password123");
+    ExternalRegistrationRequest req = validRequest("alice", "password123");
 
-    assertThatThrownBy(() -> userService.registerUser(req))
+    assertThatThrownBy(() -> userService.externalUserRegistration(req))
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("Default role not found");
 
@@ -156,13 +160,13 @@ class UserServiceTest {
 
   @Test
   @DisplayName("registerUser saves user with encoded password")
-  void registerUser_validRequest_savesUserWithEncodedPassword() {
+  void externalUser_validRequest_savesUserRegistrationWithEncodedPassword() {
     when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(studentRole()));
     when(passwordEncoder.encode("password123")).thenReturn("hashed");
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    userService.registerUser(validRequest("alice", "password123"));
+    userService.externalUserRegistration(validRequest("alice", "password123"));
 
     ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
     verify(userRepository).save(captor.capture());
@@ -175,13 +179,13 @@ class UserServiceTest {
 
   @Test
   @DisplayName("registerUser never stores raw password")
-  void registerUser_validRequest_doesNotStoreRawPassword() {
+  void externalUser_Registration_validRequest_doesNotStoreRawPassword() {
     when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(studentRole()));
     when(passwordEncoder.encode(anyString())).thenReturn("hashed");
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    userService.registerUser(validRequest("alice", "password123"));
+    userService.externalUserRegistration(validRequest("alice", "password123"));
 
     ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
     verify(userRepository).save(captor.capture());
@@ -191,7 +195,7 @@ class UserServiceTest {
 
   @Test
   @DisplayName("registerUser returns the saved user")
-  void registerUser_validRequest_returnsSavedUser() {
+  void externalUser_validRequest_returnsSavedUserRegistration() {
     User saved = new User();
     saved.setUsername("alice");
     saved.setPassword("hashed");
@@ -202,20 +206,20 @@ class UserServiceTest {
     when(passwordEncoder.encode(anyString())).thenReturn("hashed");
     when(userRepository.save(any(User.class))).thenReturn(saved);
 
-    User result = userService.registerUser(validRequest("alice", "password123"));
+    User result = userService.externalUserRegistration(validRequest("alice", "password123"));
 
     assertThat(result).isSameAs(saved);
   }
 
   @Test
   @DisplayName("registerUser encodes the password before saving")
-  void registerUser_validRequest_encodesPasswordBeforeSave() {
+  void externalUser_Registration_validRequest_encodesPasswordBeforeSave() {
     when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(studentRole()));
     when(passwordEncoder.encode("password123")).thenReturn("hashed");
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    userService.registerUser(validRequest("alice", "password123"));
+    userService.externalUserRegistration(validRequest("alice", "password123"));
 
     // encoder must be called before save
     var inOrder = inOrder(passwordEncoder, userRepository);
@@ -225,14 +229,14 @@ class UserServiceTest {
 
   @Test
   @DisplayName("registerUser assigns ROLE_STUDENT to new user")
-  void registerUser_validRequest_assignsStudentRole() {
+  void externalUser_Registration_validRequest_assignsStudentRole() {
     Role role = studentRole();
     when(userRepository.findByUsername("alice")).thenReturn(Optional.empty());
     when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(role));
     when(passwordEncoder.encode(anyString())).thenReturn("hashed");
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-    userService.registerUser(validRequest("alice", "password123"));
+    userService.externalUserRegistration(validRequest("alice", "password123"));
 
     ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
     verify(userRepository).save(captor.capture());

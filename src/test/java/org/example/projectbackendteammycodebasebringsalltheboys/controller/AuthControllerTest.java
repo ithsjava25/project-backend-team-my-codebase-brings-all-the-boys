@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Optional;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RegistrationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ExternalRegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
@@ -52,7 +52,7 @@ class AuthControllerTest {
   @Test
   @DisplayName("POST /api/auth/register with valid data returns 201 Created")
   void registerUser_validRequest_returnsOk() throws Exception {
-    RegistrationRequest request = new RegistrationRequest();
+    ExternalRegistrationRequest request = new ExternalRegistrationRequest();
     request.setUsername("test@example.com");
     request.setEmail("test@example.com");
     request.setPassword("password123");
@@ -72,7 +72,8 @@ class AuthControllerTest {
     roleResponse.setName("ROLE_STUDENT");
     userResponse.setRole(roleResponse);
 
-    when(userService.registerUser(any(RegistrationRequest.class))).thenReturn(user);
+    when(userService.externalUserRegistration(any(ExternalRegistrationRequest.class)))
+        .thenReturn(user);
     when(userService.toUserResponse(any(User.class))).thenReturn(userResponse);
 
     mockMvc
@@ -88,10 +89,10 @@ class AuthControllerTest {
   @Test
   @DisplayName("POST /api/auth/register with duplicate username returns 400 Bad Request")
   void registerUser_duplicateUsername_returnsBadRequest() throws Exception {
-    when(userService.registerUser(any(RegistrationRequest.class)))
+    when(userService.externalUserRegistration(any(ExternalRegistrationRequest.class)))
         .thenThrow(new IllegalStateException("Username already taken"));
 
-    RegistrationRequest request = new RegistrationRequest();
+    ExternalRegistrationRequest request = new ExternalRegistrationRequest();
     request.setUsername("test@example.com");
     request.setEmail("test@example.com");
     request.setPassword("password123");
@@ -105,7 +106,7 @@ class AuthControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error").value("Username already taken"));
 
-    verify(userService).registerUser(any(RegistrationRequest.class));
+    verify(userService).externalUserRegistration(any(ExternalRegistrationRequest.class));
   }
 
   // --- GET /api/auth/me ---
