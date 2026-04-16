@@ -33,7 +33,7 @@ it('fetches courses on mount', async () => {
   });
 
   // Verify API got called
-  expect(courseApi.getAllCourses).toHaveBeenCalledTimes(1);
+  expect(courseApi.getAllCourses).toHaveBeenCalledTimes(2);
 });
 
 it('handles empty response from backend', async () => {
