@@ -9,17 +9,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Shield } from 'lucide-react';
+import { ActivityLogView } from './ActivityLogView';
 
 export default function AdminOverview() {
   // Hårdkodad data BYT UT
   const quickActions = [
     { id: 1, title: 'Hantera Användare', description: 'Lägg till, redigera eller ta bort användare', icon: '👥' },
     { id: 2, title: 'Skapa Kurs', description: 'Skapa en ny kurs eller uppdatera befintlig', icon: '📚' },
-  ];
-
-  // Hårdkodad data - senaste aktivitet
-  const recentActivity = [
-    { id: 1, action: 'User registered', user: 'Ny Student (anna@example.com)', time: '5 min sedan' },
   ];
 
   return (
@@ -52,33 +48,7 @@ export default function AdminOverview() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Senaste Aktivitet</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Aktivitet</TableHead>
-                <TableHead>Användare</TableHead>
-                <TableHead className="text-right">Tid</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentActivity.map((activity) => (
-                <TableRow key={activity.id}>
-                  <TableCell className="font-medium">{activity.action}</TableCell>
-                  <TableCell className="text-muted-foreground">{activity.user}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline">{activity.time}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <ActivityLogView limit={10} />
     </div>
   );
 }

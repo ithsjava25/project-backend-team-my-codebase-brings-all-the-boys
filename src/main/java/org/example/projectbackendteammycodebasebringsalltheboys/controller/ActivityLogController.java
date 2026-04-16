@@ -29,6 +29,29 @@ public class ActivityLogController {
   private final UserService userService;
   private final DtoMapper dtoMapper;
 
+  @GetMapping
+  public ResponseEntity<Page<ActivityLogResponse>> getAllActivityLogs(
+      java.security.Principal principal, Pageable pageable) {
+
+    if (principal == null) {
+      throw new UnauthorizedException("Authentication is required");
+    }
+
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
+    if (!currentUser.getRole().getName().equals("ROLE_ADMIN")) {
+      throw new ForbiddenException("You are not authorized to view all activity logs.");
+    }
+
+    Page<ActivityLog> logs = activityLogService.getAllLogs(pageable);
+    Page<ActivityLogResponse> response = logs.map(dtoMapper::toActivityLogResponse);
+
+    return ResponseEntity.ok(response);
+  }
+
   @GetMapping("/user/{userId}")
   public ResponseEntity<Page<ActivityLogResponse>> getUserActivityLogs(
       @PathVariable UUID userId, java.security.Principal principal, Pageable pageable) {

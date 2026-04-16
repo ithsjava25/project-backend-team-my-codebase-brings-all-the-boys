@@ -7,6 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
+import AssignmentDetailPage from './pages/AssignmentDetailPage';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/courses/:courseId" element={<CourseDetailPage />} />
+                <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/dashboard" replace />} />

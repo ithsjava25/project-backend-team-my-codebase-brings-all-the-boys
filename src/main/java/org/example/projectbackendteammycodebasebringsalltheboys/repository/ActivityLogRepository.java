@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, UUID> {
+  Page<ActivityLog> findAllByOrderByTimestampDescIdDesc(Pageable pageable);
+
   Page<ActivityLog> findByUserOrderByTimestampDescIdDesc(User user, Pageable pageable);
 
   Page<ActivityLog> findByEntityTypeAndParentIdOrderByTimestampDescIdDesc(
