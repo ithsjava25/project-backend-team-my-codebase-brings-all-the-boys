@@ -12,6 +12,7 @@ export function useAuth() {
             .catch((error) => {
                 if (error.response?.status === 401 || error.response?.status === 403) {
                     setUser(null);
+                    return;
                 }
                 throw error;
             })
