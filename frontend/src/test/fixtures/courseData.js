@@ -1,4 +1,4 @@
-export const mockCourse = {
+export const mockCourseFromApi = {
   id: 'course-123',
   name: 'Test Course',
   schoolClassName: 'TE23',
