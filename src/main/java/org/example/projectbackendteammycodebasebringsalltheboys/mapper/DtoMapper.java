@@ -162,9 +162,7 @@ public class DtoMapper {
 
     response.setFiles(
         assignment.getFiles() != null
-            ? assignment.getFiles().stream()
-                .map(this::toFileResponse)
-                .collect(Collectors.toList())
+            ? assignment.getFiles().stream().map(this::toFileResponse).collect(Collectors.toList())
             : Collections.emptyList());
 
     return response;
