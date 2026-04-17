@@ -67,10 +67,7 @@ public class CourseService {
     return courseRepository.save(course);
   }
 
-  @LogActivity(
-      action = ActivityAction.UPDATED,
-      entityType = EntityType.COURSE,
-      actorParamIndex = 2)
+  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.COURSE, actorParamIndex = 2)
   @Transactional
   public void updateLeadTeacher(UUID courseId, User newLead, User updater) {
     if (newLead == null || newLead.getId() == null) {
@@ -161,19 +158,13 @@ public class CourseService {
 
   @Transactional
   @SuppressWarnings("unused")
-  @LogActivity(
-      action = ActivityAction.UPDATED,
-      entityType = EntityType.COURSE,
-      actorParamIndex = 1)
+  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.COURSE, actorParamIndex = 1)
   public Course updateCourse(Course course) {
     return courseRepository.save(course);
   }
 
   @Transactional
-  @LogActivity(
-      action = ActivityAction.DELETED,
-      entityType = EntityType.COURSE,
-      actorParamIndex = 1)
+  @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.COURSE, actorParamIndex = 1)
   public void deleteCourse(UUID id, User updater) {
     if (!courseRepository.existsById(id)) {
       throw new NotFoundException("Course not found with id: " + id);
