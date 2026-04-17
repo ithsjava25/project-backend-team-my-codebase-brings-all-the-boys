@@ -1,4 +1,4 @@
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useEffect, useMemo, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {courseApi} from '@/api/courses';
 import {Button} from '@/components/ui/button';
@@ -18,7 +18,7 @@ export default function CourseManagementPage() {
     const [size, setSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
 
-    const fetchCourses = async () => {
+    const fetchCourses = useCallback(async () => {
         try {
             setLoading(true);
             const data = await courseApi.getAllCourses({page, size});
@@ -29,7 +29,7 @@ export default function CourseManagementPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, size]);
 
     useEffect(() => {
         if (user?.role?.name === 'ROLE_ADMIN') fetchCourses().then(() => {});
@@ -127,7 +127,7 @@ export default function CourseManagementPage() {
                 },
             ]
             : []),
-    ], [navigate, user]);
+    ], [navigate, user, fetchCourses]);
 
     if (user?.role?.name !== 'ROLE_ADMIN') {
         return <div className="p-8">Du har inte behörighet att se den här sidan.</div>;
@@ -152,11 +152,7 @@ export default function CourseManagementPage() {
                 <CardContent>
                     {loading && <p>Laddar kurser...</p>}
                     {error && <p className="text-destructive">Fel: {error}</p>}
-                    {!loading && !error && courses.length === 0 && (
-                        <p>Inga kurser hittades.</p>
-                    )}
-
-                    {!loading && !error && courses.length > 0 && (
+                    {!loading && !error && (
                       <DataTable
                         columns={columns}
                         data={courses}

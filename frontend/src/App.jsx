@@ -1,4 +1,4 @@
-import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
+import {BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom';
 import {AuthProvider} from './context/AuthContext';
 import {ThemeProvider} from './context/ThemeContext';
 import {ProtectedRoute} from './components/ProtectedRoute';
@@ -45,18 +45,25 @@ export default function App() {
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
 
-                                {/* Admin routes */}
-                                {/* Users */}
-                                <Route path="/admin/users" element={<UserManagementPage/>}/>
-                                <Route path="/admin/users/new" element={<UserCreatePage/>}/>
-                                <Route path="/admin/users/:id/edit" element={<UserEditPage/>}/>
+                                {/* Admin routes - role-gated */}
+                                <Route
+                                    path="admin/*"
+                                    element={
+                                        <ProtectedRoute requiredRole="ROLE_ADMIN">
+                                            <Outlet/>
+                                        </ProtectedRoute>
+                                    }
+                                >
+                                    {/* Users */}
+                                    <Route path="users" element={<UserManagementPage/>}/>
+                                    <Route path="users/new" element={<UserCreatePage/>}/>
+                                    <Route path="users/:id/edit" element={<UserEditPage/>}/>
 
-                                {/* Courses */}
-                                <Route path="/admin/courses" element={<CourseManagementPage/>}/>
-                                <Route path="/admin/courses/new" element={<CourseCreatePage/>}/>
-                                <Route path="/admin/courses/:id/edit" element={<CourseEditPage/>}/>
-
-                                <Route path="/test/courses" element={<TestCoursesPage/>}/>
+                                    {/* Courses */}
+                                    <Route path="courses" element={<CourseManagementPage/>}/>
+                                    <Route path="courses/new" element={<CourseCreatePage/>}/>
+                                    <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
+                                </Route>
                             </Route>
 
                             {/* Catch-all */}

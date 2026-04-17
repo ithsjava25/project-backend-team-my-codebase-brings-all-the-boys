@@ -36,8 +36,8 @@ export default function UserManagementPage() {
     };
 
     useEffect(() => {
-        fetchUsers();
-    }, [page, size]);
+        if (currentUser?.role?.name === 'ROLE_ADMIN') fetchUsers();
+    }, [page, size, currentUser]);
 
     const handleDelete = async (user) => {
         if (window.confirm(`Är du säker på att du vill ta bort användaren "${user.username}"?`)) {
@@ -146,6 +146,8 @@ export default function UserManagementPage() {
                 </CardHeader>
 
                 <CardContent>
+                    {loading && <p>Laddar användare...</p>}
+                    {error && <p className="text-destructive">Fel: {error}</p>}
                     {!loading && !error && (
                       <DataTable
                         columns={columns}

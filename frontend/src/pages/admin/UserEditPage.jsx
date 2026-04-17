@@ -44,11 +44,35 @@ export default function UserEditPage() {
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
 
-                    <input value={form.username}
-                           onChange={e => setForm({...form, username: e.target.value})}/>
+                    <div>
+                        <label htmlFor="username" className="block text-sm font-medium mb-1">
+                            Användarnamn
+                        </label>
+                        <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            value={form.username}
+                            onChange={e => setForm({...form, username: e.target.value})}
+                            className="w-full px-3 py-2 border rounded-md"
+                            placeholder="Användarnamn"
+                        />
+                    </div>
 
-                    <input value={form.email}
-                           onChange={e => setForm({...form, email: e.target.value})}/>
+                    <div>
+                        <label htmlFor="email" className="block text-sm font-medium mb-1">
+                            E-post
+                        </label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={form.email}
+                            onChange={e => setForm({...form, email: e.target.value})}
+                            className="w-full px-3 py-2 border rounded-md"
+                            placeholder="E-postadress"
+                        />
+                    </div>
 
                     <Button type="submit" disabled={isSaving}>
                         {isSaving ? 'Sparar...' : 'Spara'}
