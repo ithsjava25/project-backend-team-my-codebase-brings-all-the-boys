@@ -28,8 +28,8 @@ export default function CourseManagementPage() {
   };
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    if (user?.role?.name === 'ROLE_ADMIN') fetchCourses();
+  }, [user]);
 
   const handleAddCourse = () => {
     navigate('/admin/courses/new');
