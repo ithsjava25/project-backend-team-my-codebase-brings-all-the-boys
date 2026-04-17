@@ -3,7 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {userApi} from '@/api/users';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {Table} from '@/components/ui/table';
+import {DataTable} from '@/components/ui/data-table';
 import {PlusCircle, Edit, Trash2} from 'lucide-react';
 import {useAuthContext} from '@/context/AuthContext';
 
@@ -67,7 +67,7 @@ export default function UserManagementPage() {
             header: "E-post",
         },
         {
-            accessorKey: "role.name",
+            accessorKey: "role",
             header: "Roll",
             cell: ({row}) => {
                 const roleName = row.original.role?.name || 'Ingen roll';
@@ -156,48 +156,15 @@ export default function UserManagementPage() {
 
                     {!loading && !error && users.length > 0 && (
                         <>
-                            <Table columns={columns} data={users}/>
-
-                            {/* 🔥 Pagination controls */}
-                            <div className="flex items-center justify-between mt-4">
-
-                                {/* Page size */}
-                                <div>
-                                    <select
-                                        value={size}
-                                        onChange={(e) => {
-                                            setSize(Number(e.target.value));
-                                            setPage(0);
-                                        }}
-                                        className="border rounded px-2 py-1"
-                                    >
-                                        <option value={10}>10 / sida</option>
-                                        <option value={20}>20 / sida</option>
-                                        <option value={50}>50 / sida</option>
-                                    </select>
-                                </div>
-
-                                {/* Navigation */}
-                                <div className="flex items-center gap-4">
-                                    <Button
-                                        onClick={() => setPage((p) => Math.max(p - 1, 0))}
-                                        disabled={page === 0}
-                                    >
-                                        Föregående
-                                    </Button>
-
-                                    <span>
-                    Sida {page + 1} av {totalPages}
-                  </span>
-
-                                    <Button
-                                        onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
-                                        disabled={page >= totalPages - 1}
-                                    >
-                                        Nästa
-                                    </Button>
-                                </div>
-                            </div>
+                            <DataTable
+                                columns={columns}
+                                data={users}
+                                page={page}
+                                setPage={setPage}
+                                pageSize={size}
+                                setPageSize={setSize}
+                                totalPages={totalPages}
+                            />
                         </>
                     )}
                 </CardContent>
