@@ -28,7 +28,7 @@ export default function CourseManagementPage() {
     };
 
     useEffect(() => {
-        if (user?.role?.name === 'ROLE_ADMIN') fetchCourses();
+        if (user?.role?.name === 'ROLE_ADMIN') fetchCourses().then(() => {});
     }, [user]);
 
     const handleAddCourse = () => {
@@ -40,7 +40,7 @@ export default function CourseManagementPage() {
             try {
                 await courseApi.deleteCourse(course.id);
                 alert('Kursen har tagits bort.');
-                fetchCourses();
+                fetchCourses().then(() => {});
             } catch (error) {
                 console.error('Failed to delete course:', error);
                 alert('Kunde inte ta bort kursen.');

@@ -12,7 +12,6 @@ export default function UserManagementPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ✅ pagination state
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
@@ -26,7 +25,6 @@ export default function UserManagementPage() {
 
             const data = await userApi.getAllUsers({page, size});
 
-            // ✅ backend should return Spring-style page
             setUsers(data.content || []);
             setTotalPages(data.totalPages || 1);
 
@@ -45,7 +43,7 @@ export default function UserManagementPage() {
         if (window.confirm(`Är du säker på att du vill ta bort användaren "${user.username}"?`)) {
             try {
                 await userApi.deleteUser(user.id);
-                fetchUsers(); // 🔥 bättre än reload
+                fetchUsers();
             } catch (error) {
                 console.error('Failed to delete user:', error);
                 alert('Kunde inte ta bort användaren.');
@@ -148,24 +146,16 @@ export default function UserManagementPage() {
                 </CardHeader>
 
                 <CardContent>
-                    {loading && <p>Laddar användare...</p>}
-                    {error && <p className="text-destructive">Fel: {error}</p>}
-                    {!loading && !error && users.length === 0 && (
-                        <p>Inga användare hittades.</p>
-                    )}
-
-                    {!loading && !error && users.length > 0 && (
-                        <>
-                            <DataTable
-                                columns={columns}
-                                data={users}
-                                page={page}
-                                setPage={setPage}
-                                pageSize={size}
-                                setPageSize={setSize}
-                                totalPages={totalPages}
-                            />
-                        </>
+                    {!loading && !error && (
+                      <DataTable
+                        columns={columns}
+                        data={users}
+                        page={page}
+                        setPage={setPage}
+                        pageSize={size}
+                        setPageSize={setSize}
+                        totalPages={totalPages}
+                      />
                     )}
                 </CardContent>
             </Card>

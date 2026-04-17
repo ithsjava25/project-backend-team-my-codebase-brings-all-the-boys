@@ -10,7 +10,7 @@ export function useCourses() {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const data = await courseApi.getAllCourses();
+        const data = await courseApi.getUsersCourses();
         setCourses(data);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch courses');

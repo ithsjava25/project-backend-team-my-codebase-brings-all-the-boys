@@ -11,13 +11,21 @@ export default function CourseEditPage() {
     const [form, setForm] = useState(null);
 
     useEffect(() => {
-        courseApi.getCourseById(id).then(setForm);
+        let cancelled = false;
+        courseApi.getCourseByIdAdmin(id)
+        .then(data => { if (!cancelled) setForm(data); })
+        .catch(err => { if (!cancelled) alert(err.response?.data?.message || 'Kunde inte hämta kurs.'); });
+        return () => { cancelled = true; };
     }, [id]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await courseApi.updateCourse(id, form);
-        navigate('/admin/courses');
+        try {
+            await courseApi.updateCourse(id, form);
+            navigate('/admin/courses');
+        } catch (err) {
+            alert(err.response?.data?.message || 'Kunde inte uppdatera kurs.');
+        }
     };
 
     if (!form) return <p>Laddar...</p>;

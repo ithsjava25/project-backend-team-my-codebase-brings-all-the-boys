@@ -38,7 +38,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
         commentId
       );
 
-      setFiles([...files, savedFile]);
+      setFiles((prev) => [...prev, savedFile]);
     } catch (error) {
       console.error('Upload failed:', error);
       setUploadError('Uppladdningen misslyckades. Försök igen.');

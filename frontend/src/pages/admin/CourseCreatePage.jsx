@@ -14,8 +14,12 @@ export default function CourseCreatePage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await courseApi.createCourse(form);
-        navigate('/admin/courses');
+        try {
+            await courseApi.createCourse(form);
+            navigate('/admin/courses');
+        } catch (err) {
+            alert(err.response?.data?.message || 'Kunde inte skapa kurs.');
+        }
     };
 
     return (

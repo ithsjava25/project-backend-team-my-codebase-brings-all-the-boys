@@ -94,7 +94,10 @@ export function DataTable({
                     <span>Rows:</span>
                     <select
                         value={pageSize}
-                        onChange={(e) => setPageSize(Number(e.target.value))}
+                        onChange={(e) => {
+                          setPageSize(Number(e.target.value));
+                          setPage(0);
+                        }}
                         className="border px-2 py-1 rounded"
                     >
                         {[10, 20, 50].map(size => (

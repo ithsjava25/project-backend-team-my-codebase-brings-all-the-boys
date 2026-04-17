@@ -7,17 +7,31 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 export default function UserEditPage() {
     const {id} = useParams();
     const navigate = useNavigate();
-
+    const [isSaving, setIsSaving] = useState(false);
     const [form, setForm] = useState(null);
 
     useEffect(() => {
-        userApi.getUserById(id).then(setForm);
+        let cancelled = false;
+        userApi.getUserById(id)
+          .then(data => { if (!cancelled) setForm(data); })
+          .catch(err => {
+              if (!cancelled)
+                  alert(err.response?.data?.message || 'Kunde inte hämta användare.');
+          });
+        return () => { cancelled = true; };
     }, [id]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await userApi.updateUser(id, form);
-        navigate('/admin/users');
+        setIsSaving(true);
+        try {
+            await userApi.updateUser(id, form);
+            navigate('/admin/users');
+        } catch (err) {
+            alert(err.response?.data?.message || 'Kunde inte uppdatera användare.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     if (!form) return <p>Laddar...</p>;
@@ -36,7 +50,9 @@ export default function UserEditPage() {
                     <input value={form.email}
                            onChange={e => setForm({...form, email: e.target.value})}/>
 
-                    <Button type="submit">Spara</Button>
+                    <Button type="submit" disabled={isSaving}>
+                        {isSaving ? 'Sparar...' : 'Spara'}
+                    </Button>
                 </form>
             </CardContent>
         </Card>
