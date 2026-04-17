@@ -219,7 +219,7 @@ public class CourseService {
   // Helper methods
 
   private List<Course> getStudentCourses(User student) {
-    return courseRepository.findByEnrollments_User(student);
+    return courseRepository.findByEnrollments_UserId(student.getId());
   }
 
   // Teachers see courses where they're leadTeacher or assistant

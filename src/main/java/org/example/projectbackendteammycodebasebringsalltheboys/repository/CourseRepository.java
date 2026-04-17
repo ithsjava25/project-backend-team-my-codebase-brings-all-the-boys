@@ -24,6 +24,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
   List<Course> findByLeadTeacherId(UUID teacherId);
   List<Course> findByAssistantsId(UUID assistantId);
 
-  @Query("SELECT DISTINCT c FROM Course c JOIN FETCH c.schoolClass sc JOIN sc.enrollments e WHERE e.user = :user")
-  List<Course> findByEnrollments_User(User user);
+  @Query("SELECT DISTINCT c FROM Course c JOIN c.schoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
+  List<Course> findByEnrollments_UserId(UUID userId);
 }

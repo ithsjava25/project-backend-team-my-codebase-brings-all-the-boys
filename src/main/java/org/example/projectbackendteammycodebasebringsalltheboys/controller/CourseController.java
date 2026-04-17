@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -7,10 +8,11 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.Cours
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,11 +22,19 @@ public class CourseController {
 
     private final CourseService courseService;
     private final DtoMapper dtoMapper;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<CourseSurfaceResponse>> getAccessibleCourses(
-            @AuthenticationPrincipal User user
-    ) {
+            Principal principal) {
+
+        if (principal == null) {
+            throw new UnauthorizedException("Authentication is required");
+        }
+
+        User user = userService.getUserByUsername(principal.getName())
+                .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
         List<Course> courses = courseService.getAccessibleCourses(user);
         List<CourseSurfaceResponse> response = courses.stream()
                 .map(dtoMapper::toCourseSurfaceResponse)
@@ -35,8 +45,15 @@ public class CourseController {
     @GetMapping("/{id}")
     public ResponseEntity<CourseDetailResponse> getCourseById(
             @PathVariable UUID id,
-            @AuthenticationPrincipal User user
-    ) {
+            Principal principal) {
+
+        if (principal == null) {
+            throw new UnauthorizedException("Authentication is required");
+        }
+
+        User user = userService.getUserByUsername(principal.getName())
+                .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
         return courseService.getAccessibleCourse(id, user)
                 .map(course -> ResponseEntity.ok(dtoMapper.toCourseDetailResponse(course)))
                 .orElse(ResponseEntity.notFound().build());

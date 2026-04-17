@@ -19,7 +19,7 @@ export function useCourses() {
       }
     };
 
-    fetchCourses();
+    fetchCourses().then(() => {});
   }, []);
 
   return { courses, loading, error };

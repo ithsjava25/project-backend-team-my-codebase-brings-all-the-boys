@@ -17,6 +17,7 @@ import CourseEditPage from './pages/admin/CourseEditPage';
 // Admin pages
 import UserManagementPage from './pages/admin/UserManagementPage';
 import CourseManagementPage from './pages/admin/CourseManagementPage';
+import TestCoursesPage from "@/pages/TestCoursesPage.jsx";
 
 export default function App() {
     return (
@@ -54,6 +55,8 @@ export default function App() {
                                 <Route path="/admin/courses" element={<CourseManagementPage/>}/>
                                 <Route path="/admin/courses/new" element={<CourseCreatePage/>}/>
                                 <Route path="/admin/courses/:id/edit" element={<CourseEditPage/>}/>
+
+                                <Route path="/test/courses" element={<TestCoursesPage/>}/>
                             </Route>
 
                             {/* Catch-all */}
