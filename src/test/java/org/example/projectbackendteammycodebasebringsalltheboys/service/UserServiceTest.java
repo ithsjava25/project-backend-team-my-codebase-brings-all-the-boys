@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ExternalRegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,11 +30,13 @@ class UserServiceTest {
 
   @Mock private PasswordEncoder passwordEncoder;
 
+  @Mock private DtoMapper dtoMapper;
+
   private UserService userService;
 
   @BeforeEach
   void setUp() {
-    userService = new UserService(userRepository, roleRepository, passwordEncoder);
+    userService = new UserService(userRepository, roleRepository, passwordEncoder, dtoMapper);
   }
 
   // --- helpers ---

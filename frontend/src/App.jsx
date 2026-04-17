@@ -1,39 +1,78 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import {BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom';
+import {AuthProvider} from './context/AuthContext';
+import {ThemeProvider} from './context/ThemeContext';
+import {ProtectedRoute} from './components/ProtectedRoute';
 import {TooltipProvider} from "@/components/ui/tooltip.jsx";
+
 import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
+import AssignmentDetailPage from './pages/AssignmentDetailPage';
+import UserCreatePage from './pages/admin/UserCreatePage';
+import UserEditPage from './pages/admin/UserEditPage';
+import CourseCreatePage from './pages/admin/CourseCreatePage';
+import CourseEditPage from './pages/admin/CourseEditPage';
+
+// Admin pages
+import UserManagementPage from './pages/admin/UserManagementPage';
+import CourseManagementPage from './pages/admin/CourseManagementPage';
+import TestCoursesPage from "@/pages/TestCoursesPage.jsx";
 
 export default function App() {
-  return (
-    <TooltipProvider>
-      <ThemeProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/login" element={<LoginPage />} />
+    return (
+        <TooltipProvider>
+            <ThemeProvider>
+                <BrowserRouter>
+                    <AuthProvider>
+                        <Routes>
 
-              <Route element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/courses/:courseId" element={<CourseDetailPage />} />
-              </Route>
+                            {/* Redirect root */}
+                            <Route path="/" element={<Navigate to="/dashboard" replace/>}/>
 
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
+                            {/* Public route */}
+                            <Route path="/login" element={<LoginPage/>}/>
 
-          </AuthProvider>
-        </BrowserRouter>
-      </ThemeProvider>
-    </TooltipProvider>
+                            {/* Protected app layout */}
+                            <Route
+                                element={
+                                    <ProtectedRoute>
+                                        <DashboardLayout/>
+                                    </ProtectedRoute>
+                                }
+                            >
+                                <Route path="/dashboard" element={<Dashboard/>}/>
+                                <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
+                                <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
 
-  );
+                                {/* Admin routes - role-gated */}
+                                <Route
+                                    path="admin/*"
+                                    element={
+                                        <ProtectedRoute requiredRole="ROLE_ADMIN">
+                                            <Outlet/>
+                                        </ProtectedRoute>
+                                    }
+                                >
+                                    {/* Users */}
+                                    <Route path="users" element={<UserManagementPage/>}/>
+                                    <Route path="users/new" element={<UserCreatePage/>}/>
+                                    <Route path="users/:id/edit" element={<UserEditPage/>}/>
+
+                                    {/* Courses */}
+                                    <Route path="courses" element={<CourseManagementPage/>}/>
+                                    <Route path="courses/new" element={<CourseCreatePage/>}/>
+                                    <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
+                                </Route>
+                            </Route>
+
+                            {/* Catch-all */}
+                            <Route path="*" element={<Navigate to="/dashboard" replace/>}/>
+
+                        </Routes>
+                    </AuthProvider>
+                </BrowserRouter>
+            </ThemeProvider>
+        </TooltipProvider>
+    );
 }

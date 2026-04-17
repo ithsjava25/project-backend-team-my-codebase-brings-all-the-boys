@@ -8,6 +8,7 @@ import { CourseListView } from '@/components/dashboard/CourseListView';
 import { AssignmentListView } from '@/components/dashboard/AssignmentListView';
 import TeacherOverview from '@/components/dashboard/TeacherOverview';
 import AdminOverview from '@/components/dashboard/AdminOverview';
+import { ActivityLogView } from '@/components/dashboard/ActivityLogView';
 
 export default function Dashboard() {
   const { user } = useAuthContext();
@@ -87,7 +88,7 @@ export default function Dashboard() {
         </TabsContent>
 
         <TabsContent value="activity">
-          <div>Aktivitet kommer synas här</div>
+          <ActivityLogView limit={20} />
         </TabsContent>
 
         <TabsContent value="grading">

@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 
 export function AssignmentListView({
   assignments,
@@ -85,13 +86,17 @@ export function AssignmentListView({
           <TableBody>
             {assignments.map((assignment) => (
               <TableRow key={assignment.id}>
-                <TableCell className="font-medium">{assignment.title}</TableCell>
+                <TableCell className="font-medium">
+                  <Link to={`/assignments/${assignment.id}`} className="hover:underline">
+                    {assignment.title}
+                  </Link>
+                </TableCell>
                 <TableCell>
                   <Badge variant={getStatusVariant(assignment.status)}>
                     {getStatusLabel(assignment.status)}
                   </Badge>
                 </TableCell>
-                <TableCell>{assignment.endDate}</TableCell>
+                <TableCell>{formatDate(assignment.deadline)}</TableCell>
                 <TableCell className="text-right">{formatDate(assignment.createdAt)}</TableCell>
                 <TableCell className="text-right">{formatDate(assignment.updatedAt)}</TableCell>
               </TableRow>

@@ -39,58 +39,89 @@ public class DataSeeder implements CommandLineRunner {
     Role teacherRole = getOrCreateRole("ROLE_TEACHER");
     Role studentRole = getOrCreateRole("ROLE_STUDENT");
 
-    // 2. Users
+    // 2. Admin
     User admin = getOrCreateUser("admin", "admin@school.com", "password", adminRole);
-    User teacher = getOrCreateUser("thomas_teacher", "thomas@school.com", "password", teacherRole);
-    User student1 = getOrCreateUser("alice_student", "alice@school.com", "password", studentRole);
-    User student2 = getOrCreateUser("bob_student", "bob@school.com", "password", studentRole);
-    User student3 =
-        getOrCreateUser("charlie_student", "charlie@school.com", "password", studentRole);
 
-    // 3. School Class
-    SchoolClass class2026A = getOrCreateClass("Class 2026-A", "Backend development class of 2026");
+    // 3. Teachers
+    User teacher1 = getOrCreateUser("thomas_teacher", "thomas@school.com", "password", teacherRole);
+    User teacher2 = getOrCreateUser("emma_teacher", "emma@school.com", "password", teacherRole);
+    User teacher3 = getOrCreateUser("johan_teacher", "johan@school.com", "password", teacherRole);
+    User teacher4 = getOrCreateUser("sara_teacher", "sara@school.com", "password", teacherRole);
+    User teacher5 = getOrCreateUser("lina_teacher", "lina@school.com", "password", teacherRole);
 
-    // 4. Enrollments
-    getOrCreateEnrollment(teacher, class2026A, ClassRole.TEACHER);
-    getOrCreateEnrollment(student1, class2026A, ClassRole.STUDENT);
-    getOrCreateEnrollment(student2, class2026A, ClassRole.STUDENT);
-    getOrCreateEnrollment(student3, class2026A, ClassRole.STUDENT);
+    // 4. Classes
+    SchoolClass classA = getOrCreateClass("Class 2026-A", "Backend development");
+    SchoolClass classB = getOrCreateClass("Class 2026-B", "Frontend development");
+    SchoolClass classC = getOrCreateClass("Class 2026-C", "Fullstack development");
 
-    // 5. Course
-    Course javaBackend1 =
-        getOrCreateCourse(
-            "Java Backend 1", "Introduction to Spring Boot and JPA", class2026A, teacher);
+    // 5. Students
+    User s1 = getOrCreateUser("alice", "alice@school.com", "password", studentRole);
+    User s2 = getOrCreateUser("bob", "bob@school.com", "password", studentRole);
+    User s3 = getOrCreateUser("charlie", "charlie@school.com", "password", studentRole);
+    User s4 = getOrCreateUser("david", "david@school.com", "password", studentRole);
+    User s5 = getOrCreateUser("ella", "ella@school.com", "password", studentRole);
 
-    // 6. Assignments
-    Assignment introJava =
-        getOrCreateAssignment(
-            "Introduction to Java", "Basic syntax and logic", javaBackend1, teacher);
-    Assignment springBootLab =
-        getOrCreateAssignment("Spring Boot Lab 1", "REST API basics", javaBackend1, teacher);
-    Assignment finalProject =
-        getOrCreateAssignment(
-            "Final Project", "Build a full case management system", javaBackend1, teacher);
+    User s6 = getOrCreateUser("felix", "felix@school.com", "password", studentRole);
+    User s7 = getOrCreateUser("greta", "greta@school.com", "password", studentRole);
+    User s8 = getOrCreateUser("henrik", "henrik@school.com", "password", studentRole);
+    User s9 = getOrCreateUser("ida", "ida@school.com", "password", studentRole);
+    User s10 = getOrCreateUser("jack", "jack@school.com", "password", studentRole);
 
-    // 7. Student Assignments
-    getOrCreateUserAssignment(
-        introJava, student1, StudentAssignmentStatus.EVALUATED, "A", "Great work!");
-    getOrCreateUserAssignment(introJava, student2, StudentAssignmentStatus.TURNED_IN, null, null);
-    getOrCreateUserAssignment(introJava, student3, StudentAssignmentStatus.ASSIGNED, null, null);
+    User s11 = getOrCreateUser("klara", "klara@school.com", "password", studentRole);
+    User s12 = getOrCreateUser("leo", "leo@school.com", "password", studentRole);
+    User s13 = getOrCreateUser("maria", "maria@school.com", "password", studentRole);
+    User s14 = getOrCreateUser("noah", "noah@school.com", "password", studentRole);
+    User s15 = getOrCreateUser("olivia", "olivia@school.com", "password", studentRole);
 
-    getOrCreateUserAssignment(
-        springBootLab, student1, StudentAssignmentStatus.ASSIGNED, null, null);
-    getOrCreateUserAssignment(
-        springBootLab, student2, StudentAssignmentStatus.ASSIGNED, null, null);
+    // 6. Enrollments
+    // Class A
+    getOrCreateEnrollment(teacher1, classA, ClassRole.TEACHER);
+    getOrCreateEnrollment(s1, classA, ClassRole.STUDENT);
+    getOrCreateEnrollment(s2, classA, ClassRole.STUDENT);
+    getOrCreateEnrollment(s3, classA, ClassRole.STUDENT);
+    getOrCreateEnrollment(s4, classA, ClassRole.STUDENT);
+    getOrCreateEnrollment(s5, classA, ClassRole.STUDENT);
 
-    // 8. Comments
-    if (commentRepository.findAll().isEmpty()) {
-      Comment comment = new Comment();
-      comment.setAssignment(introJava);
-      comment.setAuthor(student1);
-      comment.setText("I'm having some trouble with the installation, can anyone help?");
-      commentRepository.save(comment);
-      log.info("Created initial comment for Intro to Java");
-    }
+    // Class B
+    getOrCreateEnrollment(teacher2, classB, ClassRole.TEACHER);
+    getOrCreateEnrollment(s6, classB, ClassRole.STUDENT);
+    getOrCreateEnrollment(s7, classB, ClassRole.STUDENT);
+    getOrCreateEnrollment(s8, classB, ClassRole.STUDENT);
+    getOrCreateEnrollment(s9, classB, ClassRole.STUDENT);
+    getOrCreateEnrollment(s10, classB, ClassRole.STUDENT);
+
+    // Class C
+    getOrCreateEnrollment(teacher3, classC, ClassRole.TEACHER);
+    getOrCreateEnrollment(s11, classC, ClassRole.STUDENT);
+    getOrCreateEnrollment(s12, classC, ClassRole.STUDENT);
+    getOrCreateEnrollment(s13, classC, ClassRole.STUDENT);
+    getOrCreateEnrollment(s14, classC, ClassRole.STUDENT);
+    getOrCreateEnrollment(s15, classC, ClassRole.STUDENT);
+
+    // 7. Courses
+    Course backend = getOrCreateCourse("Java Backend", "Spring Boot & JPA", classA, teacher1);
+    Course frontend = getOrCreateCourse("React Frontend", "React & TypeScript", classB, teacher2);
+    Course databases = getOrCreateCourse("Databases", "SQL & PostgreSQL", classA, teacher3);
+    Course devops = getOrCreateCourse("DevOps", "CI/CD & Docker", classC, teacher4);
+    Course algorithms =
+        getOrCreateCourse("Algorithms", "Data structures & algorithms", classC, teacher5);
+
+    // 8. Course connections
+    getOrCreateCourse("Shared Backend", "Advanced backend", classB, teacher1);
+    getOrCreateCourse("Shared Frontend", "UI/UX basics", classA, teacher2);
+    getOrCreateCourse("Cloud Basics", "Intro to cloud", classB, teacher4);
+    getOrCreateCourse("Testing", "JUnit & integration tests", classC, teacher3);
+
+    // 9. Assignments
+    Assignment a1 = getOrCreateAssignment("Intro Java", "Basics", backend, teacher1);
+    Assignment a2 = getOrCreateAssignment("Build API", "REST API", backend, teacher1);
+    Assignment a3 = getOrCreateAssignment("React App", "Frontend project", frontend, teacher2);
+
+    // 10. Student assignments
+    getOrCreateUserAssignment(a1, s1, StudentAssignmentStatus.EVALUATED, "A", "Great!");
+    getOrCreateUserAssignment(a1, s2, StudentAssignmentStatus.TURNED_IN, null, null);
+    getOrCreateUserAssignment(a2, s3, StudentAssignmentStatus.ASSIGNED, null, null);
+    getOrCreateUserAssignment(a3, s6, StudentAssignmentStatus.ASSIGNED, null, null);
 
     log.info("Data seeding completed successfully.");
   }

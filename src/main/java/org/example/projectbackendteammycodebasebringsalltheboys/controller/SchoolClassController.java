@@ -33,7 +33,7 @@ public class SchoolClassController {
   @GetMapping
   public ResponseEntity<List<SchoolClassSurfaceResponse>>
       getAllSchoolClasses() { // Assuming SchoolClassSurfaceResponse exists
-    List<SchoolClass> schoolClasses = schoolClassService.getAllClasses();
+    List<SchoolClass> schoolClasses = schoolClassService.getAllSchoolClasses();
     List<SchoolClassSurfaceResponse> response =
         schoolClasses.stream()
             .map(dtoMapper::toSchoolClassSurfaceResponse)
@@ -58,7 +58,7 @@ public class SchoolClassController {
 
     SchoolClass schoolClass =
         schoolClassService
-            .getClassById(id)
+            .getSchoolClassById(id)
             .orElseThrow(() -> new NotFoundException("School class not found with id: " + id));
 
     // Authorization check: Allow Admins, Teachers, Mentors, and enrolled Students to view details
