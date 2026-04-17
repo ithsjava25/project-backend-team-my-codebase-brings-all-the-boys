@@ -3,9 +3,9 @@ import client from './client';
 export const courseApi = {
     // ALL USERS
     // User specific courses
-    getUsersCourses: async () => {
-        const response = await client.get('/courses');
-        return response.data;
+    getUsersCourses: async ({page = 0, size = 10} = {}) => {
+        const response = await client.get(`/courses?page=${page}&size=${size}`);
+        return response.data; // {content, totalPages, totalElements}
     },
 
     // Specific course
@@ -16,8 +16,8 @@ export const courseApi = {
 
 
     // ADMIN
-    getAllCourses: async () => {
-        const response = await client.get('/admin/courses');
+    getAllCourses: async ({page = 0, size = 10} = {}) => {
+        const response = await client.get(`/admin/courses?page=${page}&size=${size}`);
         return response.data;
     },
 
@@ -25,7 +25,7 @@ export const courseApi = {
         const response = await client.get(`/admin/courses/${id}`);
         return response.data;
     },
-    
+
     createCourse: async (courseData) => {
         const response = await client.post('/admin/courses', courseData);
         return response.data;

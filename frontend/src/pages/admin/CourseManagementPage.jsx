@@ -14,12 +14,16 @@ export default function CourseManagementPage() {
 
     const navigate = useNavigate();
     const {user} = useAuthContext();
+    const [page, setPage] = useState(0);
+    const [size, setSize] = useState(10);
+    const [totalPages, setTotalPages] = useState(0);
 
     const fetchCourses = async () => {
         try {
             setLoading(true);
-            const data = await courseApi.getAllCourses();
-            setCourses(data);
+            const data = await courseApi.getAllCourses({page, size});
+            setCourses(data.content || []);
+            setTotalPages(data.totalPages || 1);
         } catch (err) {
             setError(err.response?.data?.message || 'Kunde inte hämta kurser.');
         } finally {
@@ -29,7 +33,7 @@ export default function CourseManagementPage() {
 
     useEffect(() => {
         if (user?.role?.name === 'ROLE_ADMIN') fetchCourses().then(() => {});
-    }, [user]);
+    }, [user, page, size]);
 
     const handleAddCourse = () => {
         navigate('/admin/courses/new');
@@ -153,10 +157,15 @@ export default function CourseManagementPage() {
                     )}
 
                     {!loading && !error && courses.length > 0 && (
-                        <DataTable
-                            columns={columns}
-                            data={courses}
-                        />
+                      <DataTable
+                        columns={columns}
+                        data={courses}
+                        page={page}
+                        setPage={setPage}
+                        pageSize={size}
+                        setPageSize={setSize}
+                        totalPages={totalPages}
+                      />
                     )}
                 </CardContent>
             </Card>

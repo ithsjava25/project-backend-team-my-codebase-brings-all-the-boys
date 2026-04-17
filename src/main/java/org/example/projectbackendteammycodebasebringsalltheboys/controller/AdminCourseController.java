@@ -1,8 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseCreateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
@@ -14,6 +12,9 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFou
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,11 +33,10 @@ public class AdminCourseController {
 
   @Transactional(readOnly = true)
   @GetMapping
-  public ResponseEntity<List<CourseSurfaceResponse>> getAllCoursesAdmin() {
-    List<Course> courses = courseService.getAllCourses();
-    List<CourseSurfaceResponse> response =
-        courses.stream().map(dtoMapper::toCourseSurfaceResponse).collect(Collectors.toList());
-
+  public ResponseEntity<Page<CourseSurfaceResponse>> getAllCoursesAdmin(
+      @PageableDefault Pageable pageable) {
+    Page<Course> courses = courseService.getAllCourses(pageable);
+    Page<CourseSurfaceResponse> response = courses.map(dtoMapper::toCourseSurfaceResponse);
     return ResponseEntity.ok(response);
   }
 
