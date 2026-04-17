@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Shield } from 'lucide-react';
 
 export default function AdminOverview() {
-  // Hårdkodad data BYT UT
+  // Hårdkodad data BYT
   const quickActions = [
     { id: 1, title: 'Hantera Användare', description: 'Lägg till, redigera eller ta bort användare', icon: '👥' },
     { id: 2, title: 'Skapa Kurs', description: 'Skapa en ny kurs eller uppdatera befintlig', icon: '📚' },
