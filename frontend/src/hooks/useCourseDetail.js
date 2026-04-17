@@ -25,7 +25,9 @@ export function useCourseDetail(courseId) {
           setCourse(data);
         }
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch course')
+        if (isCurrent) {
+          setError(err.response?.data?.message || 'Failed to fetch course');
+        }
       } finally {
         if (isCurrent) {
           setLoading(false);
