@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.ClassEnrollment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
@@ -24,6 +27,7 @@ public class CourseService {
 
   private final CourseRepository courseRepository;
   private final ActivityLogService activityLogService;
+  private final ClassEnrollmentService enrollmentService;
 
   @Transactional
   @LogActivity(
@@ -174,5 +178,78 @@ public class CourseService {
       throw new NotFoundException("Course not found with id: " + id);
     }
     courseRepository.deleteById(id);
+  }
+
+
+  // Filtered course list
+  @Transactional(readOnly = true)
+  public List<Course> getAccessibleCourses(User user) {
+    if (user == null) {
+      return List.of();
+    }
+
+    return switch (user.getRole().getName()) {
+      case "ROLE_STUDENT" -> getStudentCourses(user);
+      case "ROLE_TEACHER" -> getTeacherCourses(user);
+      case "ROLE_ADMIN" -> getAllCourses();
+      default -> List.of();
+    };
+  }
+
+  // Get course if access
+  @Transactional(readOnly = true)
+  public Optional<Course> getAccessibleCourse(UUID id, User user) {
+    if (user == null) {
+      return Optional.empty();
+    }
+
+    Optional<Course> course = courseRepository.findById(id);
+    if (course.isEmpty()) {
+      return Optional.empty();
+    }
+
+    // Check for access
+    if (!hasAccess(course.get(), user)) {
+      return Optional.empty();
+    }
+
+    return course;
+  }
+
+  // Helper methods
+
+  private List<Course> getStudentCourses(User student) {
+    return courseRepository.findByEnrollments_User(student);
+  }
+
+  // Teachers see courses where they're leadTeacher or assistant
+  private List<Course> getTeacherCourses(User teacher) {
+    List<Course> asLead = courseRepository.findByLeadTeacherId(teacher.getId());
+    List<Course> asAssistant = courseRepository.findByAssistantsId(teacher.getId());
+
+    // Merge and deduplicate
+    return Stream.concat(asLead.stream(), asAssistant.stream())
+            .distinct()
+            .toList();
+  }
+
+  private boolean hasAccess(Course course, User user) {
+      switch (user.getRole().getName()) {
+          case "ROLE_ADMIN" -> {
+              return true;
+          }
+          case "ROLE_TEACHER" -> {
+              boolean isLead = course.getLeadTeacher() != null &&
+                      course.getLeadTeacher().getId().equals(user.getId());
+              boolean isAssistant = course.getAssistants().stream()
+                      .anyMatch(a -> a.getId().equals(user.getId()));
+              return isLead || isAssistant;
+          }
+          case "ROLE_STUDENT" -> {
+              return enrollmentService.isUserInClass(user, course.getSchoolClass());
+          }
+      }
+
+      return false;
   }
 }

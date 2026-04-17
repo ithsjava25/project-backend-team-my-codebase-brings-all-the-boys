@@ -1,20 +1,20 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseSurfaceResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
-import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
-import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
-import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,51 +30,63 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("test")
 class CourseControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-  @MockitoBean private CourseService courseService;
-  @MockitoBean private UserService userService;
-  @MockitoBean private AuthorizationService authorizationService;
-  @MockitoBean private DtoMapper dtoMapper;
-  @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
+    @MockitoBean private CourseService courseService;
+    @MockitoBean private DtoMapper dtoMapper;
 
-  private User mockUser() {
-    User user = new User();
-    user.setId(UUID.randomUUID());
-    user.setUsername("testuser");
-    Role role = new Role();
-    role.setName("ROLE_ADMIN");
-    user.setRole(role);
-    return user;
-  }
+    @Test
+    @DisplayName("GET /api/courses returns courses for authenticated user")
+    @WithMockUser(username = "student", roles = {"STUDENT"})
+    void getAccessibleCourses_returnsCourses() throws Exception {
+        Course course1 = new Course();
+        course1.setId(UUID.randomUUID());
+        course1.setName("Java 1");
 
-  @Test
-  @DisplayName("GET /admin/courses/{id} returns 200 when found")
-  @WithMockUser(
-      username = "testuser",
-      roles = {"ADMIN"})
-  void getCourseById_found_returns200() throws Exception {
-    UUID id = UUID.randomUUID();
-    Course course = new Course();
-    course.setId(id);
+        Course course2 = new Course();
+        course2.setId(UUID.randomUUID());
+        course2.setName("Math 101");
 
-    when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(mockUser()));
-    when(courseService.getCourseById(id)).thenReturn(Optional.of(course));
-    when(dtoMapper.toCourseDetailResponse(course)).thenReturn(new CourseDetailResponse());
+        when(courseService.getAccessibleCourses(any())).thenReturn(List.of(course1, course2));
+        when(dtoMapper.toCourseSurfaceResponse(course1)).thenReturn(createResponse("Java 1"));
+        when(dtoMapper.toCourseSurfaceResponse(course2)).thenReturn(createResponse("Math 101"));
 
-    mockMvc.perform(get("/api/admin/courses/" + id)).andExpect(status().isOk());
-  }
+        mockMvc.perform(get("/api/courses"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
 
-  @Test
-  @DisplayName("GET /admin/courses/{id} returns 404 when not found")
-  @WithMockUser(
-      username = "testuser",
-      roles = {"ADMIN"})
-  void getCourseById_notFound_returns404() throws Exception {
-    UUID id = UUID.randomUUID();
-    when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(mockUser()));
-    when(courseService.getCourseById(id)).thenReturn(Optional.empty());
+    @Test
+    @DisplayName("GET /api/courses/{id} returns course when user has access")
+    @WithMockUser(username = "teacher", roles = {"TEACHER"})
+    void getCourseById_withAccess_returns200() throws Exception {
+        UUID id = UUID.randomUUID();
+        Course course = new Course();
+        course.setId(id);
+        course.setName("Physics");
 
-    mockMvc.perform(get("/api/admin/courses/" + id)).andExpect(status().isNotFound());
-  }
+        when(courseService.getAccessibleCourse(eq(id), any())).thenReturn(Optional.of(course));
+        when(dtoMapper.toCourseDetailResponse(course)).thenReturn(new CourseDetailResponse());
+
+        mockMvc.perform(get("/api/courses/" + id))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /api/courses/{id} returns 404 when user lacks access")
+    @WithMockUser(username = "student", roles = {"STUDENT"})
+    void getCourseById_withoutAccess_returns404() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(courseService.getAccessibleCourse(eq(id), any())).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/courses/" + id))
+                .andExpect(status().isNotFound());
+    }
+
+    private CourseSurfaceResponse createResponse(String name) {
+        CourseSurfaceResponse response = new CourseSurfaceResponse();
+        response.setName(name);
+        return response;
+    }
 }

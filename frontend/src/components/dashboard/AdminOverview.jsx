@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield } from 'lucide-react';
+import {BookIcon, Shield, UserRoundIcon} from 'lucide-react';
 import { ActivityLogView } from './ActivityLogView';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,14 +10,14 @@ export default function AdminOverview() {
       id: 1,
       title: 'Hantera Användare',
       description: 'Lägg till, redigera eller ta bort användare',
-      icon: '👥',
+      icon: <UserRoundIcon/>,
       path: '/admin/users'
     },
     {
       id: 2,
       title: 'Hantera Kurser',
       description: 'Skapa nya eller uppdatera befintliga kurser',
-      icon: '📚',
+      icon: <BookIcon/>,
       path: '/admin/courses'
     },
   ];
@@ -37,15 +37,15 @@ export default function AdminOverview() {
         <h3 className="text-xl font-semibold mb-4">Snabbåtgärder</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {quickActions.map((action) => (
-            <Card key={action.id} className="border border-border/50 hover:cursor-pointer" onClick={() => navigate(action.path)}>
+            <Card key={action.id} className="border border-border/50 hover:cursor-pointer hover:bg-neutral-800/50" onClick={() => navigate(action.path)}>
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{action.icon}</span>
-                  <CardTitle className="text-lg text-muted-foreground">{action.title}</CardTitle>
+                  <span className="text-xl">{action.icon}</span>
+                  <CardTitle>{action.title}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground/70">{action.description}</p>
+                <p className="text-sm text-muted-foreground">{action.description}</p>
               </CardContent>
             </Card>
           ))}
