@@ -61,7 +61,7 @@ export default function CourseManagementPage() {
                 const course = row.original;
                 return (
                     <button
-                        onClick={() => navigate(`/admin/courses/${course.id}`)}
+                        onClick={() => navigate(`/courses/${course.id}`)}
                         className="text-primary hover:underline font-medium"
                     >
                         {course.name}

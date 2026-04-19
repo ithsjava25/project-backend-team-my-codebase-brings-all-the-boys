@@ -9,6 +9,9 @@ import { AssignmentListView } from '@/components/dashboard/AssignmentListView';
 import TeacherOverview from '@/components/dashboard/TeacherOverview';
 import AdminOverview from '@/components/dashboard/AdminOverview';
 import { ActivityLogView } from '@/components/dashboard/ActivityLogView';
+import { UpcomingDeadlinesView } from '@/components/dashboard/UpcomingDeadlinesView';
+import { PendingSubmissionsView } from '@/components/dashboard/PendingSubmissionsView';
+import UserManagementPage from './admin/UserManagementPage';
 
 export default function Dashboard() {
   const { user } = useAuthContext();
@@ -67,7 +70,16 @@ export default function Dashboard() {
         <TabsContent value="overview" className="space-y-4">
           {role === 'ROLE_ADMIN' && <AdminOverview user={user} />}
           {role === 'ROLE_TEACHER' && <TeacherOverview user={user} />}
-          {role === 'ROLE_STUDENT' && <CourseListView courses={mappedCourses} view="grid" role="student" />}
+          {role === 'ROLE_STUDENT' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <CourseListView courses={mappedCourses} view="grid" role="student" />
+              </div>
+              <div>
+                <UpcomingDeadlinesView />
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="courses">
@@ -84,7 +96,7 @@ export default function Dashboard() {
         </TabsContent>
 
         <TabsContent value="users">
-          <div>Användare kommer synas här</div>
+          <UserManagementPage />
         </TabsContent>
 
         <TabsContent value="activity">
@@ -92,7 +104,7 @@ export default function Dashboard() {
         </TabsContent>
 
         <TabsContent value="grading">
-          <div>Bedömning kommer synas här</div>
+          <PendingSubmissionsView />
         </TabsContent>
       </Tabs>
     </div>

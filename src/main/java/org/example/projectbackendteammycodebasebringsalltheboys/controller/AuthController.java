@@ -7,6 +7,10 @@ import java.util.Map;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ExternalRegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +29,17 @@ public class AuthController {
 
   private final UserService userService;
   private final AuthenticationManager authenticationManager;
+  private final ActivityLogService activityLogService;
   private final HttpSessionSecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
 
-  public AuthController(UserService userService, AuthenticationManager authenticationManager) {
+  public AuthController(
+      UserService userService,
+      AuthenticationManager authenticationManager,
+      ActivityLogService activityLogService) {
     this.userService = userService;
     this.authenticationManager = authenticationManager;
+    this.activityLogService = activityLogService;
   }
 
   @PostMapping("/register")
@@ -38,6 +47,15 @@ public class AuthController {
     try {
       User user = userService.externalUserRegistration(request);
       UserResponse response = userService.toUserResponse(user);
+
+      activityLogService.log(
+          user,
+          null,
+          ActivityAction.REGISTERED,
+          EntityType.USER,
+          user.getId(),
+          Map.of("username", user.getUsername()),
+          ActivityStatus.SUCCESS);
 
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
     } catch (IllegalStateException e) {
@@ -68,6 +86,26 @@ public class AuthController {
       securityContext.setAuthentication(auth);
       SecurityContextHolder.setContext(securityContext);
       securityContextRepository.saveContext(securityContext, request, response);
+
+      User user =
+          userService
+              .getUserByUsername(username)
+              .orElseThrow(() -> new IllegalStateException("User not found: " + username));
+
+      try {
+        activityLogService.log(
+            user,
+            null,
+            ActivityAction.LOGIN,
+            EntityType.USER,
+            user.getId(),
+            Map.of("username", username),
+            ActivityStatus.SUCCESS);
+      } catch (Exception e) {
+        // Log but don't fail login
+        org.slf4j.LoggerFactory.getLogger(AuthController.class)
+            .error("Failed to log login activity for user: " + username, e);
+      }
 
       return ResponseEntity.ok(Map.of("message", "Logged in"));
     } catch (AuthenticationException e) {

@@ -1,14 +1,18 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAssignmentDetail } from '@/hooks/useAssignmentDetail';
 import { CommentSection } from '@/components/dashboard/CommentSection';
 import { FileSection } from '@/components/dashboard/FileSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Edit } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuthContext } from '@/context/AuthContext';
 
 export default function AssignmentDetailPage() {
   const { assignmentId } = useParams();
   const { assignment, loading, error } = useAssignmentDetail(assignmentId);
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -54,9 +58,17 @@ export default function AssignmentDetailPage() {
 
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">{assignment.title}</h1>
-          <Badge variant={getStatusVariant(assignment.status)}>
-            {getStatusLabel(assignment.status)}
-          </Badge>
+          <div className="flex items-center gap-4">
+            <Badge variant={getStatusVariant(assignment.status)}>
+              {getStatusLabel(assignment.status)}
+            </Badge>
+            {(user?.role?.name === 'ROLE_ADMIN' || user?.role?.name === 'ROLE_TEACHER') && (
+              <Button variant="outline" onClick={() => navigate(`/admin/assignments/${assignmentId}/edit`)} className="gap-2">
+                <Edit className="h-4 w-4" />
+                Redigera uppgift
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

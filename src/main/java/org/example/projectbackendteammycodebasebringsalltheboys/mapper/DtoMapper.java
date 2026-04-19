@@ -119,6 +119,21 @@ public class DtoMapper {
         course.getAssistants() != null
             ? course.getAssistants().stream().map(this::toUserResponse).collect(Collectors.toList())
             : Collections.emptyList());
+
+    if (course.getSchoolClass() != null && course.getSchoolClass().getEnrollments() != null) {
+      response.setStudents(
+          course.getSchoolClass().getEnrollments().stream()
+              .filter(
+                  e ->
+                      e.getClassRole()
+                          == org.example.projectbackendteammycodebasebringsalltheboys.enums
+                              .ClassRole.STUDENT)
+              .map(e -> toUserResponse(e.getUser()))
+              .collect(Collectors.toList()));
+    } else {
+      response.setStudents(Collections.emptyList());
+    }
+
     response.setAssignments(
         course.getAssignments() != null
             ? course.getAssignments().stream()

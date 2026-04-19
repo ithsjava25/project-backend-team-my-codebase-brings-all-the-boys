@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.logging;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
@@ -22,6 +23,8 @@ public class ActivityDetailsBuilder {
       case ASSIGNED -> handleAssigned(logActivity.entityType(), args, details);
       case UPDATED -> handleUpdated(logActivity.entityType(), args, details);
       case EVALUATED -> handleEvaluated(logActivity.entityType(), args, details);
+      case LOGIN -> details.put("message", "Användare loggade in");
+      case REGISTERED -> details.put("message", "Ny användare registrerad");
       default -> details.put("action", logActivity.action().name());
     }
 
@@ -39,6 +42,12 @@ public class ActivityDetailsBuilder {
         // creator)
         findFirst(args, String.class).ifPresent(name -> details.put("name", name));
         findFirst(args, SchoolClass.class).ifPresent(sc -> details.put("class", sc.getName()));
+      }
+      case USER -> {
+        findFirst(args, UserRequest.class).ifPresent(r -> details.put("username", r.getUsername()));
+        if (!details.containsKey("username")) {
+          findFirst(args, String.class).ifPresent(username -> details.put("username", username));
+        }
       }
       default -> {}
     }
@@ -61,6 +70,12 @@ public class ActivityDetailsBuilder {
       case COURSE -> {
         // updateLeadTeacher(UUID courseId, User newLead, User updater)
         findFirst(args, User.class).ifPresent(u -> details.put("newLeadTeacher", u.getUsername()));
+      }
+      case USER -> {
+        findFirst(args, UserRequest.class).ifPresent(r -> details.put("username", r.getUsername()));
+        if (!details.containsKey("username")) {
+          findFirst(args, String.class).ifPresent(username -> details.put("username", username));
+        }
       }
       default -> {}
     }

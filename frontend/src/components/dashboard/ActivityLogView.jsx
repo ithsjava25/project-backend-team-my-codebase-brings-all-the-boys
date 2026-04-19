@@ -4,7 +4,7 @@ import { useAuthContext } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { Activity, User, FileText, MessageSquare, Briefcase } from 'lucide-react';
+import { Activity, User, FileText, MessageSquare, Briefcase, BookIcon, BookOpenIcon } from 'lucide-react';
 
 export function ActivityLogView({ limit = 10, userId, entityType, entityId }) {
   const [logs, setLogs] = useState([]);
@@ -44,22 +44,43 @@ export function ActivityLogView({ limit = 10, userId, entityType, entityId }) {
       case 'ASSIGNMENT': return <Briefcase className="h-4 w-4" />;
       case 'COMMENT': return <MessageSquare className="h-4 w-4" />;
       case 'FILE': return <FileText className="h-4 w-4" />;
+      case 'COURSE': return <BookIcon className="h-4 w-4" />;
+      case 'SUBMISSION': return <BookOpenIcon className="h-4 w-4" />;
       default: return <Activity className="h-4 w-4" />;
     }
   };
 
   const getActionText = (log) => {
-    const action = log.action?.toLowerCase() || '';
-    const type = log.entityType?.toLowerCase() || 'händelse';
+    const action = log.action;
+    const type = log.entityType;
+    const details = log.details || {};
     
-    // Simple mapping for now
-    if (action === 'create') return `Skapade ${type}`;
-    if (action === 'update') return `Uppdaterade ${type}`;
-    if (action === 'delete') return `Tog bort ${type}`;
-    if (action === 'login') return 'Loggade in';
-    if (action === 'upload') return 'Laddade upp fil';
-    
-    return `${log.action} ${type}`;
+    switch (action) {
+      case 'LOGIN': return 'loggade in';
+      case 'REGISTERED': return 'registrerade sig';
+      case 'CREATED':
+        if (type === 'ASSIGNMENT') return `skapade uppgiften "${details.title || 'okänd'}"`;
+        if (type === 'COURSE') return `skapade kursen "${details.name || 'okänd'}"`;
+        if (type === 'USER') return `skapade användaren "${details.username || 'okänd'}"`;
+        return `skapade ${type.toLowerCase()}`;
+      case 'UPDATED':
+        if (type === 'COURSE') return `uppdaterade kursen "${details.name || 'okänd'}"`;
+        if (type === 'USER') return `uppdaterade användaren "${details.username || 'okänd'}"`;
+        return `uppdaterade ${type.toLowerCase()}`;
+      case 'DELETED':
+        return `tog bort ${type.toLowerCase()}`;
+      case 'ADDED':
+        if (type === 'COMMENT') return `kommenterade på "${details.assignmentTitle || 'en uppgift'}"`;
+        if (type === 'FILE') return `laddade upp filen "${details.fileName || 'okänd'}"`;
+        if (type === 'SUBMISSION') return `lämnade in "${details.assignmentTitle || 'en uppgift'}"`;
+        return `lade till ${type.toLowerCase()}`;
+      case 'ASSIGNED':
+        return `tilldelade "${details.assignmentTitle || 'uppgift'}" till ${details.student || 'en student'}`;
+      case 'EVALUATED':
+        return `bedömde en inlämning med betyg ${details.grade || '-'}`;
+      default:
+        return `${action.toLowerCase()} ${type.toLowerCase()}`;
+    }
   };
 
   if (loading) return <p className="text-sm text-muted-foreground p-4">Laddar loggar...</p>;

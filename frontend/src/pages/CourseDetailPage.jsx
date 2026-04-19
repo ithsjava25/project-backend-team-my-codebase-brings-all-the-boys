@@ -1,25 +1,41 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useCourseDetail } from '@/hooks/useCourseDetail';
 import { mapToCourseDetailFormat } from '@/mappers/courseMapper';
 import { useAuthContext } from '@/context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, Edit } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AssignmentListView } from '@/components/dashboard/AssignmentListView';
+import { PendingSubmissionsView } from '@/components/dashboard/PendingSubmissionsView';
+import { Button } from '@/components/ui/button';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { course, error } = useCourseDetail(courseId);
   const { user } = useAuthContext();
+  const navigate = useNavigate();
   const role = user?.role?.name;
 
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
-  if (error) return <div>Ett fel uppstod: {error}</div>;
-  if (!course) return null; // Don't render anything while loading
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
+
+  if (error) return <div className="p-8 text-destructive">Ett fel uppstod: {error}</div>;
+  if (!course) return <div className="p-8">Laddar kurs...</div>; 
 
   const courseData = mapToCourseDetailFormat(course);
 
@@ -52,13 +68,22 @@ export default function CourseDetailPage() {
         </Link>
 
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{courseData.name}</h1>
-          <Badge variant="secondary">{courseData.schoolClassName}</Badge>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">{courseData.name}</h1>
+            <Badge variant="secondary">{courseData.schoolClassName}</Badge>
+          </div>
+          
+          {(role === 'ROLE_ADMIN' || (role === 'ROLE_TEACHER' && courseData.leadTeacher?.username === user?.username)) && (
+            <Button variant="outline" onClick={() => navigate(`/admin/courses/${courseId}/edit`)} className="gap-2">
+              <Edit className="h-4 w-4" />
+              Redigera kurs
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList>
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
@@ -105,14 +130,7 @@ export default function CourseDetailPage() {
         {/* Lärare: Bedömning */}
         {(role === 'ROLE_TEACHER' || role === 'ROLE_ADMIN') && (
           <TabsContent value="grading">
-            <Card>
-              <CardHeader>
-                <CardTitle>Bedömning</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Inlämningar att rätta kommer snart...</p>
-              </CardContent>
-            </Card>
+            <PendingSubmissionsView courseId={courseId} />
           </TabsContent>
         )}
 
@@ -124,7 +142,21 @@ export default function CourseDetailPage() {
                 <CardTitle>Deltagare</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Deltagarlista kommer snart...</p>
+                {courseData.students.length === 0 ? (
+                  <p className="text-muted-foreground">Inga studenter registrerade i denna kurs.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {courseData.students.map((student) => (
+                      <div key={student.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                        <div>
+                          <p className="font-medium">{student.username}</p>
+                          <p className="text-sm text-muted-foreground">{student.email}</p>
+                        </div>
+                        <Badge variant="outline">Student</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

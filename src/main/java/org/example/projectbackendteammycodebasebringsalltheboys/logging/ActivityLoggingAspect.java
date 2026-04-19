@@ -95,14 +95,24 @@ public class ActivityLoggingAspect {
   }
 
   private User resolveUser(Object[] args, LogActivity logActivity) {
-    if (args == null) return null;
-    int index = logActivity.actorParamIndex();
-    if (index >= 0 && index < args.length && args[index] instanceof User user) {
-      return user;
+    if (args != null) {
+      int index = logActivity.actorParamIndex();
+      if (index >= 0 && index < args.length && args[index] instanceof User user) {
+        return user;
+      }
+      for (Object arg : args) {
+        if (arg instanceof User user) return user;
+      }
     }
-    for (Object arg : args) {
-      if (arg instanceof User user) return user;
+
+    // Fallback to SecurityContextHolder
+    org.springframework.security.core.Authentication auth =
+        org.springframework.security.core.context.SecurityContextHolder.getContext()
+            .getAuthentication();
+    if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String username) {
+      return activityLogService.getUserByUsername(username).orElse(null);
     }
+
     return null;
   }
 

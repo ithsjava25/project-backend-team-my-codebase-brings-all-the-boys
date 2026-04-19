@@ -17,7 +17,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {BookOpenIcon} from "lucide-react";
+import {BookOpenIcon, Shield} from "lucide-react";
 import {useMemo} from "react";
 
 export function AppSidebar({ ...props }) {
@@ -35,17 +35,37 @@ export function AppSidebar({ ...props }) {
   }, [location.pathname])
 
   const navItems = useMemo(() => {
-    return [{
+    const items = [{
       title: "Kurser",
       url: "/dashboard",
       icon: BookOpenIcon,
       isActive: true,
       items: courses.map(course => ({
         title: course.name,
-        url: `/courses/${course.id}`
+        url: `/courses/${course.id}`,
+        items: [
+          { title: "Uppgifter", url: `/courses/${course.id}?tab=assignments` },
+          { title: "Deltagare", url: `/courses/${course.id}?tab=participants` },
+        ]
       }))
     }];
-  }, [courses]);
+
+    if (user?.role?.name === 'ROLE_ADMIN') {
+      items.push({
+        title: "Administration",
+        url: "/admin/users",
+        icon: Shield,
+        isActive: location.pathname.startsWith('/admin'),
+        items: [
+          { title: "Användare", url: "/admin/users" },
+          { title: "Kurser", url: "/admin/courses" },
+          { title: "Aktivitetslogg", url: "/dashboard?tab=activity" },
+        ]
+      });
+    }
+
+    return items;
+  }, [courses, user, location.pathname]);
 
   // TODO: replace with proper error handling
   if (error) return <Sidebar collapsible="icon" {...props}>Ett fel uppstod: {error}</Sidebar>;

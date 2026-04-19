@@ -1,8 +1,12 @@
 import client from './client';
 
 export const userApi = {
-    getAllUsers: async ({page = 0, size = 10} = {}) => {
-        const response = await client.get(`/admin/users?page=${page}&size=${size}`);
+    getAllUsers: async ({page = 0, size = 10, search = '', role = ''} = {}) => {
+        const params = new URLSearchParams({ page, size });
+        if (search) params.append('search', search);
+        if (role) params.append('role', role);
+        
+        const response = await client.get(`/admin/users?${params.toString()}`);
         return response.data;
     },
 

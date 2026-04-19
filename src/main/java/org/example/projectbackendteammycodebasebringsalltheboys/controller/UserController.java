@@ -25,8 +25,11 @@ public class UserController {
   private final DtoMapper dtoMapper;
 
   @GetMapping
-  public ResponseEntity<Page<UserResponse>> getAllUsers(Pageable pageable) {
-    Page<User> users = userService.findAllUsers(pageable);
+  public ResponseEntity<Page<UserResponse>> getAllUsers(
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) String role,
+      Pageable pageable) {
+    Page<User> users = userService.searchUsers(search, role, pageable);
     Page<UserResponse> response = users.map(dtoMapper::toUserResponse);
     return ResponseEntity.ok(response);
   }
