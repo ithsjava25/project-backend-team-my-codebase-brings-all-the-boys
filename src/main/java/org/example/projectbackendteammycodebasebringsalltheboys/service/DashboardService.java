@@ -69,6 +69,7 @@ public class DashboardService {
             ua ->
                 PendingSubmissionDTO.builder()
                     .userAssignmentId(ua.getId())
+                    .assignmentId(ua.getAssignment().getId())
                     .assignmentTitle(ua.getAssignment().getTitle())
                     .studentName(ua.getStudent().getUsername())
                     .submittedAt(ua.getTurnedInAt())
