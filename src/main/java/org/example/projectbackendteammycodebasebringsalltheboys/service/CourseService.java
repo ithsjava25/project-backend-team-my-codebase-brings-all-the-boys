@@ -15,6 +15,8 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +26,10 @@ public class CourseService {
 
   private final CourseRepository courseRepository;
   private final ActivityLogService activityLogService;
+  private final ClassEnrollmentService enrollmentService;
 
   @Transactional
+  @SuppressWarnings("unused")
   @LogActivity(
       action = ActivityAction.CREATED,
       entityType = EntityType.COURSE,
@@ -42,6 +46,7 @@ public class CourseService {
       orphan = true,
       actorParamIndex = 4)
   @Transactional
+  @SuppressWarnings({"unused", "ConstantConditions"})
   public Course createCourse(
       String name,
       String description,
@@ -62,11 +67,7 @@ public class CourseService {
     return courseRepository.save(course);
   }
 
-  @LogActivity(
-      action = ActivityAction.UPDATED,
-      entityType = EntityType.COURSE,
-      parentIdParamIndex = 0,
-      actorParamIndex = 2)
+  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.COURSE, actorParamIndex = 2)
   @Transactional
   public void updateLeadTeacher(UUID courseId, User newLead, User updater) {
     if (newLead == null || newLead.getId() == null) {
@@ -112,6 +113,7 @@ public class CourseService {
     }
   }
 
+  @SuppressWarnings("unused")
   @Transactional
   public void removeAssistant(UUID courseId, User assistant, User updater) {
     if (assistant == null || assistant.getId() == null) {
@@ -138,6 +140,7 @@ public class CourseService {
     }
   }
 
+  @SuppressWarnings("unused")
   @Transactional(readOnly = true)
   public List<Course> getCoursesByClass(SchoolClass schoolClass) {
     return courseRepository.findBySchoolClass(schoolClass);
@@ -149,7 +152,98 @@ public class CourseService {
   }
 
   @Transactional(readOnly = true)
-  public List<Course> getAllCourses() {
-    return courseRepository.findAll();
+  public Page<Course> getAllCourses(Pageable pageable) {
+    return courseRepository.findAll(pageable);
+  }
+
+  @Transactional
+  @SuppressWarnings("unused")
+  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.COURSE, actorParamIndex = 1)
+  public Course updateCourse(Course course) {
+    return courseRepository.save(course);
+  }
+
+  @Transactional
+  @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.COURSE, actorParamIndex = 1)
+  public void deleteCourse(UUID id, User updater) {
+    if (!courseRepository.existsById(id)) {
+      throw new NotFoundException("Course not found with id: " + id);
+    }
+
+    activityLogService.log(
+        updater,
+        id,
+        ActivityAction.DELETED,
+        EntityType.COURSE,
+        null,
+        Map.of("deletedCourseId", id.toString()),
+        ActivityStatus.SUCCESS);
+
+    courseRepository.deleteById(id);
+  }
+
+  // Filtered course list
+  @Transactional(readOnly = true)
+  public Page<Course> getAccessibleCourses(User user, Pageable pageable) {
+    if (user == null) {
+      return Page.empty();
+    }
+    return switch (user.getRole().getName()) {
+      case "ROLE_STUDENT" -> getStudentCourses(user, pageable);
+      case "ROLE_TEACHER" -> getTeacherCourses(user, pageable);
+      case "ROLE_ADMIN" -> getAllCourses(pageable);
+      default -> Page.empty();
+    };
+  }
+
+  // Get course if access
+  @Transactional(readOnly = true)
+  public Optional<Course> getAccessibleCourse(UUID id, User user) {
+    if (user == null) {
+      return Optional.empty();
+    }
+
+    Optional<Course> course = courseRepository.findById(id);
+    if (course.isEmpty()) {
+      return Optional.empty();
+    }
+
+    // Check for access
+    if (!hasAccess(course.get(), user)) {
+      return Optional.empty();
+    }
+
+    return course;
+  }
+
+  // Helper methods
+
+  private Page<Course> getStudentCourses(User student, Pageable pageable) {
+    return courseRepository.findByEnrollments_UserId(student.getId(), pageable);
+  }
+
+  private Page<Course> getTeacherCourses(User teacher, Pageable pageable) {
+    // TODO: Merge with assistants - for now just return lead courses
+    return courseRepository.findByLeadTeacherId(teacher.getId(), pageable);
+  }
+
+  private boolean hasAccess(Course course, User user) {
+    switch (user.getRole().getName()) {
+      case "ROLE_ADMIN" -> {
+        return true;
+      }
+      case "ROLE_TEACHER" -> {
+        boolean isLead =
+            course.getLeadTeacher() != null && course.getLeadTeacher().getId().equals(user.getId());
+        boolean isAssistant =
+            course.getAssistants().stream().anyMatch(a -> a.getId().equals(user.getId()));
+        return isLead || isAssistant;
+      }
+      case "ROLE_STUDENT" -> {
+        return enrollmentService.isUserInClass(user, course.getSchoolClass());
+      }
+    }
+
+    return false;
   }
 }

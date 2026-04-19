@@ -1,25 +1,22 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseSurfaceResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
-import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
-import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -27,60 +24,46 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseController {
 
   private final CourseService courseService;
-  private final UserService userService;
   private final DtoMapper dtoMapper;
+  private final UserService userService;
 
-  @Transactional(readOnly = true)
   @GetMapping
-  public ResponseEntity<List<CourseSurfaceResponse>> getAllCourses() {
-    List<Course> courses = courseService.getAllCourses();
-    List<CourseSurfaceResponse> response =
-        courses.stream().map(dtoMapper::toCourseSurfaceResponse).collect(Collectors.toList());
+  public ResponseEntity<Page<CourseSurfaceResponse>> getAccessibleCourses(
+      @PageableDefault Pageable pageable) {
 
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated()) {
+      throw new UnauthorizedException("User not authenticated");
+    }
+
+    String username = auth.getName();
+    User user =
+        userService
+            .getUserByUsername(username)
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
+    Page<Course> courses = courseService.getAccessibleCourses(user, pageable);
+    Page<CourseSurfaceResponse> response = courses.map(dtoMapper::toCourseSurfaceResponse);
     return ResponseEntity.ok(response);
   }
 
-  @Transactional(readOnly = true)
   @GetMapping("/{id}")
-  public ResponseEntity<CourseDetailResponse> getCourseById(
-      @PathVariable UUID id, java.security.Principal principal) {
-    if (principal == null) {
-      throw new UnauthorizedException("Authentication is required");
+  public ResponseEntity<CourseDetailResponse> getCourseById(@PathVariable UUID id) {
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated()) {
+      throw new UnauthorizedException("User not authenticated");
     }
 
-    User currentUser =
+    String username = auth.getName();
+    User user =
         userService
-            .getUserByUsername(principal.getName())
+            .getUserByUsername(username)
             .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
-    Course course =
-        courseService
-            .getCourseById(id)
-            .orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
-
-    String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : null;
-    boolean isTeacherOrAdmin = "ROLE_ADMIN".equals(roleName) || "ROLE_TEACHER".equals(roleName);
-    boolean isLeadTeacher =
-        course.getLeadTeacher() != null
-            && course.getLeadTeacher().getId().equals(currentUser.getId());
-    boolean isAssistant =
-        course.getAssistants() != null
-            && course.getAssistants().stream()
-                .anyMatch(assistant -> assistant.getId().equals(currentUser.getId()));
-    boolean isEnrolledStudent =
-        course.getSchoolClass() != null
-            && course.getSchoolClass().getEnrollments().stream()
-                .anyMatch(
-                    e ->
-                        e.getUser().getId().equals(currentUser.getId())
-                            && e.getClassRole()
-                                == org.example.projectbackendteammycodebasebringsalltheboys.enums
-                                    .ClassRole.STUDENT);
-
-    if (isTeacherOrAdmin || isLeadTeacher || isAssistant || isEnrolledStudent) {
-      return ResponseEntity.ok(dtoMapper.toCourseDetailResponse(course));
-    } else {
-      throw new ForbiddenException("You do not have permission to view this course's details.");
-    }
+    return courseService
+        .getAccessibleCourse(id, user)
+        .map(course -> ResponseEntity.ok(dtoMapper.toCourseDetailResponse(course)))
+        .orElse(ResponseEntity.notFound().build());
   }
 }

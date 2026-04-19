@@ -50,9 +50,11 @@ class UserAssignmentServiceTest {
   @DisplayName("submitWork throws BadRequestException if status not ASSIGNED or TURNED_IN")
   void submitWork_invalidStatus_throwsException() {
     Assignment assignment = new Assignment();
+    assignment.setDeadline(LocalDateTime.now().plusDays(1));
+
     UserAssignment ua = new UserAssignment();
-    ua.setAssignment(assignment);
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
+    ua.setAssignment(assignment);
 
     assertThatThrownBy(() -> userAssignmentService.submitWork(ua, "content", List.of()))
         .isInstanceOf(BadRequestException.class)
@@ -63,10 +65,12 @@ class UserAssignmentServiceTest {
   @DisplayName("submitWork creates submission and updates status")
   void submitWork_valid_createsSubmission() {
     User student = new User();
+    LocalDateTime deadline = LocalDateTime.now().plusDays(1);
     student.setId(UUID.randomUUID());
     Assignment assignment = new Assignment();
     assignment.setId(UUID.randomUUID());
     assignment.setTitle("Test Task");
+    assignment.setDeadline(deadline);
     UserAssignment ua = new UserAssignment();
     ua.setStudent(student);
     ua.setAssignment(assignment);
@@ -111,15 +115,16 @@ class UserAssignmentServiceTest {
   @Test
   @DisplayName("submitWork throws BadRequestException if file uploader mismatch")
   void submitWork_fileOwnerMismatch_throwsException() {
+    Assignment assignment = new Assignment();
+    assignment.setDeadline(LocalDateTime.now().plusDays(1));
     User student = new User();
     student.setId(UUID.randomUUID());
     User other = new User();
     other.setId(UUID.randomUUID());
-    Assignment assignment = new Assignment();
     UserAssignment ua = new UserAssignment();
     ua.setStudent(student);
-    ua.setAssignment(assignment);
     ua.setStatus(StudentAssignmentStatus.ASSIGNED);
+    ua.setAssignment(assignment);
 
     FileMetadata file = new FileMetadata();
     file.setUploader(other);

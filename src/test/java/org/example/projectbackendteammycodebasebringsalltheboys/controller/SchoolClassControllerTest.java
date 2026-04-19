@@ -45,7 +45,7 @@ class SchoolClassControllerTest {
       username = "admin",
       roles = {"ADMIN"})
   void getAllSchoolClasses_AdminAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllClasses()).thenReturn(Collections.emptyList());
+    Mockito.when(schoolClassService.getAllSchoolClasses()).thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -55,7 +55,7 @@ class SchoolClassControllerTest {
       username = "teacher",
       roles = {"TEACHER"})
   void getAllSchoolClasses_TeacherAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllClasses()).thenReturn(Collections.emptyList());
+    Mockito.when(schoolClassService.getAllSchoolClasses()).thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -65,7 +65,7 @@ class SchoolClassControllerTest {
       username = "student",
       roles = {"STUDENT"})
   void getAllSchoolClasses_StudentAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllClasses()).thenReturn(Collections.emptyList());
+    Mockito.when(schoolClassService.getAllSchoolClasses()).thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -94,7 +94,8 @@ class SchoolClassControllerTest {
     SchoolClassDetailResponse response = Mockito.mock(SchoolClassDetailResponse.class);
 
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
-    Mockito.when(schoolClassService.getClassById(classId)).thenReturn(Optional.of(schoolClass));
+    Mockito.when(schoolClassService.getSchoolClassById(classId))
+        .thenReturn(Optional.of(schoolClass));
     Mockito.when(dtoMapper.toSchoolClassDetailResponse(schoolClass)).thenReturn(response);
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isOk());
@@ -119,7 +120,8 @@ class SchoolClassControllerTest {
 
     Mockito.when(userService.getUserByUsername("unauthorized_user"))
         .thenReturn(Optional.of(unauthorizedUser));
-    Mockito.when(schoolClassService.getClassById(classId)).thenReturn(Optional.of(schoolClass));
+    Mockito.when(schoolClassService.getSchoolClassById(classId))
+        .thenReturn(Optional.of(schoolClass));
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isForbidden());
   }
@@ -144,7 +146,8 @@ class SchoolClassControllerTest {
     SchoolClassDetailResponse response = Mockito.mock(SchoolClassDetailResponse.class);
 
     Mockito.when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(teacher));
-    Mockito.when(schoolClassService.getClassById(classId)).thenReturn(Optional.of(schoolClass));
+    Mockito.when(schoolClassService.getSchoolClassById(classId))
+        .thenReturn(Optional.of(schoolClass));
     Mockito.when(dtoMapper.toSchoolClassDetailResponse(schoolClass)).thenReturn(response);
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isOk());
@@ -174,7 +177,7 @@ class SchoolClassControllerTest {
     student.setRole(new Role("ROLE_STUDENT"));
 
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
-    Mockito.when(schoolClassService.getClassById(classId)).thenReturn(Optional.empty());
+    Mockito.when(schoolClassService.getSchoolClassById(classId)).thenReturn(Optional.empty());
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isNotFound());
   }

@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
@@ -26,13 +27,16 @@ public class DatabaseIntegrationTest {
   @Test
   @WithMockUser(username = "testuser")
   public void testUserAuditing() {
-    Role role = new Role("ROLE_STUDENT");
+    Role role =
+        roleRepository
+            .findByName("ROLE_STUDENT")
+            .orElseGet(() -> roleRepository.save(new Role("ROLE_STUDENT")));
     roleRepository.save(role);
 
     User user = new User();
-    user.setUsername("testuser");
+    user.setUsername("test_" + UUID.randomUUID());
     user.setPassword("password");
-    user.setEmail("test@example.com");
+    user.setEmail("test_" + UUID.randomUUID() + "@example.com");
     user.setRole(role);
 
     User savedUser = userRepository.save(user);
@@ -46,13 +50,16 @@ public class DatabaseIntegrationTest {
   @Test
   @WithMockUser(username = "admin")
   public void testUserUpdateAuditing() {
-    Role role = new Role("ROLE_ADMIN");
+    Role role =
+        roleRepository
+            .findByName("ROLE_ADMIN")
+            .orElseGet(() -> roleRepository.save(new Role("ROLE_ADMIN")));
     roleRepository.save(role);
 
     User user = new User();
-    user.setUsername("admin");
+    user.setUsername("admin_" + UUID.randomUUID());
     user.setPassword("password");
-    user.setEmail("admin@example.com");
+    user.setEmail("admin_" + UUID.randomUUID() + "@example.com");
     user.setRole(role);
 
     User savedUser = userRepository.saveAndFlush(user);

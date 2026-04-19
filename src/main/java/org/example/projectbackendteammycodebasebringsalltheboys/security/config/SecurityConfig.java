@@ -29,7 +29,7 @@ public class SecurityConfig {
       OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
 
     http.csrf(AbstractHttpConfigurer::disable)
-        .cors(Customizer.withDefaults())
+        .cors(Customizer.withDefaults()) // Removed this line to rely solely on CorsConfig bean
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers("/api/auth/me")
@@ -51,7 +51,7 @@ public class SecurityConfig {
         .exceptionHandling(
             ex ->
                 ex.authenticationEntryPoint(
-                    (_, response, _) ->
+                    (req, response, authException) ->
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
         .oauth2Login(
             oauth ->

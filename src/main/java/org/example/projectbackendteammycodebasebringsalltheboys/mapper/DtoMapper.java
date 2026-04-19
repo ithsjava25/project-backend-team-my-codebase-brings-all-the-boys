@@ -152,7 +152,19 @@ public class DtoMapper {
     response.setCreatedAt(assignment.getCreatedAt());
     response.setUpdatedAt(assignment.getUpdatedAt());
     response.setDeadline(assignment.getDeadline());
-    // Files and comments would need lists, assuming they are available on the entity
+
+    response.setComments(
+        assignment.getComments() != null
+            ? assignment.getComments().stream()
+                .map(this::toCommentResponse)
+                .collect(Collectors.toList())
+            : Collections.emptyList());
+
+    response.setFiles(
+        assignment.getFiles() != null
+            ? assignment.getFiles().stream().map(this::toFileResponse).collect(Collectors.toList())
+            : Collections.emptyList());
+
     return response;
   }
 

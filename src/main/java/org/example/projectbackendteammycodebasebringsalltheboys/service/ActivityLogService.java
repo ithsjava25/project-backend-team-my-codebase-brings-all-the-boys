@@ -39,6 +39,11 @@ public class ActivityLogService {
   }
 
   @Transactional(readOnly = true)
+  public Page<ActivityLog> getAllLogs(Pageable pageable) {
+    return activityLogRepository.findAllByOrderByTimestampDescIdDesc(pageable);
+  }
+
+  @Transactional(readOnly = true)
   public Page<ActivityLog> getLogsForUser(User user, Pageable pageable) {
     return activityLogRepository.findByUserOrderByTimestampDescIdDesc(user, pageable);
   }
