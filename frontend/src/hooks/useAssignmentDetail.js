@@ -1,28 +1,42 @@
-import { useState, useEffect } from 'react';
-import { assignmentApi } from '../api/assignments';
+import {useState, useEffect} from 'react';
+import {assignmentApi} from '../api/assignments';
 
 export function useAssignmentDetail(id) {
-  const [assignment, setAssignment] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    const [assignment, setAssignment] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!id) return;
+    useEffect(() => {
+        let cancelled = false;
 
-    const fetchDetail = async () => {
-      try {
-        setLoading(true);
-        const data = await assignmentApi.getAssignmentById(id);
-        setAssignment(data);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch assignment details');
-      } finally {
-        setLoading(false);
-      }
-    };
+        if (!id) {
+            setAssignment(null);
+            setError(null);
+            setLoading(false);
+            return;
+        }
 
-    void fetchDetail();
-  }, [id]);
+        const fetchDetail = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await assignmentApi.getAssignmentById(id);
+                if (!cancelled) setAssignment(data);
+            } catch (err) {
+                if (!cancelled) {
+                    setAssignment(null);
+                    setError(err.response?.data?.message || 'Failed to fetch assignment details');
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
 
-  return { assignment, loading, error };
+        void fetchDetail();
+        return () => {
+            cancelled = true
+        };
+    }, [id]);
+
+    return {assignment, loading, error};
 }

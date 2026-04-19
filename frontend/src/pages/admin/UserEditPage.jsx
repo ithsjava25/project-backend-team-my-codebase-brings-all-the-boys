@@ -56,7 +56,11 @@ export default function UserEditPage() {
         setIsSaving(true);
         try {
             // Backend expects UserRequest: { username, email, roleName, password? }
-            await userApi.updateUser(id, formData);
+            const payload = {...formData};
+            if (!payload.password?.trim()) {
+                delete payload.password;
+            }
+            await userApi.updateUser(id, payload);
             navigate('/admin/users');
         } catch (err) {
             alert(err.response?.data?.message || 'Kunde inte uppdatera användare.');
@@ -69,8 +73,9 @@ export default function UserEditPage() {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            <Link to="/admin/users" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+            <Link to="/admin/users"
+                  className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="mr-2 h-4 w-4"/>
                 Tillbaka till användarlista
             </Link>
 
@@ -108,7 +113,7 @@ export default function UserEditPage() {
                                 <Label htmlFor="role">Roll</Label>
                                 <Select value={formData.roleName} onValueChange={handleRoleChange}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Välj roll" />
+                                        <SelectValue placeholder="Välj roll"/>
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="ROLE_ADMIN">Administratör</SelectItem>

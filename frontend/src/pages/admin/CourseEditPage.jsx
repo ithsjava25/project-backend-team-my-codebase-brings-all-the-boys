@@ -9,13 +9,33 @@ export default function CourseEditPage() {
     const navigate = useNavigate();
 
     const [form, setForm] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        let cancelled = false;
-        courseApi.getCourseByIdAdmin(id)
-        .then(data => { if (!cancelled) setForm(data); })
-        .catch(err => { if (!cancelled) alert(err.response?.data?.message || 'Kunde inte hämta kurs.'); });
-        return () => { cancelled = true; };
+        let isMounted = true;
+
+        const fetchCourse = async () => {
+            try {
+                setError(null);
+
+                const data = await courseApi.getCourseByIdAdmin(id);
+
+                if (isMounted) {
+                    setForm(data);
+                }
+
+            } catch (err) {
+                if (isMounted) {
+                    setError(err.response?.data?.message || 'Kunde inte hämta kurs.');
+                }
+            }
+        };
+
+        fetchCourse();
+
+        return () => {
+            isMounted = false;
+        };
     }, [id]);
 
     const handleSubmit = async (e) => {
@@ -28,6 +48,7 @@ export default function CourseEditPage() {
         }
     };
 
+    if (error) return <p className="text-destructive">{error}</p>;
     if (!form) return <p>Laddar...</p>;
 
     return (

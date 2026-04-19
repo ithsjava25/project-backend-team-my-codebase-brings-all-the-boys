@@ -6,6 +6,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 
 export default function CourseCreatePage() {
     const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [form, setForm] = useState({
         name: '',
@@ -14,11 +15,15 @@ export default function CourseCreatePage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting) return;
+        setIsSubmitting(true);
         try {
             await courseApi.createCourse(form);
             navigate('/admin/courses');
         } catch (err) {
             alert(err.response?.data?.message || 'Kunde inte skapa kurs.');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -42,7 +47,9 @@ export default function CourseCreatePage() {
                         onChange={e => setForm({...form, description: e.target.value})}
                     />
 
-                    <Button type="submit">Skapa</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Skapar...' : 'Skapa'}
+                    </Button>
                 </form>
             </CardContent>
         </Card>

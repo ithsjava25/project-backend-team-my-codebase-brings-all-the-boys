@@ -14,4 +14,5 @@ public class PendingSubmissionDTO {
   private LocalDateTime submittedAt;
   private UUID courseId;
   private String courseName;
+  private UUID assignmentId;
 }
