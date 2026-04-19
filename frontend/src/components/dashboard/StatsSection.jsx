@@ -106,7 +106,15 @@ export default function StatsSection({role, onSelectTab}) {
                 <Card
                     key={stat.label}
                     className={stat.tab ? "cursor-pointer hover:bg-muted/50 transition" : ""}
-                    onClick={() => handleClick(stat.tab)}
+                    onClick={stat.tab ? () => handleClick(stat.tab) : undefined}
+                    role={stat.tab ? "button" : undefined}
+                    tabIndex={stat.tab ? 0 : undefined}
+                    onKeyDown={stat.tab ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            handleClick(stat.tab);
+                        }
+                    } : undefined}
                 >
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">

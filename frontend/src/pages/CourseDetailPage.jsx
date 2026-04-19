@@ -169,7 +169,7 @@ export default function CourseDetailPage() {
                 {/* Lärare: Bedömning */}
                 {(role === 'ROLE_TEACHER' || role === 'ROLE_ADMIN') && (
                     <TabsContent value="grading">
-                        <PendingSubmissionsView courseId={Number(courseId)}/>
+                        <PendingSubmissionsView courseId={courseId}/>
                     </TabsContent>
                 )}
 

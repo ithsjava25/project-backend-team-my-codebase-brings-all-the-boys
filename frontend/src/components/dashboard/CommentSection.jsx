@@ -76,7 +76,10 @@ export function CommentSection({assignmentId}) {
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-semibold">{comment.author?.username}</span>
                                         <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(comment.createdAt), {addSuffix: true, locale: sv})}
+                      {comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), {
+                          addSuffix: true,
+                          locale: sv
+                      }) : 'Just nu'}
                     </span>
                                     </div>
                                     <p className="text-sm">{comment.text}</p>

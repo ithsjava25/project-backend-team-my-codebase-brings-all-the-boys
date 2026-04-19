@@ -12,6 +12,8 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
     const {user: currentUser} = useAuthContext();
 
     useEffect(() => {
+        let isCurrent = true;
+
         const fetchLogs = async () => {
             try {
                 setLoading(true);
@@ -25,17 +27,28 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
                 } else {
                     data = await activityLogApi.getUserLogs(currentUser.id, 0, limit);
                 }
-                setLogs(data.content || []);
+                if (isCurrent) {
+                    setLogs(data.content || []);
+                }
             } catch (error) {
-                console.error('Failed to fetch activity logs:', error);
+                if (isCurrent) {
+                    console.error('Failed to fetch activity logs:', error);
+                    setLogs([]);
+                }
             } finally {
-                setLoading(false);
+                if (isCurrent) {
+                    setLoading(false);
+                }
+
             }
         };
 
         if (currentUser) {
             fetchLogs();
         }
+        return () => {
+            isCurrent = false;
+        };
     }, [currentUser, userId, entityType, entityId, limit]);
 
     const getActionIcon = (type) => {
@@ -107,23 +120,33 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
                     {logs.length === 0 ? (
                         <p className="text-sm text-muted-foreground">Ingen aktivitet hittades.</p>
                     ) : (
-                        logs.map((log) => (
-                            <div key={log.id}
-                                 className="flex gap-3 items-start border-b border-muted pb-3 last:border-0 last:pb-0">
-                                <div className="mt-0.5 bg-muted p-1.5 rounded-full text-muted-foreground">
-                                    {getActionIcon(log.entityType)}
+                        logs.map((log) => {
+                            const actor =
+                                log.actorUsername ||
+                                log.details?.username ||
+                                'System';
+
+                            return (
+                                <div key={log.id}
+                                     className="flex gap-3 items-start border-b border-muted pb-3 last:border-0 last:pb-0">
+                                    <div className="mt-0.5 bg-muted p-1.5 rounded-full text-muted-foreground">
+                                        {getActionIcon(log.entityType)}
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                        <p className="text-sm">
+                                            <span className="font-semibold">{actor}</span>
+                                            {' '}{getActionText(log)}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {formatDistanceToNow(new Date(log.timestamp), {
+                                                addSuffix: true,
+                                                locale: sv
+                                            })}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex-1 space-y-1">
-                                    <p className="text-sm">
-                                        <span className="font-semibold">{log.details?.username || 'System'}</span>
-                                        {' '}{getActionText(log)}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {formatDistanceToNow(new Date(log.timestamp), {addSuffix: true, locale: sv})}
-                                    </p>
-                                </div>
-                            </div>
-                        ))
+                            )
+                        })
                     )}
                 </div>
             </CardContent>

@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import {dashboardApi} from '@/api/dashboard';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {format, formatDistanceToNow} from 'date-fns';
+import {format} from 'date-fns';
 import {sv} from 'date-fns/locale';
 import {Clock, AlertCircle} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';

@@ -15,4 +15,5 @@ public class ActivityLogResponse {
   private UUID entityId;
   private Map<String, Object> details;
   private LocalDateTime timestamp;
+  private String actorUsername;
 }

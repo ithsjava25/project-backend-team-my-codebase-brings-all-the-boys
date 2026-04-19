@@ -1,6 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.dto.dashboard;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +10,7 @@ import lombok.Data;
 public class UpcomingDeadlineDTO {
   private UUID assignmentId;
   private String title;
-  private LocalDateTime deadline;
+  private Instant deadline;
   private String courseName;
   private String status; // For student: e.g. "ASSIGNED", "TURNED_IN"
 }

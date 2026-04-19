@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -93,7 +94,7 @@ public class DashboardService {
                   UpcomingDeadlineDTO.builder()
                       .assignmentId(a.getId())
                       .title(a.getTitle())
-                      .deadline(a.getDeadline())
+                      .deadline(Instant.from(a.getDeadline()))
                       .courseName(a.getCourse().getName())
                       .build())
           .collect(Collectors.toList());
@@ -113,7 +114,7 @@ public class DashboardService {
                 return UpcomingDeadlineDTO.builder()
                     .assignmentId(a.getId())
                     .title(a.getTitle())
-                    .deadline(a.getDeadline())
+                    .deadline(Instant.from(a.getDeadline()))
                     .courseName(a.getCourse().getName())
                     .status(status)
                     .build();

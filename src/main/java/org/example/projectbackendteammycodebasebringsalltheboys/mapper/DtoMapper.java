@@ -90,6 +90,7 @@ public class DtoMapper {
     response.setEntityId(log.getChildId());
     response.setDetails(log.getDetails());
     response.setTimestamp(log.getTimestamp());
+    response.setActorUsername(log.getUser() != null ? log.getUser().getUsername() : null);
     return response;
   }
 

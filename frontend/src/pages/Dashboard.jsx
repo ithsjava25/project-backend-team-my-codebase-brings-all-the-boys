@@ -27,7 +27,7 @@ export default function Dashboard() {
     const getTabs = () => {
         switch (role) {
             case 'ROLE_ADMIN':
-                return ['overview', 'users', 'activity'];
+                return ['overview', 'users', 'activity', 'courses'];
             case 'ROLE_TEACHER':
                 return ['overview', 'courses', 'grading'];
             default:

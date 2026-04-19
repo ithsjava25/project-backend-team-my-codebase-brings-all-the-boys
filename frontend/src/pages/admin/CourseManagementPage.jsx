@@ -40,18 +40,22 @@ export default function CourseManagementPage() {
         navigate('/admin/courses/new');
     };
 
-    const handleDelete = async (course) => {
+    const handleDelete = useCallback(async (course) => {
         if (window.confirm(`Är du säker på att du vill ta bort kursen "${course.name}"?`)) {
             try {
                 await courseApi.deleteCourse(course.id);
                 alert('Kursen har tagits bort.');
-                fetchCourses();
+                if (courses.length === 1 && page === totalPages - 1 && page > 0) {
+                    setPage((currentPage) => Math.max(currentPage - 1, 0));
+                } else {
+                    await fetchCourses();
+                }
             } catch (error) {
                 console.error('Failed to delete course:', error);
                 alert('Kunde inte ta bort kursen.');
             }
         }
-    };
+    }, [courses.length, fetchCourses, page, totalPages]);
 
     // ✅ FIX: columns inside useMemo (no hooks here anymore)
     const columns = useMemo(() => [
@@ -110,6 +114,8 @@ export default function CourseManagementPage() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
+                                    aria-label={`Redigera kurs ${course.name}`}
+                                    title={`Redigera kurs ${course.name}`}
                                     onClick={() => navigate(`/admin/courses/${course.id}/edit`)}
                                 >
                                     <Edit className="h-4 w-4"/>
@@ -118,6 +124,8 @@ export default function CourseManagementPage() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
+                                    aria-label={`Ta bort kurs ${course.name}`}
+                                    title={`Ta bort kurs ${course.name}`}
                                     onClick={() => handleDelete(course)}
                                 >
                                     <Trash2 className="h-4 w-4 text-destructive"/>
@@ -128,7 +136,7 @@ export default function CourseManagementPage() {
                 },
             ]
             : []),
-    ], [navigate, user, fetchCourses]);
+    ], [navigate, user?.role?.name, handleDelete]);
 
     if (user?.role?.name !== 'ROLE_ADMIN') {
         return <div className="p-8">Du har inte behörighet att se den här sidan.</div>;
