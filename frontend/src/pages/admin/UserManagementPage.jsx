@@ -27,9 +27,9 @@ export default function UserManagementPage() {
         try {
             setLoading(true);
             const data = await userApi.getAllUsers({
-                page,
-                size,
-                search,
+                page, 
+                size, 
+                search, 
                 role: roleFilter === 'all' ? '' : roleFilter
             });
             setUsers(data.content || []);
@@ -41,16 +41,11 @@ export default function UserManagementPage() {
         }
     }, [page, size, search, roleFilter]);
 
-    // Reset to first page when filters change.
-    useEffect(() => {
-        setPage(0);
-    }, [search, roleFilter]);
-
     useEffect(() => {
         if (currentUser?.role?.name === 'ROLE_ADMIN') {
-            // Debounce only text input; paginate immediately.
-            const delay = search ? 300 : 0;
-            const timer = setTimeout(fetchUsers, delay);
+            const timer = setTimeout(() => {
+                fetchUsers();
+            }, 300); // Debounce search
             return () => clearTimeout(timer);
         }
     }, [fetchUsers, currentUser]);
@@ -167,7 +162,7 @@ export default function UserManagementPage() {
                         <div className="flex-1 space-y-1">
                             <label className="text-sm font-medium">Sök användare</label>
                             <div className="relative">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"/>
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     placeholder="Namn eller e-post..."
                                     className="pl-8"
@@ -180,7 +175,7 @@ export default function UserManagementPage() {
                             <label className="text-sm font-medium">Filtrera på roll</label>
                             <Select value={roleFilter} onValueChange={setRoleFilter}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Välj roll"/>
+                                    <SelectValue placeholder="Välj roll" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">Alla roller</SelectItem>
@@ -195,15 +190,15 @@ export default function UserManagementPage() {
                     {loading && <p>Laddar användare...</p>}
                     {error && <p className="text-destructive">Fel: {error}</p>}
                     {!loading && !error && (
-                        <DataTable
-                            columns={columns}
-                            data={users}
-                            page={page}
-                            setPage={setPage}
-                            pageSize={size}
-                            setPageSize={setSize}
-                            totalPages={totalPages}
-                        />
+                      <DataTable
+                        columns={columns}
+                        data={users}
+                        page={page}
+                        setPage={setPage}
+                        pageSize={size}
+                        setPageSize={setSize}
+                        totalPages={totalPages}
+                      />
                     )}
                 </CardContent>
             </Card>
