@@ -6,9 +6,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.*;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +27,8 @@ public class UserService {
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
+  private final DtoMapper
+      dtoMapper; // Assume DtoMapper is available and has toUserRequest/toUserResponse
 
   @Transactional(readOnly = true)
   public Optional<User> getUserByUsername(String username) {
@@ -108,5 +117,80 @@ public class UserService {
     }
 
     return response;
+  }
+
+  // --- New methods for User Management ---
+
+  @Transactional(readOnly = true)
+  public Page<User> findAllUsers(Pageable pageable) {
+    return userRepository.findAll(pageable);
+  }
+
+  @Transactional
+  public User createUser(UserRequest request) {
+    if (userRepository.existsByUsername(request.getUsername())
+        || userRepository.existsByEmail(request.getEmail())) {
+      throw new IllegalStateException("Username or email already exists");
+    }
+    Role role =
+        roleRepository
+            .findByName(request.getRoleName())
+            .orElseThrow(
+                () -> new IllegalStateException("Role not found: " + request.getRoleName()));
+
+    User user = new User();
+    user.setUsername(request.getUsername());
+    user.setEmail(request.getEmail());
+    user.setPassword(passwordEncoder.encode(request.getPassword())); // Encode password
+    user.setRole(role);
+    return userRepository.save(user);
+  }
+
+  @Transactional
+  public User updateUser(UUID id, UserRequest request) {
+    User user =
+        userRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
+
+    // Update user details
+    user.setUsername(request.getUsername());
+    user.setEmail(request.getEmail());
+    // Only update password if provided and not empty
+    if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+      user.setPassword(passwordEncoder.encode(request.getPassword()));
+    }
+
+    // Update role
+    Role role =
+        roleRepository
+            .findByName(request.getRoleName())
+            .orElseThrow(
+                () -> new IllegalStateException("Role not found: " + request.getRoleName()));
+    user.setRole(role);
+
+    return userRepository.save(user);
+  }
+
+  @Transactional
+  public void deleteUser(UUID id) {
+    if (!userRepository.existsById(id)) {
+      throw new NotFoundException("User not found with id: " + id);
+    }
+    userRepository.deleteById(id);
+  }
+
+  @Transactional(readOnly = true)
+  public User getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || !(authentication.getPrincipal() instanceof String)) {
+      throw new UnauthorizedException("User not authenticated");
+    }
+    String username = (String) authentication.getPrincipal();
+    return userRepository
+        .findByUsername(username)
+        .orElseThrow(() -> new NotFoundException("Current user not found"));
   }
 }

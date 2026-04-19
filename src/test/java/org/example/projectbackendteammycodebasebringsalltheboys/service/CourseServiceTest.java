@@ -28,12 +28,13 @@ class CourseServiceTest {
 
   @Mock private CourseRepository courseRepository;
   @Mock private ActivityLogService activityLogService;
+  @Mock private ClassEnrollmentService classEnrollmentService;
 
   private CourseService courseService;
 
   @BeforeEach
   void setUp() {
-    courseService = new CourseService(courseRepository, activityLogService);
+    courseService = new CourseService(courseRepository, activityLogService, classEnrollmentService);
   }
 
   @Test

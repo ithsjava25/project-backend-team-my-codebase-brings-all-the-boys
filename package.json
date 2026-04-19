@@ -1,0 +1,13 @@
+{
+  "name": "school-portal-root",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install --prefix frontend",
+    "dev:backend": "mvnw spring-boot:run",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
