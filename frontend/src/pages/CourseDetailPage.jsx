@@ -42,24 +42,33 @@ export default function CourseDetailPage() {
 
         if (!VALID_TABS.includes(tab)) {
             setActiveTab('overview');
+            if (tab !== null) {
+                // Clean up stale/invalid tab param from the URL
+                setSearchParams(prev => {
+                    const next = new URLSearchParams(prev);
+                    next.delete('tab');
+                    return next;
+                }, {replace: true});
+            }
             return;
         }
 
         if (tab !== activeTab) {
             setActiveTab(tab);
         }
-    }, [searchParams]);
+    }, [searchParams, role]);
 
     const handleTabChange = (value) => {
         if (!VALID_TABS.includes(value)) return;
 
         setActiveTab(value);
 
-        if (value === 'overview') {
-            setSearchParams({});
-        } else {
-            setSearchParams({tab: value});
-        }
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            if (value === 'overview') next.delete('tab');
+            else next.set('tab', value);
+            return next;
+        });
     };
 
     if (error) return <div className="p-8 text-destructive">Ett fel uppstod: {error}</div>;

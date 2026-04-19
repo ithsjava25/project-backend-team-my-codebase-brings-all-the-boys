@@ -1,113 +1,118 @@
-import { useState, useEffect } from 'react';
-import { useAuthContext } from '@/context/AuthContext';
-import { commentApi } from '@/api/comments';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { formatDistanceToNow } from 'date-fns';
-import { sv } from 'date-fns/locale';
+import {useState, useEffect} from 'react';
+import {useAuthContext} from '@/context/AuthContext';
+import {commentApi} from '@/api/comments';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Textarea} from '@/components/ui/textarea';
+import {Avatar, AvatarFallback} from '@/components/ui/avatar';
+import {formatDistanceToNow} from 'date-fns';
+import {sv} from 'date-fns/locale';
 
-export function CommentSection({ assignmentId }) {
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuthContext();
+export function CommentSection({assignmentId}) {
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {user} = useAuthContext();
 
-  const fetchComments = async () => {
-    try {
-      setIsLoading(true);
-      const data = await commentApi.getCommentsByAssignment(assignmentId);
-      setComments(data);
-    } catch (error) {
-      console.error('Failed to fetch comments:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const fetchComments = async () => {
+        try {
+            setIsLoading(true);
+            const data = await commentApi.getCommentsByAssignment(assignmentId);
+            setComments(data);
+        } catch (error) {
+            console.error('Failed to fetch comments:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    if (assignmentId) {
-      fetchComments();
-    }
-  }, [assignmentId]);
+    useEffect(() => {
+        if (assignmentId) {
+            fetchComments();
+        }
+    }, [assignmentId]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!newComment.trim()) return;
 
-    try {
-      setIsSubmitting(true);
-      const comment = await commentApi.addComment(assignmentId, newComment);
-      setComments([...comments, comment]);
-      setNewComment('');
-    } catch (error) {
-      console.error('Failed to add comment:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+        try {
+            setIsSubmitting(true);
+            const comment = await commentApi.addComment(assignmentId, newComment);
+            setComments([...comments, comment]);
+            setNewComment('');
+        } catch (error) {
+            console.error('Failed to add comment:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
-  const getInitials = (username) => {
-    if (!username) return '?';
-    return username.substring(0, 2).toUpperCase();
-  };
+    const getInitials = (username) => {
+        if (!username) return '?';
+        return username.substring(0, 2).toUpperCase();
+    };
 
-  return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle>Kommentarer ({comments.length})</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Comment List */}
-        <div className="space-y-4">
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground">Laddar kommentarer...</p>
-          ) : comments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Inga kommentarer än.</p>
-          ) : (
-            comments.map((comment) => (
-              <div key={comment.id} className="flex gap-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{getInitials(comment.author?.username)}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">{comment.author?.username}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: sv })}
+    return (
+        <Card className="mt-6">
+            <CardHeader>
+                <CardTitle>Kommentarer ({comments.length})</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {/* Comment List */}
+                <div className="space-y-4">
+                    {isLoading ? (
+                        <p className="text-sm text-muted-foreground">Laddar kommentarer...</p>
+                    ) : comments.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Inga kommentarer än.</p>
+                    ) : (
+                        comments.map((comment) => (
+                            <div key={comment.id} className="flex gap-4">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarFallback>{getInitials(comment.author?.username)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold">{comment.author?.username}</span>
+                                        <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(comment.createdAt), {addSuffix: true, locale: sv})}
                     </span>
-                  </div>
-                  <p className="text-sm">{comment.text}</p>
+                                    </div>
+                                    <p className="text-sm">{comment.text}</p>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
-              </div>
-            ))
-          )}
-        </div>
 
-        {/* Add Comment Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t">
-          <div className="flex gap-4">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback>{getInitials(user?.username)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 space-y-2">
-              <Textarea
-                placeholder="Skriv en kommentar..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isSubmitting || !newComment.trim()}>
-                  {isSubmitting ? 'Skickar...' : 'Skicka kommentar'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
+                {/* Add Comment Form */}
+                {user ? (
+                    <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t">
+                        <div className="flex gap-4">
+                            <Avatar className="h-8 w-8">
+                                <AvatarFallback>{getInitials(user?.username)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 space-y-2">
+                                <Textarea
+                                    placeholder="Skriv en kommentar..."
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    className="min-h-[100px]"
+                                />
+                                <div className="flex justify-end">
+                                    <Button type="submit" disabled={isSubmitting || !newComment.trim()}>
+                                        {isSubmitting ? 'Skickar...' : 'Skicka kommentar'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>) : (
+                    <p className="text-sm text-muted-foreground pt-4 border-t">
+                        Logga in för att kommentera.
+                    </p>
+                )}
+            </CardContent>
+        </Card>
+    );
 }

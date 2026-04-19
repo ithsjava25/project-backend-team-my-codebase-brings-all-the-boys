@@ -21,6 +21,7 @@ export default function CourseManagementPage() {
     const fetchCourses = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             const data = await courseApi.getAllCourses({page, size});
             setCourses(data.content || []);
             setTotalPages(data.totalPages || 1);
@@ -32,8 +33,8 @@ export default function CourseManagementPage() {
     }, [page, size]);
 
     useEffect(() => {
-        if (user?.role?.name === 'ROLE_ADMIN') fetchCourses().then(() => {});
-    }, [user, page, size]);
+        if (user?.role?.name === 'ROLE_ADMIN') fetchCourses();
+    }, [user, fetchCourses]);
 
     const handleAddCourse = () => {
         navigate('/admin/courses/new');
@@ -44,7 +45,7 @@ export default function CourseManagementPage() {
             try {
                 await courseApi.deleteCourse(course.id);
                 alert('Kursen har tagits bort.');
-                fetchCourses().then(() => {});
+                fetchCourses();
             } catch (error) {
                 console.error('Failed to delete course:', error);
                 alert('Kunde inte ta bort kursen.');
@@ -153,15 +154,15 @@ export default function CourseManagementPage() {
                     {loading && <p>Laddar kurser...</p>}
                     {error && <p className="text-destructive">Fel: {error}</p>}
                     {!loading && !error && (
-                      <DataTable
-                        columns={columns}
-                        data={courses}
-                        page={page}
-                        setPage={setPage}
-                        pageSize={size}
-                        setPageSize={setSize}
-                        totalPages={totalPages}
-                      />
+                        <DataTable
+                            columns={columns}
+                            data={courses}
+                            page={page}
+                            setPage={setPage}
+                            pageSize={size}
+                            setPageSize={setSize}
+                            totalPages={totalPages}
+                        />
                     )}
                 </CardContent>
             </Card>

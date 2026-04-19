@@ -35,13 +35,20 @@ export default function CourseCreatePage() {
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
 
+                    <label htmlFor="course-name" className="sr-only">Kursnamn</label>
                     <input
+                        id="course-name"
+                        name="name"
+                        required
                         placeholder="Kursnamn"
                         value={form.name}
                         onChange={e => setForm({...form, name: e.target.value})}
                     />
 
+                    <label htmlFor="course-description" className="sr-only">Beskrivning</label>
                     <textarea
+                        id="course-description"
+                        name="description"
                         placeholder="Beskrivning"
                         value={form.description}
                         onChange={e => setForm({...form, description: e.target.value})}

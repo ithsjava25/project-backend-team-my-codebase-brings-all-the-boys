@@ -12,23 +12,53 @@ import {BookOpenCheck} from 'lucide-react';
 export function PendingSubmissionsView({courseId}) {
     const [submissions, setSubmissions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchSubmissions = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            let data = await dashboardApi.getPendingSubmissions();
+
+            if (courseId) {
+                data = data.filter(s => s.courseId === courseId);
+            }
+
+            setSubmissions(data);
+
+        } catch (err) {
+            console.error('Failed to fetch pending submissions:', err);
+            setError(err.response?.data?.message || 'Nätverksfel');
+            setSubmissions([]); // viktigt: tydligt state
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchSubmissions = async () => {
-            try {
-                let data = await dashboardApi.getPendingSubmissions();
-                if (courseId) {
-                    data = data.filter(s => s.courseId === courseId);
-                }
-                setSubmissions(data);
-            } catch (error) {
-                console.error('Failed to fetch pending submissions:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchSubmissions();
     }, [courseId]);
+
+    if (error) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <BookOpenCheck className="h-5 w-5"/>
+                        Väntande bedömningar
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-destructive">{error}</p>
+
+                    <Button onClick={fetchSubmissions} variant="outline">
+                        Försök igen
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
 
     if (loading) return <p className="text-sm text-muted-foreground p-4">Laddar inlämningar...</p>;
 
