@@ -4,7 +4,7 @@ import { ActivityLogView } from './ActivityLogView';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminOverview() {
-  const navigate = useNavigate();
+  // Hårdkodad data BYT
   const quickActions = [
     {
       id: 1,

@@ -54,3 +54,5 @@ frontend/.vite/
 # Log files
 *.log
 app_log.txt
+
+node_modules/
