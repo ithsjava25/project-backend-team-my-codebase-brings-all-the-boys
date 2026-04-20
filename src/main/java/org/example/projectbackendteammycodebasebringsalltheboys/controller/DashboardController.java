@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.Unauth
 import org.example.projectbackendteammycodebasebringsalltheboys.service.DashboardService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,13 +30,11 @@ public class DashboardController {
   }
 
   @GetMapping("/pending-submissions")
+  @PreAuthorize("hasAnyRole('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<List<PendingSubmissionDTO>> getPendingSubmissions(
       java.security.Principal principal) {
     User user = resolveUser(principal);
-    if (!user.getRole().getName().equals("ROLE_TEACHER")
-        && !user.getRole().getName().equals("ROLE_ADMIN")) {
-      return ResponseEntity.status(403).build();
-    }
+
     return ResponseEntity.ok(dashboardService.getPendingSubmissions(user));
   }
 

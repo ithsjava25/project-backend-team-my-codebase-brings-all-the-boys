@@ -26,6 +26,7 @@ export default function UserManagementPage() {
     const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             const data = await userApi.getAllUsers({
                 page,
                 size,
@@ -120,6 +121,8 @@ export default function UserManagementPage() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
+                                    aria-label={`Redigera användare ${user.username}`}
+                                    title={`Redigera användare ${user.username}`}
                                     onClick={() => navigate(`/admin/users/${user.id}/edit`)}
                                 >
                                     <Edit className="h-4 w-4"/>
@@ -128,6 +131,8 @@ export default function UserManagementPage() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
+                                    aria-label={`Ta bort användare ${user.username}`}
+                                    title={`Ta bort användare ${user.username}`}
                                     onClick={() => handleDelete(user)}
                                 >
                                     <Trash2 className="h-4 w-4 text-destructive"/>
@@ -165,10 +170,12 @@ export default function UserManagementPage() {
                     {/* Filters */}
                     <div className="flex flex-col md:flex-row gap-4 items-end">
                         <div className="flex-1 space-y-1">
-                            <label className="text-sm font-medium">Sök användare</label>
+                            <label htmlFor="user-search" className="text-sm font-medium">Sök användare</label>
                             <div className="relative">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"/>
+                                <Search aria-hidden="true"
+                                        className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"/>
                                 <Input
+                                    id="user-search"
                                     placeholder="Namn eller e-post..."
                                     className="pl-8"
                                     value={search}
@@ -177,9 +184,9 @@ export default function UserManagementPage() {
                             </div>
                         </div>
                         <div className="w-full md:w-48 space-y-1">
-                            <label className="text-sm font-medium">Filtrera på roll</label>
+                            <span id="role-filter-label" className="text-sm font-medium">Filtrera på roll</span>
                             <Select value={roleFilter} onValueChange={setRoleFilter}>
-                                <SelectTrigger>
+                                <SelectTrigger aria-labelledby="role-filter-label">
                                     <SelectValue placeholder="Välj roll"/>
                                 </SelectTrigger>
                                 <SelectContent>

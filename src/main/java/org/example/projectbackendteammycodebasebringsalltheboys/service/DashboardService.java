@@ -2,14 +2,14 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.dashboard.DashboardStatsResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.dashboard.PendingSubmissionDTO;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.dashboard.UpcomingDeadlineDTO;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.*;
@@ -51,11 +51,15 @@ public class DashboardService {
 
       LocalDateTime now = LocalDateTime.now();
       LocalDateTime weekFromNow = now.plusDays(7);
-      List<UpcomingDeadlineDTO> upcoming = getUpcomingDeadlines(user);
-      stats.put("upcomingDeadlinesCount", upcoming.size());
-      if (!upcoming.isEmpty()) {
-        stats.put("nextDeadline", upcoming.get(0).getDeadline());
-      }
+      Instant weekFromNowInstant = weekFromNow.atZone(ZoneId.systemDefault()).toInstant();
+      List<UpcomingDeadlineDTO> upcoming =
+          getUpcomingDeadlines(user).stream()
+              .sorted(Comparator.comparing(UpcomingDeadlineDTO::getDeadline))
+              .collect(Collectors.toList());
+      long weekCount =
+          upcoming.stream().filter(d -> d.getDeadline().isBefore(weekFromNowInstant)).count();
+      stats.put("upcomingDeadlinesCount", weekCount);
+      upcoming.stream().findFirst().ifPresent(d -> stats.put("nextDeadline", d.getDeadline()));
     }
 
     return DashboardStatsResponse.builder().stats(stats).build();
@@ -73,7 +77,7 @@ public class DashboardService {
                     .assignmentId(ua.getAssignment().getId())
                     .assignmentTitle(ua.getAssignment().getTitle())
                     .studentName(ua.getStudent().getUsername())
-                    .submittedAt(ua.getTurnedInAt())
+                    .submittedAt(Instant.from(ua.getTurnedInAt()))
                     .courseId(ua.getAssignment().getCourse().getId())
                     .courseName(ua.getAssignment().getCourse().getName())
                     .build())
@@ -94,31 +98,28 @@ public class DashboardService {
                   UpcomingDeadlineDTO.builder()
                       .assignmentId(a.getId())
                       .title(a.getTitle())
-                      .deadline(Instant.from(a.getDeadline()))
+                      .deadline(a.getDeadline().atZone(ZoneId.systemDefault()).toInstant())
                       .courseName(a.getCourse().getName())
                       .build())
           .collect(Collectors.toList());
     } else {
-      return assignmentRepository
-          .findByCourse_SchoolClass_Enrollments_User_IdAndDeadlineBetween(user.getId(), now, end)
-          .stream()
+      List<Assignment> assignments =
+          assignmentRepository.findByCourse_SchoolClass_Enrollments_User_IdAndDeadlineBetween(
+              user.getId(), now, end);
+      Map<UUID, String> statusByAssignmentId =
+          userAssignmentRepository.findByStudentAndAssignmentIn(user, assignments).stream()
+              .collect(
+                  Collectors.toMap(ua -> ua.getAssignment().getId(), ua -> ua.getStatus().name()));
+      return assignments.stream()
           .map(
-              a -> {
-                // Find student's status for this assignment
-                String status =
-                    userAssignmentRepository
-                        .findByAssignmentAndStudent(a, user)
-                        .map(ua -> ua.getStatus().name())
-                        .orElse("NOT_ASSIGNED");
-
-                return UpcomingDeadlineDTO.builder()
-                    .assignmentId(a.getId())
-                    .title(a.getTitle())
-                    .deadline(Instant.from(a.getDeadline()))
-                    .courseName(a.getCourse().getName())
-                    .status(status)
-                    .build();
-              })
+              a ->
+                  UpcomingDeadlineDTO.builder()
+                      .assignmentId(a.getId())
+                      .title(a.getTitle())
+                      .deadline(a.getDeadline().atZone(ZoneId.systemDefault()).toInstant())
+                      .courseName(a.getCourse().getName())
+                      .status(statusByAssignmentId.getOrDefault(a.getId(), "NOT_ASSIGNED"))
+                      .build())
           .collect(Collectors.toList());
     }
   }

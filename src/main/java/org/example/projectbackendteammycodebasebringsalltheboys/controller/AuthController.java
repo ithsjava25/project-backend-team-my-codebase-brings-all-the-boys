@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -48,14 +47,19 @@ public class AuthController {
       User user = userService.externalUserRegistration(request);
       UserResponse response = userService.toUserResponse(user);
 
-      activityLogService.log(
-          user,
-          null,
-          ActivityAction.REGISTERED,
-          EntityType.USER,
-          user.getId(),
-          Map.of("username", user.getUsername()),
-          ActivityStatus.SUCCESS);
+      try {
+        activityLogService.log(
+            user,
+            null,
+            ActivityAction.REGISTERED,
+            EntityType.USER,
+            user.getId(),
+            Map.of("username", user.getUsername()),
+            ActivityStatus.SUCCESS);
+      } catch (Exception e) {
+        org.slf4j.LoggerFactory.getLogger(AuthController.class)
+            .error("Failed to log registration activity for user: " + user.getUsername(), e);
+      }
 
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
     } catch (IllegalStateException e) {
@@ -87,31 +91,27 @@ public class AuthController {
       SecurityContextHolder.setContext(securityContext);
       securityContextRepository.saveContext(securityContext, request, response);
 
-      User user =
-          userService
-              .getUserByUsername(username)
-              .orElseThrow(() -> new IllegalStateException("User not found: " + username));
-
-      try {
-        activityLogService.log(
-            user,
-            null,
-            ActivityAction.LOGIN,
-            EntityType.USER,
-            user.getId(),
-            Map.of("username", username),
-            ActivityStatus.SUCCESS);
-      } catch (Exception e) {
-        // Log but don't fail login
-        org.slf4j.LoggerFactory.getLogger(AuthController.class)
-            .error("Failed to log login activity for user: " + username, e);
-      }
-
-      return ResponseEntity.ok(Map.of("message", "Logged in"));
-    } catch (AuthenticationException e) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("error", "Wrong username or password"));
+      userService
+          .getUserByUsername(username)
+          .ifPresentOrElse(
+              user ->
+                  activityLogService.log(
+                      user,
+                      null,
+                      ActivityAction.LOGIN,
+                      EntityType.USER,
+                      user.getId(),
+                      Map.of("username", username),
+                      ActivityStatus.SUCCESS),
+              () ->
+                  org.slf4j.LoggerFactory.getLogger(AuthController.class)
+                      .warn("Login activity skipped; user not found: {}", username));
+    } catch (Exception e) {
+      // Log but don't fail login
+      org.slf4j.LoggerFactory.getLogger(AuthController.class)
+          .error("Failed to log login activity for user: " + username, e);
     }
+    return ResponseEntity.ok(Map.of("message", "Logged in"));
   }
 
   @GetMapping("/me")

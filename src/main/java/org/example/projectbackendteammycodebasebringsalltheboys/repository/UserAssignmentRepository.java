@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,4 +28,7 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
 
   List<UserAssignment> findByStatusAndAssignment_Course_LeadTeacher_Id(
       StudentAssignmentStatus status, UUID teacherId);
+
+  List<UserAssignment> findByStudentAndAssignmentIn(
+      User student, Collection<Assignment> assignments);
 }

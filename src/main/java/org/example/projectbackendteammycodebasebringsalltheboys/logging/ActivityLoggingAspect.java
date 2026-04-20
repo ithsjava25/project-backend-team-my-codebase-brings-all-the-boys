@@ -109,10 +109,15 @@ public class ActivityLoggingAspect {
     org.springframework.security.core.Authentication auth =
         org.springframework.security.core.context.SecurityContextHolder.getContext()
             .getAuthentication();
-    if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String username) {
-      return activityLogService.getUserByUsername(username).orElse(null);
+    if (auth != null
+        && auth.isAuthenticated()
+        && !(auth
+            instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
+      String username = auth.getName();
+      if (username != null && !username.isBlank()) {
+        return activityLogService.getUserByUsername(username).orElse(null);
+      }
     }
-
     return null;
   }
 

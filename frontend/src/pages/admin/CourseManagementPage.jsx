@@ -40,6 +40,11 @@ export default function CourseManagementPage() {
         navigate('/admin/courses/new');
     };
 
+    const handlePageSizeChange = useCallback((nextSize) => {
+        setPage(0);
+        setSize(nextSize);
+    }, []);
+
     const handleDelete = useCallback(async (course) => {
         if (window.confirm(`Är du säker på att du vill ta bort kursen "${course.name}"?`)) {
             try {
@@ -168,7 +173,7 @@ export default function CourseManagementPage() {
                             page={page}
                             setPage={setPage}
                             pageSize={size}
-                            setPageSize={setSize}
+                            setPageSize={handlePageSizeChange}
                             totalPages={totalPages}
                         />
                     )}

@@ -46,15 +46,7 @@ export default function Dashboard() {
         setSearchParams({tab: value});
     };
 
-    const mappedCourses = mapToCardFormat(courses);
-
-    if (coursesError) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <p className="text-destructive">Fel: {coursesError}</p>
-            </div>
-        );
-    }
+    const mappedCourses = mapToCardFormat(courses || []);
 
     const tabs = VALID_TABS.map((value) => ({
         value,
@@ -100,14 +92,18 @@ export default function Dashboard() {
                 </TabsContent>
 
                 <TabsContent value="courses">
-                    <CourseListView
-                        courses={mappedCourses}
-                        view="grid"
-                        role={
-                            role === 'ROLE_ADMIN' ? 'admin' :
-                                role === 'ROLE_TEACHER' ? 'teacher' : 'student'
-                        }
-                    />
+                    {coursesError ? (
+                        <p className="text-destructive">Fel: {coursesError}</p>
+                    ) : (
+                        <CourseListView
+                            courses={mappedCourses}
+                            view="grid"
+                            role={
+                                role === 'ROLE_ADMIN' ? 'admin' :
+                                    role === 'ROLE_TEACHER' ? 'teacher' : 'student'
+                            }
+                        />
+                    )}
                 </TabsContent>
 
                 <TabsContent value="assignments">

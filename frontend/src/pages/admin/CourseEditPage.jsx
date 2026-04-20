@@ -17,7 +17,7 @@ export default function CourseEditPage() {
         const fetchCourse = async () => {
             try {
                 setError(null);
-
+                setForm(null);
                 const data = await courseApi.getCourseByIdAdmin(id);
 
                 if (isMounted) {

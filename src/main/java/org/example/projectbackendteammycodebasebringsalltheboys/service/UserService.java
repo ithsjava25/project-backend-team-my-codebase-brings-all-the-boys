@@ -124,17 +124,17 @@ public class UserService {
 
   // --- New methods for User Management ---
 
-  @Transactional(readOnly = true)
-  public Page<User> findAllUsers(Pageable pageable) {
-    return userRepository.findAll(pageable);
+  private String normalize(String value) {
+    return (value == null || value.isBlank()) ? null : value.trim();
   }
 
   @Transactional(readOnly = true)
   public Page<User> searchUsers(String search, String roleName, Pageable pageable) {
-    if ((search == null || search.isBlank()) && (roleName == null || roleName.isBlank())) {
-      return findAllUsers(pageable);
-    }
-    return userRepository.findBySearchAndRole(search, roleName, pageable);
+
+    String normalizedSearch = normalize(search);
+    String normalizedRoleName = normalize(roleName);
+
+    return userRepository.findBySearchAndRole(normalizedSearch, normalizedRoleName, pageable);
   }
 
   @Transactional

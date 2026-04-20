@@ -38,6 +38,8 @@ export default function CourseDetailPage() {
     const [activeTab, setActiveTab] = useState(validatedTab);
 
     useEffect(() => {
+        if (!role) return;
+
         const tab = searchParams.get('tab');
 
         if (!VALID_TABS.includes(tab)) {

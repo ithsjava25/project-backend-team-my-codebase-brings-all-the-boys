@@ -15,6 +15,7 @@ describe('mapToCourseDetailFormat', () => {
             leadTeacher: {username: 'anna', email: 'anna@school.com'},
             assistants: [],
             assignments: [],
+            students: [],
         };
 
         const result = mapToCourseDetailFormat(apiData);

@@ -10,14 +10,17 @@ import {Link} from 'react-router-dom';
 export function UpcomingDeadlinesView() {
     const [deadlines, setDeadlines] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchDeadlines = async () => {
             try {
+                setError(null);
                 const data = await dashboardApi.getUpcomingDeadlines();
                 setDeadlines(data);
             } catch (error) {
                 console.error('Failed to fetch upcoming deadlines:', error);
+                setError(error);
             } finally {
                 setLoading(false);
             }
@@ -26,6 +29,7 @@ export function UpcomingDeadlinesView() {
     }, []);
 
     if (loading) return <p className="text-sm text-muted-foreground p-4">Laddar deadlines...</p>;
+    if (error) return <p className="text-sm text-destructive p-4">Kunde inte ladda deadlines.</p>;
 
     const getStatusBadge = (status) => {
         switch (status) {
