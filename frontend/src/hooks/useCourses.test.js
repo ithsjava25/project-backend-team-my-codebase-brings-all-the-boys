@@ -13,7 +13,7 @@ describe('useCourses', () => {
 
   it('starts with loading true, courses empty and error null', async () => {
     // Mock data
-    vi.mocked(courseApi.getAllCourses).mockResolvedValue([mockCourseFromApi]);
+    vi.mocked(courseApi.getUsersCourses).mockResolvedValue({content: [mockCourseFromApi], totalPages: 1, totalElements: 1});
 
     // Render hook
     const {result} = renderHook(() => useCourses());
@@ -28,7 +28,7 @@ describe('useCourses', () => {
 
   it('fetches courses on mount', async () => {
     // Mock data
-    vi.mocked(courseApi.getAllCourses).mockResolvedValue([mockCourseFromApi]);
+    vi.mocked(courseApi.getUsersCourses).mockResolvedValue({content: [mockCourseFromApi], totalPages: 1, totalElements: 1});
 
     // Render hook
     const {result} = renderHook(() => useCourses());
@@ -40,12 +40,12 @@ describe('useCourses', () => {
     });
 
     // Verify API got called
-    expect(courseApi.getAllCourses).toHaveBeenCalledTimes(1);
+    expect(courseApi.getUsersCourses).toHaveBeenCalledTimes(1);
   });
 
   it('handles empty response from backend', async () => {
     // Mock empty array
-    vi.mocked(courseApi.getAllCourses).mockResolvedValue([]);
+    vi.mocked(courseApi.getUsersCourses).mockResolvedValue([]);
 
     // Render hook
     const {result} = renderHook(() => useCourses());
@@ -63,7 +63,7 @@ describe('useCourses', () => {
     const error = Object.assign(new Error('Failed to fetch'), {
       response: {data: {message: 'Server error'}}
     });
-    vi.mocked(courseApi.getAllCourses).mockRejectedValue(error);
+    vi.mocked(courseApi.getUsersCourses).mockRejectedValue(error);
 
     // Render hook
     const {result} = renderHook(() => useCourses());
@@ -79,7 +79,7 @@ describe('useCourses', () => {
   it('handles network error without response data', async () => {
     // Mock network error
     const networkError = new Error('Network Error');
-    vi.mocked(courseApi.getAllCourses).mockRejectedValue(networkError);
+    vi.mocked(courseApi.getUsersCourses).mockRejectedValue(networkError);
 
     // Render hook
     const {result} = renderHook(() => useCourses());
