@@ -17,7 +17,6 @@ import CourseEditPage from './pages/admin/CourseEditPage';
 // Admin pages
 import UserManagementPage from './pages/admin/UserManagementPage';
 import CourseManagementPage from './pages/admin/CourseManagementPage';
-import TestCoursesPage from "@/pages/TestCoursesPage.jsx";
 
 export default function App() {
     return (
