@@ -12,12 +12,16 @@ describe('courseApi', () => {
 
   describe('getAllCourses', () => {
     it('calls the correct endpoint and returns data', async () => {
-      vi.mocked(client.get).mockResolvedValue({ data: [mockCourseFromApi] });
+      vi.mocked(client.get).mockResolvedValue({
+        data: {
+          content:
+            [mockCourseFromApi], totalPages: 1, totalElements: 1}
+      });
 
       const result = await courseApi.getAllCourses();
 
-      expect(client.get).toHaveBeenCalledWith('/courses');
-      expect(result).toEqual([mockCourseFromApi]);
+      expect(client.get).toHaveBeenCalledWith('/admin/courses?page=0&size=10');
+      expect(result).toEqual({content: [mockCourseFromApi], totalPages: 1, totalElements: 1});
     });
 
     it('returns an empty array when backend responds with []', async () => {
