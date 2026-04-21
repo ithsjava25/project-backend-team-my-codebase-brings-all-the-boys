@@ -3,9 +3,12 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.*;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
@@ -121,12 +124,21 @@ public class UserService {
 
   // --- New methods for User Management ---
 
+  private String normalize(String value) {
+    return (value == null || value.isBlank()) ? null : value.trim();
+  }
+
   @Transactional(readOnly = true)
-  public Page<User> findAllUsers(Pageable pageable) {
-    return userRepository.findAll(pageable);
+  public Page<User> searchUsers(String search, String roleName, Pageable pageable) {
+
+    String normalizedSearch = normalize(search);
+    String normalizedRoleName = normalize(roleName);
+
+    return userRepository.findBySearchAndRole(normalizedSearch, normalizedRoleName, pageable);
   }
 
   @Transactional
+  @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.USER)
   public User createUser(UserRequest request) {
     if (userRepository.existsByUsername(request.getUsername())
         || userRepository.existsByEmail(request.getEmail())) {
@@ -147,6 +159,7 @@ public class UserService {
   }
 
   @Transactional
+  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.USER)
   public User updateUser(UUID id, UserRequest request) {
     User user =
         userRepository
@@ -173,6 +186,7 @@ public class UserService {
   }
 
   @Transactional
+  @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.USER)
   public void deleteUser(UUID id) {
     if (!userRepository.existsById(id)) {
       throw new NotFoundException("User not found with id: " + id);

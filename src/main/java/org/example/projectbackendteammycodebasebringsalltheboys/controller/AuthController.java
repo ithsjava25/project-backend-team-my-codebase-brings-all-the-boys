@@ -7,13 +7,16 @@ import java.util.Map;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ExternalRegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -25,12 +28,17 @@ public class AuthController {
 
   private final UserService userService;
   private final AuthenticationManager authenticationManager;
+  private final ActivityLogService activityLogService;
   private final HttpSessionSecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
 
-  public AuthController(UserService userService, AuthenticationManager authenticationManager) {
+  public AuthController(
+      UserService userService,
+      AuthenticationManager authenticationManager,
+      ActivityLogService activityLogService) {
     this.userService = userService;
     this.authenticationManager = authenticationManager;
+    this.activityLogService = activityLogService;
   }
 
   @PostMapping("/register")
@@ -38,6 +46,20 @@ public class AuthController {
     try {
       User user = userService.externalUserRegistration(request);
       UserResponse response = userService.toUserResponse(user);
+
+      try {
+        activityLogService.log(
+            user,
+            null,
+            ActivityAction.REGISTERED,
+            EntityType.USER,
+            user.getId(),
+            Map.of("username", user.getUsername()),
+            ActivityStatus.SUCCESS);
+      } catch (Exception e) {
+        org.slf4j.LoggerFactory.getLogger(AuthController.class)
+            .error("Failed to log registration activity for user: " + user.getUsername(), e);
+      }
 
       return ResponseEntity.status(HttpStatus.CREATED).body(response);
     } catch (IllegalStateException e) {
@@ -69,11 +91,27 @@ public class AuthController {
       SecurityContextHolder.setContext(securityContext);
       securityContextRepository.saveContext(securityContext, request, response);
 
-      return ResponseEntity.ok(Map.of("message", "Logged in"));
-    } catch (AuthenticationException e) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("error", "Wrong username or password"));
+      userService
+          .getUserByUsername(username)
+          .ifPresentOrElse(
+              user ->
+                  activityLogService.log(
+                      user,
+                      null,
+                      ActivityAction.LOGIN,
+                      EntityType.USER,
+                      user.getId(),
+                      Map.of("username", username),
+                      ActivityStatus.SUCCESS),
+              () ->
+                  org.slf4j.LoggerFactory.getLogger(AuthController.class)
+                      .warn("Login activity skipped; user not found: {}", username));
+    } catch (Exception e) {
+      // Log but don't fail login
+      org.slf4j.LoggerFactory.getLogger(AuthController.class)
+          .error("Failed to log login activity for user: " + username, e);
     }
+    return ResponseEntity.ok(Map.of("message", "Logged in"));
   }
 
   @GetMapping("/me")

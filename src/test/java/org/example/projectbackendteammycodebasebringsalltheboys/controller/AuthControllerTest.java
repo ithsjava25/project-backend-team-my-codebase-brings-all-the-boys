@@ -14,6 +14,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ class AuthControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private UserService userService;
+  @MockitoBean private ActivityLogService activityLogService;
   @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
   @MockitoBean private ClientRegistrationRepository clientRegistrationRepository;
   @MockitoBean private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;

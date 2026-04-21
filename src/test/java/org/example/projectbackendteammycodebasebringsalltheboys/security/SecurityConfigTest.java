@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.controller.PageC
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.OAuth2LoginSuccessHandler;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,7 @@ class SecurityConfigTest {
   @Autowired private PasswordEncoder passwordEncoder;
   @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
   @MockitoBean private UserService userService;
+  @MockitoBean private ActivityLogService activityLogService;
   @MockitoBean private ClientRegistrationRepository clientRegistrationRepository;
   @MockitoBean private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 

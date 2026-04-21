@@ -15,6 +15,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAc
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ActivityLogRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,13 +28,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ActivityLogServiceTest {
 
   @Mock private ActivityLogRepository activityLogRepository;
+  @Mock private UserRepository userRepository;
   private Clock clock = Clock.fixed(Instant.parse("2026-04-12T10:00:00Z"), ZoneId.of("UTC"));
 
   private ActivityLogService activityLogService;
 
   @BeforeEach
   void setUp() {
-    activityLogService = new ActivityLogService(activityLogRepository, clock);
+    activityLogService = new ActivityLogService(activityLogRepository, userRepository, clock);
   }
 
   @Test

@@ -14,6 +14,7 @@ public class CourseDetailResponse {
   private String schoolClassName;
   private UserResponse leadTeacher;
   private List<UserResponse> assistants;
+  private List<UserResponse> students;
   private List<AssignmentResponse> assignments;
 
   private java.time.LocalDateTime endDate;

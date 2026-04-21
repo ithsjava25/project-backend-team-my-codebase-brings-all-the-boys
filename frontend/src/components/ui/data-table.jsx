@@ -39,6 +39,9 @@ export function DataTable({
         },
     });
 
+    const displayTotalPages = Math.max(totalPages, 1);
+    const isEmpty = totalPages === 0;
+
     return (
         <div className="space-y-4">
 
@@ -88,15 +91,15 @@ export function DataTable({
             </div>
 
             {/* PAGINATION */}
-            <div className="flex items-center justify-between">
+            {!isEmpty && (<div className="flex items-center justify-between">
 
                 <div className="flex gap-2 items-center">
                     <span>Rows:</span>
                     <select
                         value={pageSize}
                         onChange={(e) => {
-                          setPageSize(Number(e.target.value));
-                          setPage(0);
+                            setPageSize(Number(e.target.value));
+                            setPage(0);
                         }}
                         className="border px-2 py-1 rounded"
                     >
@@ -111,24 +114,24 @@ export function DataTable({
                 <div className="flex gap-2 items-center">
                     <Button
                         onClick={() => setPage(p => Math.max(p - 1, 0))}
-                        disabled={page === 0}
+                        disabled={page === 0 || isEmpty}
                     >
                         Föregående
                     </Button>
 
                     <span>
-            Sida {page + 1} av {totalPages}
-          </span>
+        Sida {isEmpty ? 0 : page + 1} av {displayTotalPages}
+    </span>
 
                     <Button
-                        onClick={() => setPage(p => p + 1)}
-                        disabled={page + 1 >= totalPages}
+                        onClick={() => setPage(p => Math.min(p + 1, totalPages - 1))}
+                        disabled={isEmpty || page + 1 >= totalPages}
                     >
                         Nästa
                     </Button>
                 </div>
 
-            </div>
+            </div>)}
         </div>
     );
 }

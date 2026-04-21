@@ -1,0 +1,109 @@
+import {useState, useEffect} from 'react';
+import {dashboardApi} from '@/api/dashboard';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Badge} from '@/components/ui/badge';
+import {Button} from '@/components/ui/button';
+import {Link} from 'react-router-dom';
+import {formatDistanceToNow} from 'date-fns';
+import {sv} from 'date-fns/locale';
+import {BookOpenCheck} from 'lucide-react';
+
+export function PendingSubmissionsView({courseId}) {
+    const [submissions, setSubmissions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchSubmissions = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            let data = await dashboardApi.getPendingSubmissions();
+
+            if (courseId) {
+                data = data.filter(s => s.courseId === courseId);
+            }
+
+            setSubmissions(data);
+
+        } catch (err) {
+            console.error('Failed to fetch pending submissions:', err);
+            setError(err.response?.data?.message || 'Nätverksfel');
+            setSubmissions([]); // viktigt: tydligt state
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSubmissions();
+    }, [courseId]);
+
+    if (error) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <BookOpenCheck className="h-5 w-5"/>
+                        Väntande bedömningar
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-destructive">{error}</p>
+
+                    <Button onClick={fetchSubmissions} variant="outline">
+                        Försök igen
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (loading) return <p className="text-sm text-muted-foreground p-4">Laddar inlämningar...</p>;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                    <BookOpenCheck className="h-5 w-5"/>
+                    Väntande bedömningar
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                {submissions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Inga inlämningar väntar på bedömning.</p>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Student</TableHead>
+                                <TableHead>Uppgift</TableHead>
+                                <TableHead>Kurs</TableHead>
+                                <TableHead>Inlämnad</TableHead>
+                                <TableHead className="text-right">Åtgärd</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {submissions.map((sub) => (
+                                <TableRow key={sub.userAssignmentId}>
+                                    <TableCell className="font-medium">{sub.studentName}</TableCell>
+                                    <TableCell>{sub.assignmentTitle}</TableCell>
+                                    <TableCell>{sub.courseName}</TableCell>
+                                    <TableCell>
+                                        {formatDistanceToNow(new Date(sub.submittedAt), {addSuffix: true, locale: sv})}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild size="sm" variant="outline">
+                                            <Link to={`/assignments/${sub.assignmentId}`}>Betygsätt</Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
+            </CardContent>
+        </Card>
+    );
+}

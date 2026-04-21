@@ -13,6 +13,7 @@ export const mapToCourseDetailFormat = (course) => {
       email: course.leadTeacher.email
     } : null,
     assistants: Array.isArray(course.assistants) ? course.assistants : [],
+    students: Array.isArray(course.students) ? course.students : [],
     assignments: Array.isArray(course.assignments) ? course.assignments.map(a => ({
       id: a.id,
       title: a.title,

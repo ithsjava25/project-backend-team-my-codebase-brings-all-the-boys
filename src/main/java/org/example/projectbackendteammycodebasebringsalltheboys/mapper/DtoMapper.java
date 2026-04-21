@@ -90,6 +90,7 @@ public class DtoMapper {
     response.setEntityId(log.getChildId());
     response.setDetails(log.getDetails());
     response.setTimestamp(log.getTimestamp());
+    response.setActorUsername(log.getUser() != null ? log.getUser().getUsername() : null);
     return response;
   }
 
@@ -119,6 +120,21 @@ public class DtoMapper {
         course.getAssistants() != null
             ? course.getAssistants().stream().map(this::toUserResponse).collect(Collectors.toList())
             : Collections.emptyList());
+
+    if (course.getSchoolClass() != null && course.getSchoolClass().getEnrollments() != null) {
+      response.setStudents(
+          course.getSchoolClass().getEnrollments().stream()
+              .filter(
+                  e ->
+                      e.getClassRole()
+                          == org.example.projectbackendteammycodebasebringsalltheboys.enums
+                              .ClassRole.STUDENT)
+              .map(e -> toUserResponse(e.getUser()))
+              .collect(Collectors.toList()));
+    } else {
+      response.setStudents(Collections.emptyList());
+    }
+
     response.setAssignments(
         course.getAssignments() != null
             ? course.getAssignments().stream()
