@@ -8,10 +8,11 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.example.projectbackendteammycodebasebringsalltheboys.converter.JsonMapConverter;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "activity_logs")
@@ -40,8 +41,8 @@ public class ActivityLog {
 
   private UUID childId;
 
-  @Convert(converter = JsonMapConverter.class)
-  @Column(columnDefinition = "text")
+  @Column(columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
   private Map<String, Object> details;
 
   @Column(nullable = false)
