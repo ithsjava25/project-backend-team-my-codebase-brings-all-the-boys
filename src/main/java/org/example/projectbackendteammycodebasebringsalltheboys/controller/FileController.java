@@ -75,7 +75,7 @@ public class FileController {
               .getCaseById(request.getAssignmentId())
               .orElseThrow(() -> new NotFoundException("Assignment not found"));
 
-      if (!authorizationService.canModifyAssignment(currentUser, assignment)) {
+      if (!authorizationService.canAccessCase(currentUser, assignment)) {
         throw new ForbiddenException("You are not allowed to attach files to this assignment");
       }
     }

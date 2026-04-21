@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
@@ -23,6 +24,7 @@ public class StorageConfig {
   }
 
   @Bean
+  @Primary
   @ConditionalOnProperty(name = "storage.type", havingValue = "local", matchIfMissing = true)
   public StorageService localStorageService() {
     return new LocalStorageService();
