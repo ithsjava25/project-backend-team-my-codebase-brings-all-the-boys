@@ -54,6 +54,20 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
       const response = await fetch(file.downloadUrl, {
         credentials: 'include'
       });
+
+      if (!response.ok) {
+        let errorMsg;
+        if (response.status === 403) {
+          errorMsg = 'Du har inte behörighet att ladda ner filen';
+        } else if (response.status === 404) {
+          errorMsg = 'Filen kunde inte hittas';
+        } else {
+          errorMsg = 'Nedladdningen misslyckades';
+        }
+        setUploadError(errorMsg);
+        return;
+      }
+
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -63,6 +77,33 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Download failed:', error);
+      setUploadError('Kunde inte ladda ner filen. Försök igen.');
+    }
+  };
+
+  const handlePreview = async (file) => {
+    try {
+      const response = await fetch(file.downloadUrl, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        let errorMsg;
+        if (response.status === 403) {
+          errorMsg = 'Du har inte behörighet att se bilden';
+        } else if (response.status === 404) {
+          errorMsg = 'Bilden kunde inte hittas';
+        } else {
+          errorMsg = 'Kunde inte ladda bilden';
+        }
+        setUploadError(errorMsg);
+        return;
+      }
+
+      setPreviewFile(file);
+    } catch (error) {
+      console.error('Preview failed:', error);
+      setUploadError('Kunde inte ladda bilden. Försök igen.');
     }
   };
 
@@ -129,7 +170,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
                   </div>
                   <div className="flex items-center gap-1">
                     {isImage(file) && (
-                      <Button variant="ghost" size="icon" onClick={() => setPreviewFile(file)}>
+                      <Button variant="ghost" size="icon" onClick={() => handlePreview(file)}>
                         <ZoomIn className="h-4 w-4" />
                       </Button>
                     )}
