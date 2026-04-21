@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { fileApi } from '@/api/files';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { FileIcon, Upload, Download, Loader2, X, ZoomIn } from 'lucide-react';
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
+const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
 
 export function FileSection({ files: initialFiles = [], assignmentId, commentId }) {
   const [files, setFiles] = useState(initialFiles);
@@ -100,6 +101,17 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
         return;
       }
 
+      useEffect(() => {
+        return () => {
+          if (previewBlobUrl) {
+            URL.revokeObjectURL(previewBlobUrl);
+          }
+        };
+      }, [previewBlobUrl]);
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setPreviewBlobUrl(url);
       setPreviewFile(file);
     } catch (error) {
       console.error('Preview failed:', error);
@@ -185,10 +197,19 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
         </CardContent>
       </Card>
 
-      <Dialog open={!!previewFile} onOpenChange={() => setPreviewFile(null)}>
-        <DialogContent className="max-w-[95vw] w-fit p-4 sm:p-6 max-w-none!">
+      <Dialog
+        open={!!previewFile}
+        onOpenChange={() => {
+          setPreviewFile(null);
+          if (previewBlobUrl) {
+            URL.revokeObjectURL(previewBlobUrl);
+            setPreviewBlobUrl(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-[95vw] w-fit p-4 sm:p-6">
           <img
-            src={previewFile?.downloadUrl}
+            src={previewBlobUrl || previewFile?.downloadUrl}
             alt={previewFile?.fileName}
             className="max-w-[90vw] max-h-[80vh] object-contain rounded"
           />
