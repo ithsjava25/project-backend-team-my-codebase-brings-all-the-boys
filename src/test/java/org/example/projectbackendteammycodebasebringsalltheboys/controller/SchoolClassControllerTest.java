@@ -3,16 +3,14 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.ClassEnrollment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
-import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
@@ -45,7 +43,7 @@ class SchoolClassControllerTest {
       username = "admin",
       roles = {"ADMIN"})
   void getAllSchoolClasses_AdminAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClasses()).thenReturn(Collections.emptyList());
+    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -55,7 +53,7 @@ class SchoolClassControllerTest {
       username = "teacher",
       roles = {"TEACHER"})
   void getAllSchoolClasses_TeacherAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClasses()).thenReturn(Collections.emptyList());
+    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -65,7 +63,7 @@ class SchoolClassControllerTest {
       username = "student",
       roles = {"STUDENT"})
   void getAllSchoolClasses_StudentAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClasses()).thenReturn(Collections.emptyList());
+    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -76,27 +74,14 @@ class SchoolClassControllerTest {
       roles = {"STUDENT"})
   void getSchoolClassById_AuthorizedStudent() throws Exception {
     UUID classId = UUID.randomUUID();
-    UUID studentId = UUID.randomUUID();
-
     User student = new User();
-    student.setId(studentId);
     student.setUsername("student");
     student.setRole(new Role("ROLE_STUDENT"));
 
-    ClassEnrollment enrollment = new ClassEnrollment();
-    enrollment.setUser(student);
-    enrollment.setClassRole(ClassRole.STUDENT);
-
-    SchoolClass schoolClass = new SchoolClass();
-    schoolClass.setId(classId);
-    schoolClass.setEnrollments(new ArrayList<>(Collections.singletonList(enrollment)));
-
-    SchoolClassDetailResponse response = Mockito.mock(SchoolClassDetailResponse.class);
+    SchoolClassDetailResponse response = new SchoolClassDetailResponse();
 
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
-    Mockito.when(schoolClassService.getSchoolClassById(classId))
-        .thenReturn(Optional.of(schoolClass));
-    Mockito.when(dtoMapper.toSchoolClassDetailResponse(schoolClass)).thenReturn(response);
+    Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, student)).thenReturn(response);
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isOk());
   }
@@ -107,21 +92,14 @@ class SchoolClassControllerTest {
       roles = {"USER"})
   void getSchoolClassById_UnauthorizedUser() throws Exception {
     UUID classId = UUID.randomUUID();
-    UUID userId = UUID.randomUUID();
-
     User unauthorizedUser = new User();
-    unauthorizedUser.setId(userId);
     unauthorizedUser.setUsername("unauthorized_user");
     unauthorizedUser.setRole(new Role("ROLE_USER"));
 
-    SchoolClass schoolClass = new SchoolClass();
-    schoolClass.setId(classId);
-    schoolClass.setEnrollments(new ArrayList<>());
-
     Mockito.when(userService.getUserByUsername("unauthorized_user"))
         .thenReturn(Optional.of(unauthorizedUser));
-    Mockito.when(schoolClassService.getSchoolClassById(classId))
-        .thenReturn(Optional.of(schoolClass));
+    Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, unauthorizedUser))
+        .thenThrow(new ForbiddenException("Access denied"));
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isForbidden());
   }
@@ -132,23 +110,14 @@ class SchoolClassControllerTest {
       roles = {"TEACHER"})
   void getSchoolClassById_TeacherAccess() throws Exception {
     UUID classId = UUID.randomUUID();
-    UUID teacherId = UUID.randomUUID();
-
     User teacher = new User();
-    teacher.setId(teacherId);
     teacher.setUsername("teacher");
     teacher.setRole(new Role("ROLE_TEACHER"));
 
-    SchoolClass schoolClass = new SchoolClass();
-    schoolClass.setId(classId);
-    schoolClass.setEnrollments(new ArrayList<>());
-
-    SchoolClassDetailResponse response = Mockito.mock(SchoolClassDetailResponse.class);
+    SchoolClassDetailResponse response = new SchoolClassDetailResponse();
 
     Mockito.when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(teacher));
-    Mockito.when(schoolClassService.getSchoolClassById(classId))
-        .thenReturn(Optional.of(schoolClass));
-    Mockito.when(dtoMapper.toSchoolClassDetailResponse(schoolClass)).thenReturn(response);
+    Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, teacher)).thenReturn(response);
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isOk());
   }
@@ -169,15 +138,13 @@ class SchoolClassControllerTest {
       roles = {"STUDENT"})
   void getSchoolClassById_NotFound() throws Exception {
     UUID classId = UUID.randomUUID();
-    UUID studentId = UUID.randomUUID();
-
     User student = new User();
-    student.setId(studentId);
     student.setUsername("student");
     student.setRole(new Role("ROLE_STUDENT"));
 
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
-    Mockito.when(schoolClassService.getSchoolClassById(classId)).thenReturn(Optional.empty());
+    Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, student))
+        .thenThrow(new NotFoundException("Not found"));
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isNotFound());
   }

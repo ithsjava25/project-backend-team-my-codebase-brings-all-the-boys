@@ -4,16 +4,18 @@ This project is a high-security case management system designed for school envir
 
 ## Core Features
 - **Assignment Lifecycle**: Creation, assignment, communication, submission, and evaluation.
-- **Strict RBAC**: Roles including Admin, Teacher, Student, Staff, and Guest.
-- **Activity Logging**: Automated tracking of all major system events.
-- **File Management**: S3-compatible storage integration.
-- **Interactive Communication**: Commenting system for feedback.
+- **Strict Scoped RBAC**: Contextual permissions (Mentor vs Teacher vs Student) with enrollment-based access control.
+- **School Class Management**: Full CRUD for school classes and viewing associated courses/participants.
+- **Activity Logging**: Automated tracking of all major system events with descriptive details and robust null-safety.
+- **File Management**: S3-compatible storage integration with pre-signed URL security.
+- **User Profiles**: Comprehensive views of user info, including enrolled classes and courses.
 - **Authentication**: Session-based auth + GitHub OAuth2.
 
 ## Technology Stack
-- **Backend**: Java 25, Spring Boot 4.0.4
+- **Backend**: Java 25, Spring Boot 4.0.5
 - **Database**: PostgreSQL (Dockerized)
 - **Frontend**: React 19.2.4, Vite 8.0.1, Tailwind CSS, Shadcn UI
+- **Testing**: JUnit 5, Mockito (131 tests passing)
 
 ## Roadmap
 
@@ -22,17 +24,14 @@ This project is a high-security case management system designed for school envir
 
 ### Phase 6-7: Contextual Security & Advanced Frontend [Completed]
 - Contextual RBAC for controllers, refined DTO mapping, and a modern React dashboard with role-based access.
+- Implemented comprehensive Edit/Delete features for Courses, Assignments, and School Classes.
+- Fixed 500 errors related to lazy loading and missing cascade types.
 
 ## Current Todo List
-- [ ] Implement Scoped/Contextual Security checks in Controllers.
-- [ ] Develop comprehensive Edit features for Courses, Assignments, and other entities.
-- [ ] Refine list views across the application for better data display and UX.
-- [ ] Fix Activity Log display in the dashboard.
-- [ ] Fix Activity Log sidebar navigation.
-- [ ] Update Dashboard overview (resolve repeated entity issues).
-- [ ] Implement User Profile view (clickable from user list).
-- [ ] Debug and fix data integrity issues for Courses (resolving 500 errors).
-- [ ] Update data seeding to include end dates for courses.
+- [ ] Debug S3 integration issues (e.g., file uploads failing with CORS error / 403).
+- [ ] Implement soft deadlines (allow late with "Late" flag).
+- [ ] Auto-status updates via @Scheduled tasks.
+- [ ] Automatic course archiving/read-only mode after endDate.
 
 ## Getting Started
 

@@ -17,7 +17,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {BookOpenIcon, Shield} from "lucide-react";
+import {BookOpenIcon, Shield, Users} from "lucide-react";
 import {useMemo} from "react";
 
 export function AppSidebar({ ...props }) {
@@ -48,6 +48,11 @@ export function AppSidebar({ ...props }) {
           { title: "Deltagare", url: `/courses/${course.id}?tab=participants` },
         ]
       }))
+    }, {
+      title: "Klasser",
+      url: "/dashboard?tab=classes",
+      icon: Users,
+      items: []
     }];
 
     if (user?.role?.name === 'ROLE_ADMIN') {
@@ -59,9 +64,16 @@ export function AppSidebar({ ...props }) {
         items: [
           { title: "Användare", url: "/admin/users" },
           { title: "Kurser", url: "/admin/courses" },
+          { title: "Klasser", url: "/admin/school-classes" },
           { title: "Aktivitetslogg", url: "/dashboard?tab=activity" },
         ]
       });
+    } else {
+      // Add activity log for non-admins too
+      const lastItem = items[items.length - 1];
+      if (lastItem && lastItem.items) {
+          lastItem.items.push({ title: "Min Aktivitet", url: "/dashboard?tab=activity" });
+      }
     }
 
     return items;

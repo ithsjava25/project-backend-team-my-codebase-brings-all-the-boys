@@ -1,8 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +18,8 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFou
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.*;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
 @RequestMapping("/api/files")
@@ -48,50 +42,6 @@ public class FileController {
 
     return ResponseEntity.ok(
         new UploadResponse(generatedUpload.uploadUrl(), generatedUpload.s3Key()));
-  }
-
-  @GetMapping("/{id}/download")
-  public ResponseEntity<StreamingResponseBody> downloadFile(
-      @PathVariable UUID id, Principal principal) {
-
-    if (principal == null) {
-      return ResponseEntity.status(401).build();
-    }
-
-    User currentUser =
-        userService
-            .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
-
-    FileMetadata file =
-        fileService.getFileById(id).orElseThrow(() -> new NotFoundException("File not found"));
-
-    if (!canAccessFile(currentUser, file)) {
-      throw new ForbiddenException("You are not allowed to access this file");
-    }
-
-    String contentType = file.getContentType();
-    MediaType mediaType =
-        (contentType != null && !contentType.isBlank())
-            ? MediaType.parseMediaType(contentType)
-            : MediaType.APPLICATION_OCTET_STREAM;
-
-    ContentDisposition disposition =
-        ContentDisposition.attachment()
-            .filename(file.getFileName(), StandardCharsets.UTF_8)
-            .build();
-
-    StreamingResponseBody stream =
-        outputStream -> {
-          try (InputStream inputStream = fileService.downloadFile(file)) {
-            inputStream.transferTo(outputStream);
-          }
-        };
-
-    return ResponseEntity.ok()
-        .contentType(mediaType)
-        .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
-        .body(stream);
   }
 
   @PostMapping("/finalize")

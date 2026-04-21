@@ -10,8 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.Externa
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,18 +24,26 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 class UserServiceTest {
 
   @Mock private UserRepository userRepository;
-
   @Mock private RoleRepository roleRepository;
-
   @Mock private PasswordEncoder passwordEncoder;
-
   @Mock private DtoMapper dtoMapper;
+  @Mock private SchoolClassRepository schoolClassRepository;
+  @Mock private CourseRepository courseRepository;
+  @Mock private ClassEnrollmentRepository classEnrollmentRepository;
 
   private UserService userService;
 
   @BeforeEach
   void setUp() {
-    userService = new UserService(userRepository, roleRepository, passwordEncoder, dtoMapper);
+    userService =
+        new UserService(
+            userRepository,
+            roleRepository,
+            passwordEncoder,
+            dtoMapper,
+            schoolClassRepository,
+            courseRepository,
+            classEnrollmentRepository);
   }
 
   // --- helpers ---

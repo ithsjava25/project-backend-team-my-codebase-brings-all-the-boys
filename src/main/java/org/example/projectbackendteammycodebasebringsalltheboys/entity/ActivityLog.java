@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 import jakarta.persistence.*;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
@@ -41,9 +42,9 @@ public class ActivityLog {
 
   private UUID childId;
 
-  @Column(columnDefinition = "jsonb")
   @JdbcTypeCode(SqlTypes.JSON)
-  private Map<String, Object> details;
+  @Column(columnDefinition = "jsonb")
+  private Map<String, Object> details = new HashMap<>();
 
   @Column(nullable = false)
   private LocalDateTime timestamp;

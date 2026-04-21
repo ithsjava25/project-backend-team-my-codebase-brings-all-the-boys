@@ -52,10 +52,24 @@ public class AuthorizationService {
   @Transactional(readOnly = true)
   public boolean canViewAssignment(User user, Assignment assignment) {
     // Surface information logic
-    if (isAdmin(user) || isTeacher(user)) return true;
+    if (isAdmin(user)) return true;
 
     if (assignment.getCreator() != null && assignment.getCreator().getId().equals(user.getId())) {
       return true;
+    }
+
+    if (isTeacher(user)) {
+      if (assignment.getCourse() == null)
+        return true; // Orphan assignments? Allow for now or creator only.
+
+      boolean isLead =
+          assignment.getCourse().getLeadTeacher() != null
+              && assignment.getCourse().getLeadTeacher().getId().equals(user.getId());
+      boolean isAssistant =
+          assignment.getCourse().getAssistants().stream()
+              .anyMatch(a -> a.getId().equals(user.getId()));
+
+      return isLead || isAssistant;
     }
 
     if (assignment.getCourse() != null && assignment.getCourse().getSchoolClass() != null) {
@@ -75,10 +89,20 @@ public class AuthorizationService {
 
   @Transactional(readOnly = true)
   public boolean canModifyAssignment(User user, Assignment assignment) {
-    return isAdmin(user)
-        || isTeacher(user)
-        || (assignment.getCreator() != null
-            && assignment.getCreator().getId().equals(user.getId()));
+    if (isAdmin(user)) return true;
+
+    if (assignment.getCreator() != null && assignment.getCreator().getId().equals(user.getId())) {
+      return true;
+    }
+
+    if (isTeacher(user) && assignment.getCourse() != null) {
+      boolean isLead =
+          assignment.getCourse().getLeadTeacher() != null
+              && assignment.getCourse().getLeadTeacher().getId().equals(user.getId());
+      return isLead;
+    }
+
+    return false;
   }
 
   @Transactional(readOnly = true)

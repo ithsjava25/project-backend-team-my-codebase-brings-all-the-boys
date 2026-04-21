@@ -8,15 +8,16 @@ import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
+import SchoolClassDetailPage from './pages/SchoolClassDetailPage';
 import AssignmentDetailPage from './pages/AssignmentDetailPage';
 import UserCreatePage from './pages/admin/UserCreatePage';
 import UserEditPage from './pages/admin/UserEditPage';
 import CourseCreatePage from './pages/admin/CourseCreatePage';
 import CourseEditPage from './pages/admin/CourseEditPage';
 
-// Admin pages
 import UserManagementPage from './pages/admin/UserManagementPage';
 import CourseManagementPage from './pages/admin/CourseManagementPage';
+import SchoolClassManagementPage from './pages/admin/SchoolClassManagementPage';
 
 export default function App() {
     return (
@@ -42,6 +43,7 @@ export default function App() {
                             >
                                 <Route path="/dashboard" element={<Dashboard/>}/>
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
+                                <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
 
                                 {/* Admin routes - role-gated */}
@@ -62,6 +64,9 @@ export default function App() {
                                     <Route path="courses" element={<CourseManagementPage/>}/>
                                     <Route path="courses/new" element={<CourseCreatePage/>}/>
                                     <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
+
+                                    {/* School Classes */}
+                                    <Route path="school-classes" element={<SchoolClassManagementPage/>}/>
                                 </Route>
                             </Route>
 

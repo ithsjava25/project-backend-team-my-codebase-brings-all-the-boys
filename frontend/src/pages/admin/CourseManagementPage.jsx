@@ -90,6 +90,10 @@ export default function CourseManagementPage() {
         {
             accessorKey: "leadTeacher.username",
             header: "Huvudlärare",
+            cell: ({row}) => {
+                const leadTeacher = row.original.leadTeacher;
+                return leadTeacher ? leadTeacher.username : '-';
+            }
         },
         {
             accessorKey: "endDate",

@@ -21,4 +21,6 @@ public interface ClassEnrollmentRepository extends JpaRepository<ClassEnrollment
   List<ClassEnrollment> findBySchoolClassAndClassRole(SchoolClass schoolClass, ClassRole classRole);
 
   boolean existsByUserAndSchoolClass(User user, SchoolClass schoolClass);
+
+  void deleteByUserId(UUID userId);
 }

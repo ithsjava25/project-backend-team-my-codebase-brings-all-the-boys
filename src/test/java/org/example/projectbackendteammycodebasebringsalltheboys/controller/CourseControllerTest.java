@@ -12,12 +12,12 @@ import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseSurfaceResponse;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
-import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.NoSecurityWebMvcTest; // ✅ RÄTT IMPORT
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.NoSecurityWebMvcTest;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@NoSecurityWebMvcTest(CourseController.class) // ✅ ANVÄND DETTA
+@NoSecurityWebMvcTest(CourseController.class)
 @Import(TestViewConfig.class)
 @ActiveProfiles("test")
 class CourseControllerTest {
@@ -41,6 +41,7 @@ class CourseControllerTest {
   @MockitoBean private CourseService courseService;
   @MockitoBean private DtoMapper dtoMapper;
   @MockitoBean private UserService userService;
+  @MockitoBean private SchoolClassService schoolClassService;
 
   @Test
   @DisplayName("GET /api/courses returns courses for authenticated user")
@@ -48,25 +49,18 @@ class CourseControllerTest {
       username = "student",
       roles = {"STUDENT"})
   void getAccessibleCourses_returnsCourses() throws Exception {
-    Course course1 = new Course();
-    course1.setId(UUID.randomUUID());
-    course1.setName("Java 1");
-
-    Course course2 = new Course();
-    course2.setId(UUID.randomUUID());
-    course2.setName("Math 101");
-
     User mockUser = new User();
     mockUser.setId(UUID.randomUUID());
     mockUser.setUsername("student");
 
-    Page<Course> mockPage = new PageImpl<>(List.of(course1, course2));
+    CourseSurfaceResponse resp1 = createResponse("Java 1");
+    CourseSurfaceResponse resp2 = createResponse("Math 101");
+
+    Page<CourseSurfaceResponse> mockPage = new PageImpl<>(List.of(resp1, resp2));
 
     when(userService.getUserByUsername("student")).thenReturn(Optional.of(mockUser));
-    when(courseService.getAccessibleCourses(eq(mockUser), any(Pageable.class)))
+    when(courseService.getAccessibleCoursesDto(eq(mockUser), any(Pageable.class)))
         .thenReturn(mockPage);
-    when(dtoMapper.toCourseSurfaceResponse(course1)).thenReturn(createResponse("Java 1"));
-    when(dtoMapper.toCourseSurfaceResponse(course2)).thenReturn(createResponse("Math 101"));
 
     mockMvc
         .perform(get("/api/courses"))
@@ -82,17 +76,18 @@ class CourseControllerTest {
       roles = {"TEACHER"})
   void getCourseById_withAccess_returns200() throws Exception {
     UUID id = UUID.randomUUID();
-    Course course = new Course();
-    course.setId(id);
-    course.setName("Physics");
 
     User mockUser = new User();
     mockUser.setId(UUID.randomUUID());
     mockUser.setUsername("teacher");
 
+    CourseDetailResponse detailResp = new CourseDetailResponse();
+    detailResp.setId(id);
+    detailResp.setName("Physics");
+
     when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(mockUser));
-    when(courseService.getAccessibleCourse(eq(id), eq(mockUser))).thenReturn(Optional.of(course));
-    when(dtoMapper.toCourseDetailResponse(course)).thenReturn(new CourseDetailResponse());
+    when(courseService.getAccessibleCourseDto(eq(id), eq(mockUser)))
+        .thenReturn(Optional.of(detailResp));
 
     mockMvc.perform(get("/api/courses/" + id)).andExpect(status().isOk());
   }
@@ -110,7 +105,7 @@ class CourseControllerTest {
     mockUser.setUsername("student");
 
     when(userService.getUserByUsername("student")).thenReturn(Optional.of(mockUser));
-    when(courseService.getAccessibleCourse(eq(id), eq(mockUser))).thenReturn(Optional.empty());
+    when(courseService.getAccessibleCourseDto(eq(id), eq(mockUser))).thenReturn(Optional.empty());
 
     mockMvc.perform(get("/api/courses/" + id)).andExpect(status().isNotFound());
   }

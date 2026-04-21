@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseSurfaceResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
@@ -14,7 +16,10 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivitySt
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +32,9 @@ public class CourseService {
   private final CourseRepository courseRepository;
   private final ActivityLogService activityLogService;
   private final ClassEnrollmentService enrollmentService;
+  private final DtoMapper dtoMapper;
+  private final SchoolClassRepository schoolClassRepository;
+  private final UserRepository userRepository;
 
   @Transactional
   @SuppressWarnings("unused")
@@ -82,6 +90,53 @@ public class CourseService {
             .orElseThrow(() -> new NotFoundException("Course not found"));
     course.setLeadTeacher(newLead);
     courseRepository.save(course);
+  }
+
+  @Transactional
+  public CourseDetailResponse updateCourse(
+      UUID id,
+      org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseUpdateRequest
+          request,
+      User updater) {
+    Course course =
+        courseRepository.findById(id).orElseThrow(() -> new NotFoundException("Course not found"));
+
+    if (request.getName() != null) course.setName(request.getName());
+    if (request.getDescription() != null) course.setDescription(request.getDescription());
+    if (request.getEndDate() != null) course.setEndDate(request.getEndDate());
+
+    if (request.getSchoolClassId() != null) {
+      SchoolClass sc =
+          schoolClassRepository
+              .findById(request.getSchoolClassId())
+              .orElseThrow(() -> new NotFoundException("School Class not found"));
+      course.setSchoolClass(sc);
+    }
+
+    if (request.getLeadTeacherId() != null) {
+      User teacher =
+          userRepository
+              .findById(request.getLeadTeacherId())
+              .orElseThrow(() -> new NotFoundException("Lead Teacher not found"));
+      course.setLeadTeacher(teacher);
+    }
+
+    Course saved = courseRepository.save(course);
+
+    java.util.Map<String, Object> details = new java.util.HashMap<>();
+    details.put("name", saved.getName());
+    details.put("updatedFields", "name,description,endDate,schoolClass,leadTeacher");
+
+    activityLogService.log(
+        updater,
+        saved.getId(),
+        ActivityAction.UPDATED,
+        EntityType.COURSE,
+        null,
+        details,
+        ActivityStatus.SUCCESS);
+
+    return dtoMapper.toCourseDetailResponse(saved);
   }
 
   @Transactional
@@ -157,18 +212,15 @@ public class CourseService {
   }
 
   @Transactional
-  @SuppressWarnings("unused")
-  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.COURSE, actorParamIndex = 1)
-  public Course updateCourse(Course course) {
-    return courseRepository.save(course);
-  }
-
-  @Transactional
-  @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.COURSE, actorParamIndex = 1)
   public void deleteCourse(UUID id, User updater) {
-    if (!courseRepository.existsById(id)) {
-      throw new NotFoundException("Course not found with id: " + id);
-    }
+    Course course =
+        courseRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
+
+    java.util.Map<String, Object> details = new java.util.HashMap<>();
+    details.put("name", course.getName());
+    details.put("deletedCourseId", id.toString());
 
     activityLogService.log(
         updater,
@@ -176,10 +228,22 @@ public class CourseService {
         ActivityAction.DELETED,
         EntityType.COURSE,
         null,
-        Map.of("deletedCourseId", id.toString()),
+        details,
         ActivityStatus.SUCCESS);
 
-    courseRepository.deleteById(id);
+    courseRepository.delete(course);
+  }
+
+  // Filtered course list
+  @Transactional(readOnly = true)
+  public Page<CourseSurfaceResponse> getAccessibleCoursesDto(User user, Pageable pageable) {
+    return getAccessibleCourses(user, pageable).map(dtoMapper::toCourseSurfaceResponse);
+  }
+
+  // Get course if access
+  @Transactional(readOnly = true)
+  public Optional<CourseDetailResponse> getAccessibleCourseDto(UUID id, User user) {
+    return getAccessibleCourse(id, user).map(dtoMapper::toCourseDetailResponse);
   }
 
   // Filtered course list

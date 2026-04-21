@@ -5,15 +5,16 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.*;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.*;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,8 +31,35 @@ public class UserService {
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
-  private final DtoMapper
-      dtoMapper; // Assume DtoMapper is available and has toUserRequest/toUserResponse
+  private final DtoMapper dtoMapper;
+  private final SchoolClassRepository schoolClassRepository;
+  private final CourseRepository courseRepository;
+  private final ClassEnrollmentRepository classEnrollmentRepository;
+
+  @Transactional(readOnly = true)
+  public UserProfileResponse getUserProfile(UUID id) {
+    User user =
+        userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+
+    List<SchoolClass> classes = schoolClassRepository.findByEnrollments_UserId(user.getId());
+
+    // For courses, we need to check lead teacher AND assistants
+    // We'll just fetch all and filter for now, or add a custom query
+    List<Course> courses = new ArrayList<>();
+    if (user.getRole().getName().equals("ROLE_TEACHER")) {
+      courses.addAll(
+          courseRepository.findByLeadTeacherId(user.getId(), Pageable.unpaged()).getContent());
+      courses.addAll(
+          courseRepository.findByAssistantsId(user.getId(), Pageable.unpaged()).getContent());
+    } else if (user.getRole().getName().equals("ROLE_STUDENT")) {
+      courses.addAll(
+          courseRepository.findByEnrollments_UserId(user.getId(), Pageable.unpaged()).getContent());
+    } else if (user.getRole().getName().equals("ROLE_ADMIN")) {
+      courses.addAll(courseRepository.findAll());
+    }
+
+    return dtoMapper.toUserProfileResponse(user, classes, courses);
+  }
 
   @Transactional(readOnly = true)
   public Optional<User> getUserByUsername(String username) {
@@ -188,10 +216,12 @@ public class UserService {
   @Transactional
   @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.USER)
   public void deleteUser(UUID id) {
-    if (!userRepository.existsById(id)) {
-      throw new NotFoundException("User not found with id: " + id);
-    }
-    userRepository.deleteById(id);
+    User user =
+        userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+
+    classEnrollmentRepository.deleteByUserId(id);
+
+    userRepository.delete(user);
   }
 
   @Transactional(readOnly = true)

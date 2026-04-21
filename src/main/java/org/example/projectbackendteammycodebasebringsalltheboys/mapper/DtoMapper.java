@@ -1,6 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.mapper;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
@@ -14,6 +15,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassSurfaceResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ActivityLogResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserProfileResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.*;
 import org.springframework.stereotype.Component;
@@ -91,14 +93,35 @@ public class DtoMapper {
     return response;
   }
 
+  public UserProfileResponse toUserProfileResponse(
+      User user, List<SchoolClass> classes, List<Course> courses) {
+    if (user == null) return null;
+    UserProfileResponse response = new UserProfileResponse();
+    response.setId(user.getId());
+    response.setUsername(user.getUsername());
+    response.setEmail(user.getEmail());
+    response.setRole(toRoleResponse(user.getRole()));
+    response.setClasses(
+        classes != null
+            ? classes.stream().map(this::toSchoolClassSurfaceResponse).collect(Collectors.toList())
+            : Collections.emptyList());
+    response.setCourses(
+        courses != null
+            ? courses.stream().map(this::toCourseSurfaceResponse).collect(Collectors.toList())
+            : Collections.emptyList());
+    return response;
+  }
+
   public CourseSurfaceResponse toCourseSurfaceResponse(Course course) {
     if (course == null) return null;
     CourseSurfaceResponse response = new CourseSurfaceResponse();
     response.setId(course.getId());
     response.setName(course.getName());
+    response.setDescription(course.getDescription());
     if (course.getSchoolClass() != null) {
       response.setSchoolClassName(course.getSchoolClass().getName());
     }
+    response.setLeadTeacher(toUserResponse(course.getLeadTeacher()));
     response.setEndDate(course.getEndDate());
     return response;
   }

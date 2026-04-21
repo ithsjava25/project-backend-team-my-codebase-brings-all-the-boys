@@ -17,6 +17,8 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
   List<Assignment> findByCourse_LeadTeacher_IdAndDeadlineBetween(
       UUID teacherId, LocalDateTime start, LocalDateTime end);
 
+  @org.springframework.data.jpa.repository.Query(
+      "SELECT DISTINCT a FROM Assignment a JOIN a.course c JOIN c.schoolClass sc JOIN sc.enrollments e WHERE e.user.id = :studentId AND a.deadline BETWEEN :start AND :end")
   List<Assignment> findByCourse_SchoolClass_Enrollments_User_IdAndDeadlineBetween(
-      UUID studentId, LocalDateTime start, LocalDateTime end);
+      UUID studentId, java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

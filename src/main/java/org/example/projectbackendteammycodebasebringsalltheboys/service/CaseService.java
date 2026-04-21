@@ -1,16 +1,29 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentUpdateRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.AssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +32,116 @@ import org.springframework.transaction.annotation.Transactional;
 public class CaseService {
 
   private final AssignmentRepository assignmentRepository;
+  private final DtoMapper dtoMapper;
+  private final AuthorizationService authorizationService;
+  private final CourseRepository courseRepository;
+  private final ActivityLogService activityLogService;
+
+  @Transactional
+  public AssignmentDetailResponse createCase(CaseRequest request, User creator) {
+    Assignment assignment = new Assignment();
+    assignment.setTitle(request.getTitle());
+    assignment.setDescription(request.getDescription());
+    assignment.setCreator(creator);
+    assignment.setDeadline(request.getDeadline());
+    assignment.setStatus(AssignmentStatus.OPEN);
+
+    Assignment saved = assignmentRepository.save(assignment);
+    activityLogService.log(
+        creator,
+        saved.getId(),
+        ActivityAction.CREATED,
+        EntityType.ASSIGNMENT,
+        null,
+        Map.of("title", saved.getTitle()),
+        ActivityStatus.SUCCESS);
+
+    return dtoMapper.toAssignmentDetailResponse(saved);
+  }
+
+  @Transactional
+  public AssignmentDetailResponse updateAssignment(
+      UUID id, AssignmentUpdateRequest request, User updater) {
+    Assignment assignment =
+        assignmentRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Assignment not found"));
+
+    if (!authorizationService.canModifyAssignment(updater, assignment)) {
+      throw new ForbiddenException("You do not have permission to modify this assignment");
+    }
+
+    if (request.getTitle() != null) assignment.setTitle(request.getTitle());
+    if (request.getDescription() != null) assignment.setDescription(request.getDescription());
+    if (request.getDeadline() != null) assignment.setDeadline(request.getDeadline());
+    if (request.getStatus() != null) assignment.setStatus(request.getStatus());
+
+    if (request.getCourseId() != null) {
+      Course course =
+          courseRepository
+              .findById(request.getCourseId())
+              .orElseThrow(() -> new NotFoundException("Course not found"));
+
+      if (assignment.getDeadline() != null
+          && course.getEndDate() != null
+          && assignment.getDeadline().isAfter(course.getEndDate())) {
+        throw new BadRequestException("Deadline cannot be after course end date");
+      }
+      assignment.setCourse(course);
+    }
+
+    Assignment saved = assignmentRepository.save(assignment);
+    activityLogService.log(
+        updater,
+        saved.getId(),
+        ActivityAction.UPDATED,
+        EntityType.ASSIGNMENT,
+        null,
+        Map.of(
+            "title", saved.getTitle(), "updatedFields", "title,description,deadline,status,course"),
+        ActivityStatus.SUCCESS);
+
+    return dtoMapper.toAssignmentDetailResponse(saved);
+  }
+
+  @Transactional(readOnly = true)
+  public List<AssignmentResponse> getAccessibleAssignments(User user) {
+    return assignmentRepository.findAll().stream()
+        .filter(a -> authorizationService.canViewAssignment(user, a))
+        .map(dtoMapper::toAssignmentResponse)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<AssignmentDetailResponse> getAccessibleAssignmentDetail(UUID id, User user) {
+    return assignmentRepository
+        .findById(id)
+        .filter(a -> authorizationService.canAccessAssignmentDetails(user, a))
+        .map(dtoMapper::toAssignmentDetailResponse);
+  }
+
+  @Transactional
+  public void deleteAssignment(UUID id, User updater) {
+    Assignment assignment =
+        assignmentRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Assignment not found"));
+
+    if (!authorizationService.canModifyAssignment(updater, assignment)) {
+      throw new ForbiddenException("You do not have permission to delete this assignment");
+    }
+
+    activityLogService.log(
+        updater,
+        assignment.getId(),
+        ActivityAction.DELETED,
+        EntityType.ASSIGNMENT,
+        null,
+        Map.of("title", assignment.getTitle()),
+        ActivityStatus.SUCCESS);
+
+    assignmentRepository.delete(assignment);
+  }
 
   @Transactional
   @LogActivity(

@@ -15,7 +15,10 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolCla
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,12 +32,22 @@ class CourseServiceTest {
   @Mock private CourseRepository courseRepository;
   @Mock private ActivityLogService activityLogService;
   @Mock private ClassEnrollmentService classEnrollmentService;
+  @Mock private DtoMapper dtoMapper;
+  @Mock private SchoolClassRepository schoolClassRepository;
+  @Mock private UserRepository userRepository;
 
   private CourseService courseService;
 
   @BeforeEach
   void setUp() {
-    courseService = new CourseService(courseRepository, activityLogService, classEnrollmentService);
+    courseService =
+        new CourseService(
+            courseRepository,
+            activityLogService,
+            classEnrollmentService,
+            dtoMapper,
+            schoolClassRepository,
+            userRepository);
   }
 
   @Test

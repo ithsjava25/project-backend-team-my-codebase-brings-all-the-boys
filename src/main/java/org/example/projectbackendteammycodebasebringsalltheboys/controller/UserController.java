@@ -28,7 +28,7 @@ public class UserController {
   public ResponseEntity<Page<UserResponse>> getAllUsers(
       @RequestParam(required = false) String search,
       @RequestParam(required = false) String role,
-      Pageable pageable) {
+      @org.springframework.data.web.PageableDefault(sort = "username") Pageable pageable) {
     Page<User> users = userService.searchUsers(search, role, pageable);
     Page<UserResponse> response = users.map(dtoMapper::toUserResponse);
     return ResponseEntity.ok(response);

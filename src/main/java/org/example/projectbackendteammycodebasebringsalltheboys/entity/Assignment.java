@@ -42,4 +42,7 @@ public class Assignment extends BaseEntity {
 
   @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FileMetadata> files = new ArrayList<>();
+
+  @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<UserAssignment> userAssignments = new ArrayList<>();
 }

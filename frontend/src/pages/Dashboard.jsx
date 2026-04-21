@@ -11,6 +11,7 @@ import AdminOverview from '@/components/dashboard/AdminOverview';
 import {ActivityLogView} from '@/components/dashboard/ActivityLogView';
 import {UpcomingDeadlinesView} from '@/components/dashboard/UpcomingDeadlinesView';
 import {PendingSubmissionsView} from '@/components/dashboard/PendingSubmissionsView';
+import SchoolClassListView from '@/components/dashboard/SchoolClassListView';
 import UserManagementPage from './admin/UserManagementPage';
 import {useSearchParams} from "react-router-dom";
 
@@ -27,11 +28,11 @@ export default function Dashboard() {
     const getTabs = () => {
         switch (role) {
             case 'ROLE_ADMIN':
-                return ['overview', 'users', 'activity', 'courses'];
+                return ['overview', 'users', 'activity', 'courses', 'classes'];
             case 'ROLE_TEACHER':
-                return ['overview', 'courses', 'grading'];
+                return ['overview', 'courses', 'grading', 'activity', 'classes'];
             default:
-                return ['overview', 'courses', 'assignments'];
+                return ['overview', 'courses', 'assignments', 'activity', 'classes'];
         }
     };
 
@@ -57,7 +58,8 @@ export default function Dashboard() {
                         value === 'courses' ? 'Mina Kurser' :
                             value === 'grading' ? 'Bedömning' :
                                 value === 'assignments' ? 'Uppgifter' :
-                                    value
+                                    value === 'classes' ? 'Mina Klasser' :
+                                        value
     }));
 
     return (
@@ -123,6 +125,10 @@ export default function Dashboard() {
 
                 <TabsContent value="grading">
                     <PendingSubmissionsView/>
+                </TabsContent>
+
+                <TabsContent value="classes">
+                    <SchoolClassListView/>
                 </TabsContent>
             </Tabs>
         </div>
