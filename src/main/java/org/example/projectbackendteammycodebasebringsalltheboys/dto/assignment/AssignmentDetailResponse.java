@@ -19,6 +19,8 @@ public class AssignmentDetailResponse {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private LocalDateTime deadline;
+  private UUID courseId;
+  private String courseName;
   private List<CommentResponse> comments;
   private List<FileResponse> files; // Assuming FileResponse exists
 }

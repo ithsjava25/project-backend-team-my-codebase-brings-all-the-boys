@@ -5,17 +5,19 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.*;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.*;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,8 +32,52 @@ public class UserService {
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
-  private final DtoMapper
-      dtoMapper; // Assume DtoMapper is available and has toUserRequest/toUserResponse
+  private final DtoMapper dtoMapper;
+  private final SchoolClassRepository schoolClassRepository;
+  private final CourseRepository courseRepository;
+  private final ClassEnrollmentRepository classEnrollmentRepository;
+  private final UserAssignmentRepository userAssignmentRepository;
+  private final SubmissionRepository submissionRepository;
+  private final FileMetadataRepository fileMetadataRepository;
+  private final CommentRepository commentRepository;
+  private final ActivityLogRepository activityLogRepository;
+  private final AuthorizationService authorizationService;
+  private final AssignmentRepository assignmentRepository;
+
+  @Transactional(readOnly = true)
+  public UserProfileResponse getUserProfile(UUID id) {
+    User target =
+        userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+
+    User actor = getCurrentUser();
+
+    if (!authorizationService.canViewUserProfile(actor, target)) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .ForbiddenException("You are not authorized to view this user's profile.");
+    }
+
+    Pageable limit = PageRequest.of(0, 100);
+    List<SchoolClass> classes =
+        schoolClassRepository.findByEnrollments_UserId(target.getId(), limit).getContent();
+
+    // For courses, we need to check lead teacher AND assistants
+    // Use a bounded set to deduplicate and prevent unbounded memory usage
+    Set<Course> uniqueCourses = new LinkedHashSet<>();
+    String roleName = target.getRole() != null ? target.getRole().getName() : "";
+
+    if (roleName.equals("ROLE_TEACHER")) {
+      uniqueCourses.addAll(
+          courseRepository.findByLeadTeacherId(target.getId(), limit).getContent());
+      uniqueCourses.addAll(courseRepository.findByAssistantsId(target.getId(), limit).getContent());
+    } else if (roleName.equals("ROLE_STUDENT")) {
+      uniqueCourses.addAll(
+          courseRepository.findByEnrollments_UserId(target.getId(), limit).getContent());
+    } else if (roleName.equals("ROLE_ADMIN")) {
+      uniqueCourses.addAll(courseRepository.findAll(limit).getContent());
+    }
+
+    return dtoMapper.toUserProfileResponse(target, classes, new ArrayList<>(uniqueCourses));
+  }
 
   @Transactional(readOnly = true)
   public Optional<User> getUserByUsername(String username) {
@@ -188,10 +234,39 @@ public class UserService {
   @Transactional
   @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.USER)
   public void deleteUser(UUID id) {
-    if (!userRepository.existsById(id)) {
-      throw new NotFoundException("User not found with id: " + id);
-    }
-    userRepository.deleteById(id);
+    User user =
+        userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+
+    User actor = getCurrentUser();
+
+    // 1. Delete student-scoped records (Cascade is often LAZY or missing for soft-delete)
+    submissionRepository.deleteByUserAssignment_Student_Id(id);
+    userAssignmentRepository.deleteByStudent_Id(id);
+
+    // 2. Nullify references where the user is an uploader or creator
+    fileMetadataRepository.nullifyUploader(id);
+    assignmentRepository.nullifyCreator(id);
+
+    // 3. Delete comments and activity logs (cleanup redundant trace data)
+    commentRepository.deleteByAuthor_Id(id);
+    activityLogRepository.deleteByUser_Id(id);
+
+    // 4. Handle Course associations
+    courseRepository.nullifyLeadTeacher(id);
+    courseRepository.removeAssistantFromAllCourses(id);
+
+    // 5. Cleanup class enrollments
+    // Manual cleanup is required because @SoftDelete turns deletions into UPDATEs,
+    // which bypasses DDL-level @OnDelete(CASCADE) constraints.
+    classEnrollmentRepository.deleteByUserId(id);
+
+    // 6. Finally soft-delete the user
+    userRepository.delete(user);
+  }
+
+  @Transactional(readOnly = true)
+  public List<User> getUsersByRole(String roleName) {
+    return userRepository.findByRole_Name(roleName);
   }
 
   @Transactional(readOnly = true)

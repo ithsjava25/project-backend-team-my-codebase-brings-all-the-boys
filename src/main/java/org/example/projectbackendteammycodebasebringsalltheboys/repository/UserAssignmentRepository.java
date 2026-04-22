@@ -17,6 +17,9 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
   @EntityGraph(attributePaths = {"assignment", "student"})
   List<UserAssignment> findByStudent(User student);
 
+  @EntityGraph(attributePaths = {"student"})
+  List<UserAssignment> findByAssignment(Assignment assignment);
+
   Optional<UserAssignment> findByAssignmentAndStudent(Assignment assignment, User student);
 
   long countByStatus(StudentAssignmentStatus status);
@@ -31,4 +34,6 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
 
   List<UserAssignment> findByStudentAndAssignmentIn(
       User student, Collection<Assignment> assignments);
+
+  void deleteByStudent_Id(UUID studentId);
 }

@@ -11,7 +11,9 @@ import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,12 +25,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CaseServiceTest {
 
   @Mock private AssignmentRepository assignmentRepository;
+  @Mock private DtoMapper dtoMapper;
+  @Mock private AuthorizationService authorizationService;
+  @Mock private CourseRepository courseRepository;
+  @Mock private ActivityLogService activityLogService;
 
   private CaseService caseService;
 
   @BeforeEach
   void setUp() {
-    caseService = new CaseService(assignmentRepository);
+    caseService =
+        new CaseService(
+            assignmentRepository,
+            dtoMapper,
+            authorizationService,
+            courseRepository,
+            activityLogService);
   }
 
   @Test

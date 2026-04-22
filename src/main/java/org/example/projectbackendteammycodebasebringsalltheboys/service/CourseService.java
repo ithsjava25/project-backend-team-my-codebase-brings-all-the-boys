@@ -6,15 +6,23 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseSurfaceResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,8 +33,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class CourseService {
 
   private final CourseRepository courseRepository;
+  private final AssignmentRepository assignmentRepository;
   private final ActivityLogService activityLogService;
   private final ClassEnrollmentService enrollmentService;
+  private final DtoMapper dtoMapper;
+  private final SchoolClassRepository schoolClassRepository;
+  private final UserRepository userRepository;
+  private final AuthorizationService authorizationService;
 
   @Transactional
   @SuppressWarnings("unused")
@@ -57,6 +70,16 @@ public class CourseService {
     if (schoolClass == null) {
       throw new BadRequestException("SchoolClass cannot be null");
     }
+
+    if (!authorizationService.canCreateCourseInClass(creator, schoolClass)) {
+      throw new ForbiddenException("You are not authorized to create courses in this class.");
+    }
+
+    // Auto-enroll lead teacher if not already in class
+    if (leadTeacher != null && !enrollmentService.isUserInClass(leadTeacher, schoolClass)) {
+      enrollmentService.enrollUser(leadTeacher, schoolClass, ClassRole.TEACHER, creator);
+    }
+
     Course course = new Course();
     course.setName(name);
     course.setDescription(description);
@@ -80,8 +103,107 @@ public class CourseService {
         courseRepository
             .findById(courseId)
             .orElseThrow(() -> new NotFoundException("Course not found"));
+
+    if (!authorizationService.canModifyCourse(updater, course)) {
+      throw new ForbiddenException("You are not authorized to modify this course.");
+    }
+
+    if (!authorizationService.isTeacherOrMentorInClass(newLead, course.getSchoolClass())) {
+      throw new BadRequestException(
+          "Lead teacher must be a teacher or mentor in the school class.");
+    }
+
     course.setLeadTeacher(newLead);
     courseRepository.save(course);
+  }
+
+  @Transactional
+  public CourseDetailResponse updateCourse(
+      UUID id,
+      org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseUpdateRequest
+          request,
+      User updater) {
+    Course course =
+        courseRepository.findById(id).orElseThrow(() -> new NotFoundException("Course not found"));
+
+    if (!authorizationService.canModifyCourse(updater, course)) {
+      throw new ForbiddenException("You are not authorized to modify this course.");
+    }
+
+    java.util.List<String> updatedFields = new java.util.ArrayList<>();
+
+    if (request.getName() != null) {
+      course.setName(request.getName());
+      updatedFields.add("name");
+    }
+    if (request.getDescription() != null) {
+      course.setDescription(request.getDescription());
+      updatedFields.add("description");
+    }
+    if (request.getEndDate() != null) {
+      if (assignmentRepository.existsByCourse_IdAndDeadlineAfter(id, request.getEndDate())) {
+        throw new BadRequestException(
+            "Cannot set course end date before one or more assignment deadlines.");
+      }
+      course.setEndDate(request.getEndDate());
+      updatedFields.add("endDate");
+    }
+
+    if (request.getSchoolClassId() != null) {
+      SchoolClass sc =
+          schoolClassRepository
+              .findById(request.getSchoolClassId())
+              .orElseThrow(() -> new NotFoundException("School Class not found"));
+
+      // Check if user can move course to another class (create permission in target class)
+      if (!course.getSchoolClass().getId().equals(sc.getId())
+          && !authorizationService.canCreateCourseInClass(updater, sc)) {
+        throw new ForbiddenException("You are not authorized to move course to this class.");
+      }
+
+      course.setSchoolClass(sc);
+      updatedFields.add("schoolClass");
+
+      // Verify existing lead teacher is valid for new class,
+      // unless we are also updating the lead teacher in this request.
+      if (request.getLeadTeacherId() == null && course.getLeadTeacher() != null) {
+        if (!authorizationService.isMemberOfClass(course.getLeadTeacher(), sc)) {
+          throw new BadRequestException("Lead teacher must be a member of the school class.");
+        }
+      }
+    }
+
+    if (request.getLeadTeacherId() != null) {
+      User teacher =
+          userRepository
+              .findById(request.getLeadTeacherId())
+              .orElseThrow(() -> new NotFoundException("Lead Teacher not found"));
+
+      // Auto-enroll lead teacher if not already in class
+      if (!enrollmentService.isUserInClass(teacher, course.getSchoolClass())) {
+        enrollmentService.enrollUser(teacher, course.getSchoolClass(), ClassRole.TEACHER, updater);
+      }
+
+      course.setLeadTeacher(teacher);
+      updatedFields.add("leadTeacher");
+    }
+
+    Course saved = courseRepository.save(course);
+
+    java.util.Map<String, Object> details = new java.util.HashMap<>();
+    details.put("name", saved.getName());
+    details.put("updatedFields", String.join(",", updatedFields));
+
+    activityLogService.log(
+        updater,
+        saved.getId(),
+        ActivityAction.UPDATED,
+        EntityType.COURSE,
+        null,
+        details,
+        ActivityStatus.SUCCESS);
+
+    return dtoMapper.toCourseDetailResponse(saved);
   }
 
   @Transactional
@@ -157,18 +279,19 @@ public class CourseService {
   }
 
   @Transactional
-  @SuppressWarnings("unused")
-  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.COURSE, actorParamIndex = 1)
-  public Course updateCourse(Course course) {
-    return courseRepository.save(course);
-  }
-
-  @Transactional
-  @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.COURSE, actorParamIndex = 1)
   public void deleteCourse(UUID id, User updater) {
-    if (!courseRepository.existsById(id)) {
-      throw new NotFoundException("Course not found with id: " + id);
+    Course course =
+        courseRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
+
+    if (!authorizationService.canModifyCourse(updater, course)) {
+      throw new ForbiddenException("You are not authorized to delete this course.");
     }
+
+    java.util.Map<String, Object> details = new java.util.HashMap<>();
+    details.put("name", course.getName());
+    details.put("deletedCourseId", id.toString());
 
     activityLogService.log(
         updater,
@@ -176,10 +299,22 @@ public class CourseService {
         ActivityAction.DELETED,
         EntityType.COURSE,
         null,
-        Map.of("deletedCourseId", id.toString()),
+        details,
         ActivityStatus.SUCCESS);
 
-    courseRepository.deleteById(id);
+    courseRepository.delete(course);
+  }
+
+  // Filtered course list
+  @Transactional(readOnly = true)
+  public Page<CourseSurfaceResponse> getAccessibleCoursesDto(User user, Pageable pageable) {
+    return getAccessibleCourses(user, pageable).map(dtoMapper::toCourseSurfaceResponse);
+  }
+
+  // Get course if access
+  @Transactional(readOnly = true)
+  public Optional<CourseDetailResponse> getAccessibleCourseDto(UUID id, User user) {
+    return getAccessibleCourse(id, user).map(dtoMapper::toCourseDetailResponse);
   }
 
   // Filtered course list
@@ -223,8 +358,7 @@ public class CourseService {
   }
 
   private Page<Course> getTeacherCourses(User teacher, Pageable pageable) {
-    // TODO: Merge with assistants - for now just return lead courses
-    return courseRepository.findByLeadTeacherId(teacher.getId(), pageable);
+    return courseRepository.findAccessibleByTeacher(teacher.getId(), pageable);
   }
 
   private boolean hasAccess(Course course, User user) {
@@ -240,6 +374,7 @@ public class CourseService {
         return isLead || isAssistant;
       }
       case "ROLE_STUDENT" -> {
+        if (course.getSchoolClass() == null) return false;
         return enrollmentService.isUserInClass(user, course.getSchoolClass());
       }
     }

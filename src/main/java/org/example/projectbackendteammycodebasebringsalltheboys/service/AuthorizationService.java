@@ -1,9 +1,13 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.stereotype.Service;
@@ -15,6 +19,46 @@ public class AuthorizationService {
 
   private final UserAssignmentRepository userAssignmentRepository;
   private final ClassEnrollmentRepository classEnrollmentRepository;
+
+  @Transactional(readOnly = true)
+  public boolean isMemberOfClass(User user, SchoolClass schoolClass) {
+    if (isAdmin(user)) return true;
+    return classEnrollmentRepository.existsByUserAndSchoolClass(user, schoolClass);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean isTeacherOrMentorInClass(User user, SchoolClass schoolClass) {
+    if (isAdmin(user)) return true;
+    return classEnrollmentRepository.existsByUserAndSchoolClassAndClassRoleIn(
+        user, schoolClass, List.of(ClassRole.TEACHER, ClassRole.MENTOR));
+  }
+
+  @Transactional(readOnly = true)
+  public boolean canCreateCourseInClass(User user, SchoolClass schoolClass) {
+    if (isAdmin(user)) return true;
+    // Require a TEACHER or MENTOR enrollment in the class to create a course
+    return isTeacher(user) && isTeacherOrMentorInClass(user, schoolClass);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean canModifyCourse(User user, Course course) {
+    if (isAdmin(user)) return true;
+    if (!isTeacher(user)) return false;
+
+    boolean isLead =
+        course.getLeadTeacher() != null && course.getLeadTeacher().getId().equals(user.getId());
+    // Assistants might be allowed to modify some aspects, but usually lead or admin
+    return isLead;
+  }
+
+  @Transactional(readOnly = true)
+  public boolean canViewUserProfile(User actor, User target) {
+    if (isAdmin(actor)) return true;
+    if (actor.getId().equals(target.getId())) return true;
+
+    // Check if they share any classes
+    return classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId());
+  }
 
   @Transactional(readOnly = true)
   public boolean canAccessCase(User user, Assignment assignment) {
@@ -52,10 +96,24 @@ public class AuthorizationService {
   @Transactional(readOnly = true)
   public boolean canViewAssignment(User user, Assignment assignment) {
     // Surface information logic
-    if (isAdmin(user) || isTeacher(user)) return true;
+    if (isAdmin(user)) return true;
 
     if (assignment.getCreator() != null && assignment.getCreator().getId().equals(user.getId())) {
       return true;
+    }
+
+    if (isTeacher(user)) {
+      if (assignment.getCourse() == null)
+        return false; // Orphan assignments: only creator or admin (checked above)
+
+      boolean isLead =
+          assignment.getCourse().getLeadTeacher() != null
+              && assignment.getCourse().getLeadTeacher().getId().equals(user.getId());
+      boolean isAssistant =
+          assignment.getCourse().getAssistants().stream()
+              .anyMatch(a -> a.getId().equals(user.getId()));
+
+      return isLead || isAssistant;
     }
 
     if (assignment.getCourse() != null && assignment.getCourse().getSchoolClass() != null) {
@@ -75,10 +133,20 @@ public class AuthorizationService {
 
   @Transactional(readOnly = true)
   public boolean canModifyAssignment(User user, Assignment assignment) {
-    return isAdmin(user)
-        || isTeacher(user)
-        || (assignment.getCreator() != null
-            && assignment.getCreator().getId().equals(user.getId()));
+    if (isAdmin(user)) return true;
+
+    if (assignment.getCreator() != null && assignment.getCreator().getId().equals(user.getId())) {
+      return true;
+    }
+
+    if (isTeacher(user) && assignment.getCourse() != null) {
+      boolean isLead =
+          assignment.getCourse().getLeadTeacher() != null
+              && assignment.getCourse().getLeadTeacher().getId().equals(user.getId());
+      return isLead;
+    }
+
+    return false;
   }
 
   @Transactional(readOnly = true)

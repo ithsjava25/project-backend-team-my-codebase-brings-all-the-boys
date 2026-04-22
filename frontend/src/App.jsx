@@ -8,15 +8,20 @@ import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
+import SchoolClassDetailPage from './pages/SchoolClassDetailPage';
 import AssignmentDetailPage from './pages/AssignmentDetailPage';
+import AssignmentCreatePage from './pages/AssignmentCreatePage';
+import AssignmentGradingPage from './pages/AssignmentGradingPage';
 import UserCreatePage from './pages/admin/UserCreatePage';
 import UserEditPage from './pages/admin/UserEditPage';
 import CourseCreatePage from './pages/admin/CourseCreatePage';
 import CourseEditPage from './pages/admin/CourseEditPage';
 
-// Admin pages
 import UserManagementPage from './pages/admin/UserManagementPage';
 import CourseManagementPage from './pages/admin/CourseManagementPage';
+import SchoolClassManagementPage from './pages/admin/SchoolClassManagementPage';
+import SchoolClassCreatePage from './pages/admin/SchoolClassCreatePage';
+import SchoolClassEditPage from './pages/admin/SchoolClassEditPage';
 
 export default function App() {
     return (
@@ -42,26 +47,27 @@ export default function App() {
                             >
                                 <Route path="/dashboard" element={<Dashboard/>}/>
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
+                                <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreatePage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
+                                <Route path="/assignments/:assignmentId/grade/:studentId" element={<AssignmentGradingPage/>}/>
+                                <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
 
-                                {/* Admin routes - role-gated */}
-                                <Route
-                                    path="admin/*"
-                                    element={
-                                        <ProtectedRoute requiredRole="ROLE_ADMIN">
-                                            <Outlet/>
-                                        </ProtectedRoute>
-                                    }
-                                >
-                                    {/* Users */}
-                                    <Route path="users" element={<UserManagementPage/>}/>
-                                    <Route path="users/new" element={<UserCreatePage/>}/>
-                                    <Route path="users/:id/edit" element={<UserEditPage/>}/>
-
-                                    {/* Courses */}
-                                    <Route path="courses" element={<CourseManagementPage/>}/>
+                                {/* Admin-prefixed routes */}
+                                <Route path="admin">
+                                    {/* Shared (Teacher + Admin) */}
                                     <Route path="courses/new" element={<CourseCreatePage/>}/>
                                     <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
+
+                                    {/* Strictly Admin */}
+                                    <Route element={<ProtectedRoute requiredRole="ROLE_ADMIN"><Outlet/></ProtectedRoute>}>
+                                        <Route path="users" element={<UserManagementPage/>}/>
+                                        <Route path="users/new" element={<UserCreatePage/>}/>
+                                        <Route path="users/:id/edit" element={<UserEditPage/>}/>
+                                        <Route path="courses" element={<CourseManagementPage/>}/>
+                                        <Route path="school-classes" element={<SchoolClassManagementPage/>}/>
+                                        <Route path="school-classes/new" element={<SchoolClassCreatePage/>}/>
+                                        <Route path="school-classes/:id/edit" element={<SchoolClassEditPage/>}/>
+                                    </Route>
                                 </Route>
                             </Route>
 

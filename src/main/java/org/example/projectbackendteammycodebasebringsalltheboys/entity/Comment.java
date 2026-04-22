@@ -1,6 +1,8 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,4 +26,7 @@ public class Comment extends BaseEntity {
 
   @Column(nullable = false, columnDefinition = "TEXT")
   private String text;
+
+  @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<FileMetadata> files = new ArrayList<>();
 }

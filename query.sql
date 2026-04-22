@@ -2,6 +2,12 @@
 -- TEST QUERIES FOR SCHOOL PORTAL DATABASE
 -- ==========================================
 
+SELECT *
+FROM class_enrollments
+WHERE user_id NOT IN (SELECT id
+                      FROM users
+                      WHERE deleted = false);
+
 -- 1. Check if roles were created (by data.sql)
 SELECT *
 FROM roles;

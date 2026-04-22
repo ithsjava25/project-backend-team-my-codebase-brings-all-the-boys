@@ -177,6 +177,7 @@ public class DataSeeder implements CommandLineRunner {
               course.setDescription(description);
               course.setSchoolClass(schoolClass);
               course.setLeadTeacher(leadTeacher);
+              course.setEndDate(java.time.LocalDateTime.now().plusYears(1));
               return courseRepository.save(course);
             });
   }

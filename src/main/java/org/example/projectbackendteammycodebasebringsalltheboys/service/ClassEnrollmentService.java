@@ -62,6 +62,33 @@ public class ClassEnrollmentService {
     return saved;
   }
 
+  @Transactional
+  public void removeEnrollment(SchoolClass schoolClass, User user, User actor) {
+    boolean exists = enrollmentRepository.existsByUserAndSchoolClass(user, schoolClass);
+
+    if (!exists) {
+      activityLogService.log(
+          actor,
+          schoolClass.getId(),
+          ActivityAction.REMOVED,
+          EntityType.CLASS_ENROLLMENT,
+          null,
+          Map.of("removedUser", user.getUsername()),
+          ActivityStatus.FAILED);
+      return;
+    }
+
+    enrollmentRepository.deleteBySchoolClassAndUser(schoolClass, user);
+    activityLogService.log(
+        actor,
+        schoolClass.getId(),
+        ActivityAction.REMOVED,
+        EntityType.CLASS_ENROLLMENT,
+        null,
+        Map.of("removedUser", user.getUsername()),
+        ActivityStatus.SUCCESS);
+  }
+
   @Transactional(readOnly = true)
   public List<ClassEnrollment> getEnrollmentsByClass(SchoolClass schoolClass) {
     return enrollmentRepository.findBySchoolClass(schoolClass);

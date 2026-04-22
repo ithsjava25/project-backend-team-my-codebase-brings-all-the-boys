@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
   List<Submission> findByUserAssignment(UserAssignment userAssignment);
+
+  void deleteByUserAssignment_Student_Id(UUID studentId);
 }

@@ -10,11 +10,18 @@ export function useAuth() {
         return client.get('/auth/me')
             .then(res => setUser(res.data))
             .catch((error) => {
-                if (error.response?.status === 401 || error.response?.status === 403) {
+                const status = error.response?.status;
+                // 401/403 means not logged in
+                // 502/503/504 often means backend is still starting up in dev
+                if (status === 401 || status === 403 || status === 502 || status === 503 || status === 504) {
                     setUser(null);
+                    if (status >= 500) {
+                        console.warn("Backend might be starting up or temporarily unavailable...");
+                    }
                     return;
                 }
-                throw error;
+                console.error("Authentication check failed:", error);
+                setUser(null);
             })
             .finally(() => setLoading(false));
     }, []);

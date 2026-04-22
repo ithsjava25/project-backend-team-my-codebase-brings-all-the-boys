@@ -21,4 +21,15 @@ public interface ClassEnrollmentRepository extends JpaRepository<ClassEnrollment
   List<ClassEnrollment> findBySchoolClassAndClassRole(SchoolClass schoolClass, ClassRole classRole);
 
   boolean existsByUserAndSchoolClass(User user, SchoolClass schoolClass);
+
+  boolean existsByUserAndSchoolClassAndClassRoleIn(
+      User user, SchoolClass schoolClass, List<ClassRole> roles);
+
+  @org.springframework.data.jpa.repository.Query(
+      "SELECT count(e1) > 0 FROM ClassEnrollment e1 JOIN ClassEnrollment e2 ON e1.schoolClass = e2.schoolClass WHERE e1.user.id = :userId1 AND e2.user.id = :userId2")
+  boolean hasSharedSchoolClass(UUID userId1, UUID userId2);
+
+  void deleteBySchoolClassAndUser(SchoolClass schoolClass, User user);
+
+  void deleteByUserId(UUID userId);
 }

@@ -15,7 +15,11 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolCla
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,12 +33,26 @@ class CourseServiceTest {
   @Mock private CourseRepository courseRepository;
   @Mock private ActivityLogService activityLogService;
   @Mock private ClassEnrollmentService classEnrollmentService;
+  @Mock private DtoMapper dtoMapper;
+  @Mock private SchoolClassRepository schoolClassRepository;
+  @Mock private UserRepository userRepository;
+  @Mock private AuthorizationService authorizationService;
+  @Mock private AssignmentRepository assignmentRepository;
 
   private CourseService courseService;
 
   @BeforeEach
   void setUp() {
-    courseService = new CourseService(courseRepository, activityLogService, classEnrollmentService);
+    courseService =
+        new CourseService(
+            courseRepository,
+            assignmentRepository,
+            activityLogService,
+            classEnrollmentService,
+            dtoMapper,
+            schoolClassRepository,
+            userRepository,
+            authorizationService);
   }
 
   @Test
@@ -54,6 +72,7 @@ class CourseServiceTest {
     SchoolClass schoolClass = new SchoolClass();
     User leadTeacher = new User();
     User creator = new User();
+    when(authorizationService.canCreateCourseInClass(any(), any())).thenReturn(true);
     when(courseRepository.save(any(Course.class))).thenAnswer(inv -> inv.getArgument(0));
 
     Course result =
@@ -75,8 +94,11 @@ class CourseServiceTest {
     updater.setId(UUID.randomUUID());
     Course course = new Course();
     course.setId(courseId);
+    course.setSchoolClass(new SchoolClass());
 
     when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
+    when(authorizationService.canModifyCourse(any(), any())).thenReturn(true);
+    when(authorizationService.isTeacherOrMentorInClass(any(), any())).thenReturn(true);
 
     courseService.updateLeadTeacher(courseId, newLead, updater);
 

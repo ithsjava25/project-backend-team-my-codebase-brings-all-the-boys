@@ -28,4 +28,14 @@ export const userApi = {
     deleteUser: async (id) => {
         await client.delete(`/admin/users/${id}`);
     },
+
+    getTeachers: async () => {
+        const response = await client.get('/users/teachers');
+        return response.data;
+    },
+
+    getStudents: async () => {
+        const response = await client.get('/users/students');
+        return response.data;
+    },
 };

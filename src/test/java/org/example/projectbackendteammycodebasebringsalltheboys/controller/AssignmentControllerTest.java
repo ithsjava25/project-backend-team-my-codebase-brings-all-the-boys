@@ -8,8 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentResponse;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseResponse;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
@@ -54,15 +52,10 @@ class AssignmentControllerTest {
     admin.setUsername("admin");
     admin.setRole(new Role("ROLE_ADMIN"));
 
-    Assignment assignment = new Assignment();
-    assignment.setId(UUID.randomUUID());
-
     AssignmentResponse response = Mockito.mock(AssignmentResponse.class);
 
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
-    Mockito.when(caseService.getAllCases()).thenReturn(List.of(assignment));
-    Mockito.when(authorizationService.canViewAssignment(admin, assignment)).thenReturn(true);
-    Mockito.when(dtoMapper.toAssignmentResponse(assignment)).thenReturn(response);
+    Mockito.when(caseService.getAccessibleAssignments(admin)).thenReturn(List.of(response));
 
     mockMvc.perform(get("/api/assignments")).andExpect(status().isOk());
   }
@@ -76,15 +69,10 @@ class AssignmentControllerTest {
     student.setUsername("student");
     student.setRole(new Role("ROLE_STUDENT"));
 
-    Assignment assignment = new Assignment();
-    assignment.setId(UUID.randomUUID());
-
     AssignmentResponse response = Mockito.mock(AssignmentResponse.class);
 
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
-    Mockito.when(caseService.getAllCases()).thenReturn(List.of(assignment));
-    Mockito.when(authorizationService.canViewAssignment(student, assignment)).thenReturn(true);
-    Mockito.when(dtoMapper.toAssignmentResponse(assignment)).thenReturn(response);
+    Mockito.when(caseService.getAccessibleAssignments(student)).thenReturn(List.of(response));
 
     mockMvc.perform(get("/api/assignments")).andExpect(status().isOk());
   }
@@ -100,16 +88,11 @@ class AssignmentControllerTest {
     student.setUsername("student");
     student.setRole(new Role("ROLE_STUDENT"));
 
-    Assignment assignment = new Assignment();
-    assignment.setId(id);
-
     AssignmentDetailResponse response = Mockito.mock(AssignmentDetailResponse.class);
 
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
-    Mockito.when(caseService.getCaseById(id)).thenReturn(Optional.of(assignment));
-    Mockito.when(authorizationService.canAccessAssignmentDetails(student, assignment))
-        .thenReturn(true);
-    Mockito.when(dtoMapper.toAssignmentDetailResponse(assignment)).thenReturn(response);
+    Mockito.when(caseService.getAccessibleAssignmentDetail(id, student))
+        .thenReturn(Optional.of(response));
 
     mockMvc.perform(get("/api/assignments/{id}", id)).andExpect(status().isOk());
   }
@@ -125,16 +108,11 @@ class AssignmentControllerTest {
     user.setUsername("user");
     user.setRole(new Role("ROLE_USER"));
 
-    Assignment assignment = new Assignment();
-    assignment.setId(id);
-
     AssignmentDetailResponse response = Mockito.mock(AssignmentDetailResponse.class);
 
     Mockito.when(userService.getUserByUsername("user")).thenReturn(Optional.of(user));
-    Mockito.when(caseService.getCaseById(id)).thenReturn(Optional.of(assignment));
-    Mockito.when(authorizationService.canAccessAssignmentDetails(user, assignment))
-        .thenReturn(true);
-    Mockito.when(dtoMapper.toAssignmentDetailResponse(assignment)).thenReturn(response);
+    Mockito.when(caseService.getAccessibleAssignmentDetail(id, user))
+        .thenReturn(Optional.of(response));
 
     mockMvc.perform(get("/api/assignments/{id}", id)).andExpect(status().isOk());
   }
@@ -148,10 +126,14 @@ class AssignmentControllerTest {
     teacher.setUsername("teacher");
     teacher.setRole(new Role("ROLE_TEACHER"));
 
-    Assignment assignment = new Assignment();
+    org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment assignment =
+        new org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment();
     assignment.setId(UUID.randomUUID());
 
-    CaseResponse response = Mockito.mock(CaseResponse.class);
+    org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseResponse response =
+        Mockito.mock(
+            org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseResponse
+                .class);
 
     Mockito.when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(teacher));
     Mockito.when(caseService.getCasesByCreator(teacher)).thenReturn(List.of(assignment));

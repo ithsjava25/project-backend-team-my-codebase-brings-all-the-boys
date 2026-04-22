@@ -8,6 +8,7 @@ import static org.mockito.Mockito.*;
 import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,12 +21,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SchoolClassServiceTest {
 
   @Mock private SchoolClassRepository schoolClassRepository;
+  @Mock private DtoMapper dtoMapper;
 
   private SchoolClassService schoolClassService;
 
   @BeforeEach
   void setUp() {
-    schoolClassService = new SchoolClassService(schoolClassRepository);
+    schoolClassService = new SchoolClassService(schoolClassRepository, dtoMapper);
   }
 
   @Test

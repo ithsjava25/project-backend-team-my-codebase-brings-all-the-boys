@@ -11,8 +11,11 @@ import AdminOverview from '@/components/dashboard/AdminOverview';
 import {ActivityLogView} from '@/components/dashboard/ActivityLogView';
 import {UpcomingDeadlinesView} from '@/components/dashboard/UpcomingDeadlinesView';
 import {PendingSubmissionsView} from '@/components/dashboard/PendingSubmissionsView';
+import SchoolClassListView from '@/components/dashboard/SchoolClassListView';
 import UserManagementPage from './admin/UserManagementPage';
-import {useSearchParams} from "react-router-dom";
+import {useSearchParams, useNavigate} from "react-router-dom";
+import {PlusCircle} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 
 export default function Dashboard() {
     const {user} = useAuthContext();
@@ -20,6 +23,7 @@ export default function Dashboard() {
     const {assignments, error: assignmentsError} = useAssignments();
 
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     const role = user?.role?.name;
 
@@ -27,11 +31,11 @@ export default function Dashboard() {
     const getTabs = () => {
         switch (role) {
             case 'ROLE_ADMIN':
-                return ['overview', 'users', 'activity', 'courses'];
+                return ['overview', 'users', 'activity', 'courses', 'classes'];
             case 'ROLE_TEACHER':
-                return ['overview', 'courses', 'grading'];
+                return ['overview', 'courses', 'grading', 'activity', 'classes'];
             default:
-                return ['overview', 'courses', 'assignments'];
+                return ['overview', 'courses', 'assignments', 'activity', 'classes'];
         }
     };
 
@@ -57,7 +61,8 @@ export default function Dashboard() {
                         value === 'courses' ? 'Mina Kurser' :
                             value === 'grading' ? 'Bedömning' :
                                 value === 'assignments' ? 'Uppgifter' :
-                                    value
+                                    value === 'classes' ? 'Mina Klasser' :
+                                        value
     }));
 
     return (
@@ -91,7 +96,15 @@ export default function Dashboard() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="courses">
+                <TabsContent value="courses" className="space-y-4">
+                    {role === 'ROLE_TEACHER' && (
+                        <div className="flex justify-end">
+                            <Button onClick={() => navigate('/admin/courses/new')} className="gap-2">
+                                <PlusCircle className="h-4 w-4"/>
+                                Ny kurs
+                            </Button>
+                        </div>
+                    )}
                     {coursesError ? (
                         <p className="text-destructive">Fel: {coursesError}</p>
                     ) : (
@@ -123,6 +136,10 @@ export default function Dashboard() {
 
                 <TabsContent value="grading">
                     <PendingSubmissionsView/>
+                </TabsContent>
+
+                <TabsContent value="classes">
+                    <SchoolClassListView/>
                 </TabsContent>
             </Tabs>
         </div>

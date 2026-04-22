@@ -9,5 +9,10 @@ export const assignmentApi = {
   getAssignmentById: async (id) => {
     const response = await client.get(`/assignments/${id}`);
     return response.data;
-  },
-};
+    },
+
+    createAssignment: async (assignmentData) => {
+    const response = await client.post('/assignments', assignmentData);
+    return response.data;
+    },
+    };

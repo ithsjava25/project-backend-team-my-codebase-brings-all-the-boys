@@ -75,6 +75,14 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
         const type = log.entityType || 'POST';
         const details = log.details || {};
 
+        const typeMap = {
+            ASSIGNMENT: "uppgift",
+            COURSE: "kurs",
+            STUDENT: "elev",
+            TEACHER: "lärare",
+            CLASS: "klass",
+        };
+
         switch (action) {
             case 'LOGIN':
                 return 'loggade in';
@@ -90,7 +98,11 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
                 if (type === 'USER') return `uppdaterade användaren "${details.username || 'okänd'}"`;
                 return `uppdaterade ${type.toLowerCase()}`;
             case 'DELETED':
-                return `tog bort ${type.toLowerCase()}`;
+                return `tog bort ${
+                    (
+                        typeMap[type.toUpperCase()] || type
+                    ).toLowerCase()
+                }`;
             case 'ADDED':
                 if (type === 'COMMENT') return `kommenterade på "${details.assignmentTitle || 'en uppgift'}"`;
                 if (type === 'FILE') return `laddade upp filen "${details.fileName || 'okänd'}"`;

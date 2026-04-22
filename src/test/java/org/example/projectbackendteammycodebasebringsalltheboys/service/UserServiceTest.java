@@ -10,8 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.Externa
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.RoleRepository;
-import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,18 +24,40 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 class UserServiceTest {
 
   @Mock private UserRepository userRepository;
-
   @Mock private RoleRepository roleRepository;
-
   @Mock private PasswordEncoder passwordEncoder;
-
   @Mock private DtoMapper dtoMapper;
+  @Mock private SchoolClassRepository schoolClassRepository;
+  @Mock private CourseRepository courseRepository;
+  @Mock private ClassEnrollmentRepository classEnrollmentRepository;
+  @Mock private AuthorizationService authorizationService;
+  @Mock private UserAssignmentRepository userAssignmentRepository;
+  @Mock private SubmissionRepository submissionRepository;
+  @Mock private FileMetadataRepository fileMetadataRepository;
+  @Mock private ActivityLogRepository activityLogRepository;
+  @Mock private AssignmentRepository assignmentRepository;
+  @Mock private CommentRepository commentRepository;
 
   private UserService userService;
 
   @BeforeEach
   void setUp() {
-    userService = new UserService(userRepository, roleRepository, passwordEncoder, dtoMapper);
+    userService =
+        new UserService(
+            userRepository,
+            roleRepository,
+            passwordEncoder,
+            dtoMapper,
+            schoolClassRepository,
+            courseRepository,
+            classEnrollmentRepository,
+            userAssignmentRepository,
+            submissionRepository,
+            fileMetadataRepository,
+            commentRepository,
+            activityLogRepository,
+            authorizationService,
+            assignmentRepository);
   }
 
   // --- helpers ---
