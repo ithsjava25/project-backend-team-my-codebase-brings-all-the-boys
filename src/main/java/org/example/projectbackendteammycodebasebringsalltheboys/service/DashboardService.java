@@ -76,6 +76,7 @@ public class DashboardService {
                     .userAssignmentId(ua.getId())
                     .assignmentId(ua.getAssignment().getId())
                     .assignmentTitle(ua.getAssignment().getTitle())
+                    .studentId(ua.getStudent().getId())
                     .studentName(ua.getStudent().getUsername())
                     .submittedAt(
                         ua.getTurnedInAt() != null

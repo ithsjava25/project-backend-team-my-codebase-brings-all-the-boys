@@ -111,7 +111,8 @@ export default function CourseCreatePage() {
         try {
             const submissionData = {
                 ...form,
-                leadTeacherId: form.leadTeacherId === 'none' ? null : form.leadTeacherId
+                leadTeacherId: form.leadTeacherId === 'none' || form.leadTeacherId === '' ? null : form.leadTeacherId,
+                endDate: form.endDate === '' ? null : form.endDate
             };
             
             await courseApi.createCourse(submissionData);
@@ -126,6 +127,22 @@ export default function CourseCreatePage() {
     };
 
     if (loading) return <div className="p-8 text-center">Laddar...</div>;
+
+    if (error) {
+        return (
+            <div className="p-8 max-w-2xl mx-auto">
+                <Card className="border-destructive">
+                    <CardHeader>
+                        <CardTitle className="text-destructive text-center">Ett fel uppstod</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center space-y-4">
+                        <p>{error}</p>
+                        <Button onClick={() => window.location.reload()}>Försök igen</Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8">

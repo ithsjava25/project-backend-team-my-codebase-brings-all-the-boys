@@ -15,6 +15,7 @@ export default function AssignmentCreatePage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const [form, setForm] = useState({
         title: '',
@@ -25,6 +26,7 @@ export default function AssignmentCreatePage() {
 
     useEffect(() => {
         if (!courseId) {
+            setError('Missing courseId');
             setLoading(false);
             return;
         }
@@ -35,6 +37,7 @@ export default function AssignmentCreatePage() {
                 setCourse(data);
             } catch (err) {
                 console.error('Failed to fetch course:', err);
+                setError('Kunde inte hämta kursinformation.');
             } finally {
                 setLoading(false);
             }
@@ -45,7 +48,7 @@ export default function AssignmentCreatePage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isSubmitting) return;
+        if (isSubmitting || !courseId) return;
 
         setIsSubmitting(true);
         try {
@@ -61,6 +64,17 @@ export default function AssignmentCreatePage() {
     };
 
     if (loading) return <div className="p-8 text-center">Laddar...</div>;
+    
+    if (error) {
+        return (
+            <div className="p-8 text-center">
+                <p className="text-destructive mb-4">{error}</p>
+                <Button onClick={() => navigate(-1)}>Gå tillbaka</Button>
+            </div>
+        );
+    }
+
+    if (!course) return <div className="p-8 text-center">Kursen hittades inte.</div>;
 
     return (
         <div className="p-8">

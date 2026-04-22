@@ -56,12 +56,13 @@ public class UserService {
           .ForbiddenException("You are not authorized to view this user's profile.");
     }
 
-    List<SchoolClass> classes = schoolClassRepository.findByEnrollments_UserId(target.getId());
+    Pageable limit = PageRequest.of(0, 100);
+    List<SchoolClass> classes =
+        schoolClassRepository.findByEnrollments_UserId(target.getId(), limit).getContent();
 
     // For courses, we need to check lead teacher AND assistants
     // Use a bounded set to deduplicate and prevent unbounded memory usage
     Set<Course> uniqueCourses = new LinkedHashSet<>();
-    Pageable limit = PageRequest.of(0, 100);
     String roleName = target.getRole() != null ? target.getRole().getName() : "";
 
     if (roleName.equals("ROLE_TEACHER")) {

@@ -10,6 +10,7 @@ import lombok.Data;
 public class PendingSubmissionDTO {
   private UUID userAssignmentId;
   private String assignmentTitle;
+  private UUID studentId;
   private String studentName;
   private Instant submittedAt;
   private UUID courseId;

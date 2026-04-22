@@ -111,7 +111,8 @@ export default function CourseEditPage() {
         try {
             const submissionData = {
                 ...form,
-                leadTeacherId: form.leadTeacherId === 'none' ? null : form.leadTeacherId
+                leadTeacherId: form.leadTeacherId === 'none' || form.leadTeacherId === '' ? null : form.leadTeacherId,
+                endDate: form.endDate === '' ? null : form.endDate
             };
             await courseApi.updateCourse(id, submissionData);
             alert('Kursen har uppdaterats!');

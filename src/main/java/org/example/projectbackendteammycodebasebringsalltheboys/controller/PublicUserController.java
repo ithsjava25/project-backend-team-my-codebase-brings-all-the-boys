@@ -9,6 +9,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserRes
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,7 @@ public class PublicUserController {
   private final DtoMapper dtoMapper;
 
   @GetMapping("/teachers")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
   public ResponseEntity<List<UserResponse>> getTeachers() {
     return ResponseEntity.ok(
         userService.getUsersByRole("ROLE_TEACHER").stream()
@@ -31,6 +33,7 @@ public class PublicUserController {
   }
 
   @GetMapping("/students")
+  @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
   public ResponseEntity<List<UserResponse>> getStudents() {
     return ResponseEntity.ok(
         userService.getUsersByRole("ROLE_STUDENT").stream()

@@ -64,6 +64,20 @@ public class ClassEnrollmentService {
 
   @Transactional
   public void removeEnrollment(SchoolClass schoolClass, User user, User actor) {
+    boolean exists = enrollmentRepository.existsByUserAndSchoolClass(user, schoolClass);
+
+    if (!exists) {
+      activityLogService.log(
+          actor,
+          schoolClass.getId(),
+          ActivityAction.REMOVED,
+          EntityType.CLASS_ENROLLMENT,
+          null,
+          Map.of("removedUser", user.getUsername()),
+          ActivityStatus.FAILED);
+      return;
+    }
+
     enrollmentRepository.deleteBySchoolClassAndUser(schoolClass, user);
     activityLogService.log(
         actor,

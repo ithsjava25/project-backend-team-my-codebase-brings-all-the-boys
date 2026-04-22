@@ -11,6 +11,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.ClassEnrollmentService;
@@ -91,9 +92,9 @@ public class SchoolClassController {
     SchoolClass sc =
         schoolClassService
             .getSchoolClassById(id)
-            .orElseThrow(() -> new RuntimeException("Class not found"));
+            .orElseThrow(() -> new NotFoundException("Class not found"));
     User user =
-        userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        userService.getUserById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
     enrollmentService.enrollUser(user, sc, role, actor);
     return ResponseEntity.ok().build();
@@ -110,9 +111,9 @@ public class SchoolClassController {
     SchoolClass sc =
         schoolClassService
             .getSchoolClassById(id)
-            .orElseThrow(() -> new RuntimeException("Class not found"));
+            .orElseThrow(() -> new NotFoundException("Class not found"));
     User user =
-        userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        userService.getUserById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
     enrollmentService.removeEnrollment(sc, user, actor);
     return ResponseEntity.ok().build();

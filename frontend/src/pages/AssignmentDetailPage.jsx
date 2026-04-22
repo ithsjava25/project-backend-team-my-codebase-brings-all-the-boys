@@ -20,27 +20,30 @@ export default function AssignmentDetailPage() {
 
     const [userAssignments, setUserAssignments] = useState([]);
     const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+    const [submissionError, setSubmissionError] = useState(null);
 
     const isAdmin = user?.role?.name === 'ROLE_ADMIN';
     const isTeacher = user?.role?.name === 'ROLE_TEACHER';
     const canManageSubmissions = isAdmin || isTeacher;
 
     useEffect(() => {
-        if (canManageSubmissions && assignment) {
+        if (canManageSubmissions && assignment?.id) {
             const fetchSubmissions = async () => {
                 try {
                     setLoadingSubmissions(true);
-                    const data = await userAssignmentApi.getByAssignment(assignmentId);
+                    setSubmissionError(null);
+                    const data = await userAssignmentApi.getByAssignment(assignment.id);
                     setUserAssignments(data);
                 } catch (err) {
                     console.error('Failed to fetch submissions:', err);
+                    setSubmissionError('Kunde inte hämta studentinlämningar.');
                 } finally {
                     setLoadingSubmissions(false);
                 }
             };
             fetchSubmissions();
         }
-    }, [assignmentId, canManageSubmissions, assignment]);
+    }, [assignment?.id, canManageSubmissions]);
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -133,7 +136,7 @@ export default function AssignmentDetailPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <ClipboardCheck className="h-5 w-5" />
+                                    <ClipboardCheck className="h-5 w-5"/>
                                     Studentinlämningar
                                 </CardTitle>
                             </CardHeader>
@@ -141,20 +144,21 @@ export default function AssignmentDetailPage() {
                                 {loadingSubmissions ? (
                                     <p className="text-sm text-muted-foreground">Laddar inlämningar...</p>
                                 ) : userAssignments.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground italic">Inga studenter tilldelade än.</p>
+                                    <p className="text-sm text-muted-foreground italic">Inga studenter tilldelade
+                                        än.</p>
                                 ) : (
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Elev</TableHead>
                                                 <TableHead>Status</TableHead>
-                                                <TableHead className="text-right">Grad</TableHead>
+                                                <TableHead className="text-right">Betyg</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {userAssignments.map((ua) => (
-                                                <TableRow 
-                                                    key={ua.id} 
+                                                <TableRow
+                                                    key={ua.id}
                                                     className="cursor-pointer hover:bg-muted/50"
                                                     onClick={() => navigate(`/assignments/${assignmentId}/grade/${ua.student.id}`)}
                                                 >
@@ -162,7 +166,9 @@ export default function AssignmentDetailPage() {
                                                         {ua.student.username}
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Badge variant={ua.status === 'EVALUATED' ? 'default' : 'secondary'} className="text-[10px] px-1 h-5">
+                                                        <Badge
+                                                            variant={ua.status === 'EVALUATED' ? 'default' : 'secondary'}
+                                                            className="text-[10px] px-1 h-5">
                                                             {ua.status === 'EVALUATED' ? 'Klar' : 'Väntar'}
                                                         </Badge>
                                                     </TableCell>

@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.U
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
@@ -17,6 +18,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserA
 import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserAssignmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +47,14 @@ public class UserAssignmentController {
             .getUserById(studentId)
             .orElseThrow(() -> new NotFoundException("Student not found"));
 
+    User currentUser = userService.getCurrentUser();
+    boolean isSelf = currentUser.getId().equals(studentId);
+    boolean canModify = authorizationService.canModifyCourse(currentUser, assignment.getCourse());
+
+    if (!isSelf && !canModify) {
+      throw new ForbiddenException("You are not authorized to view this assignment data");
+    }
+
     return userAssignmentService
         .getByAssignmentAndStudent(assignment, student)
         .map(dtoMapper::toUserAssignmentResponse)
@@ -53,12 +63,18 @@ public class UserAssignmentController {
   }
 
   @GetMapping("/assignment/{assignmentId}")
+  @PreAuthorize("hasAnyRole('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<List<UserAssignmentResponse>> getByAssignment(
       @PathVariable UUID assignmentId) {
     Assignment assignment =
         assignmentRepository
             .findById(assignmentId)
             .orElseThrow(() -> new NotFoundException("Assignment not found"));
+
+    User currentUser = userService.getCurrentUser();
+    if (!authorizationService.canModifyCourse(currentUser, assignment.getCourse())) {
+      throw new ForbiddenException("You are not authorized to view submissions for this course");
+    }
 
     return ResponseEntity.ok(
         userAssignmentRepository.findByAssignment(assignment).stream()
@@ -77,9 +93,9 @@ public class UserAssignmentController {
 
     User evaluator = userService.getCurrentUser();
 
-    // authorizationService.canModifyCourse(evaluator, ua.getAssignment().getCourse())
-    // or similar check if needed. Lead teacher check is implicit in UserAssignmentService's
-    // counting logic but here we check explicitly.
+    if (!authorizationService.canModifyCourse(evaluator, ua.getAssignment().getCourse())) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
 
     userAssignmentService.evaluateAssignment(
         ua, request.getGrade(), request.getFeedback(), evaluator);

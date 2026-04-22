@@ -228,8 +228,12 @@ public class DtoMapper {
     if (ua == null) return null;
     UserAssignmentResponse response = new UserAssignmentResponse();
     response.setId(ua.getId());
-    response.setAssignmentId(ua.getAssignment().getId());
-    response.setStudent(toUserResponse(ua.getStudent()));
+    if (ua.getAssignment() != null) {
+      response.setAssignmentId(ua.getAssignment().getId());
+    }
+    if (ua.getStudent() != null) {
+      response.setStudent(toUserResponse(ua.getStudent()));
+    }
     response.setStatus(ua.getStatus());
     response.setGrade(ua.getGrade());
     response.setFeedback(ua.getFeedback());

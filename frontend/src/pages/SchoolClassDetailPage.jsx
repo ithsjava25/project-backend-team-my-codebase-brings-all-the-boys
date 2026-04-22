@@ -33,6 +33,26 @@ export default function SchoolClassDetailPage() {
     const isAdmin = currentUser?.role?.name === 'ROLE_ADMIN';
     const isTeacher = currentUser?.role?.name === 'ROLE_TEACHER';
 
+    const allParticipants = useMemo(() => {
+        if (!sc) return [];
+        const teachers = sc.teachers || [];
+        const students = sc.students || [];
+        
+        const map = new Map();
+        
+        teachers.forEach(t => {
+            map.set(t.id, { ...t, displayRole: 'Lärare/Mentor' });
+        });
+        
+        students.forEach(s => {
+            if (!map.has(s.id)) {
+                map.set(s.id, { ...s, displayRole: 'Elev' });
+            }
+        });
+        
+        return Array.from(map.values());
+    }, [sc]);
+
     const fetchDetails = async () => {
         try {
             setLoading(true);
@@ -263,10 +283,10 @@ export default function SchoolClassDetailPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {[...(sc.teachers || []), ...(sc.students || [])].map(u => (
+                                            {allParticipants.map(u => (
                                                 <TableRow key={u.id}>
                                                     <TableCell>{u.username}</TableCell>
-                                                    <TableCell>{sc.students.some(s => s.id === u.id) ? 'Elev' : 'Lärare/Mentor'}</TableCell>
+                                                    <TableCell>{u.displayRole}</TableCell>
                                                     <TableCell className="text-right">
                                                         <Button 
                                                             variant="ghost" 

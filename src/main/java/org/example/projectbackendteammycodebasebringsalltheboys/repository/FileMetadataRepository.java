@@ -26,7 +26,7 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID
 
   Optional<FileMetadata> findByS3Key(String s3Key);
 
-  @Modifying
+  @Modifying(clearAutomatically = true)
   @Query("UPDATE FileMetadata f SET f.uploader = null WHERE f.uploader.id = :userId")
   void nullifyUploader(@Param("userId") UUID userId);
 }
