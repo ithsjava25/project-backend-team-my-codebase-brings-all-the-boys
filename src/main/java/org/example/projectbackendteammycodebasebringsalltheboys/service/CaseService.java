@@ -97,14 +97,15 @@ public class CaseService {
           courseRepository
               .findById(request.getCourseId())
               .orElseThrow(() -> new NotFoundException("Course not found"));
-
-      if (assignment.getDeadline() != null
-          && course.getEndDate() != null
-          && assignment.getDeadline().isAfter(course.getEndDate())) {
-        throw new BadRequestException("Deadline cannot be after course end date");
-      }
       assignment.setCourse(course);
       updatedFields.add("course");
+    }
+
+    if (assignment.getCourse() != null
+        && assignment.getDeadline() != null
+        && assignment.getCourse().getEndDate() != null
+        && assignment.getDeadline().isAfter(assignment.getCourse().getEndDate())) {
+      throw new BadRequestException("Deadline cannot be after course end date");
     }
 
     Assignment saved = assignmentRepository.save(assignment);
@@ -124,8 +125,10 @@ public class CaseService {
   public Page<AssignmentResponse> getAccessibleAssignmentsDto(User user, Pageable pageable) {
     if (user == null) return Page.empty();
 
+    String roleName = user.getRole() != null ? user.getRole().getName() : "";
+
     Page<Assignment> assignments =
-        switch (user.getRole().getName()) {
+        switch (roleName) {
           case "ROLE_ADMIN" -> assignmentRepository.findAll(pageable);
           case "ROLE_TEACHER" ->
               assignmentRepository.findAccessibleByTeacher(user.getId(), pageable);

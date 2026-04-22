@@ -231,6 +231,8 @@ public class UserService {
     User user =
         userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 
+    // Manual cleanup is required because @SoftDelete turns deletions into UPDATEs,
+    // which bypasses DDL-level @OnDelete(CASCADE) constraints.
     classEnrollmentRepository.deleteByUserId(id);
 
     userRepository.delete(user);

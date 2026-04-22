@@ -14,10 +14,7 @@ export default function SchoolClassEditPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const [form, setForm] = useState({
-        name: '',
-        description: ''
-    });
+    const [form, setForm] = useState(null);
 
     useEffect(() => {
         const fetchClass = async () => {
@@ -41,7 +38,7 @@ export default function SchoolClassEditPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isSubmitting) return;
+        if (isSubmitting || !form) return;
         setIsSubmitting(true);
         setError(null);
         try {
@@ -57,6 +54,8 @@ export default function SchoolClassEditPage() {
     };
 
     if (loading) return <div className="p-8">Laddar...</div>;
+    if (error && !form) return <div className="p-8 text-destructive">Fel: {error}</div>;
+    if (!form) return <div className="p-8">Ingen data hittades.</div>;
 
     return (
         <div className="p-8">

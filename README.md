@@ -25,7 +25,9 @@ This project is a high-security case management system designed for school envir
 ### Phase 6-7: Contextual Security & Advanced Frontend [Completed]
 - Contextual RBAC for controllers, refined DTO mapping, and a modern React dashboard with role-based access.
 - Implemented comprehensive Edit/Delete features for Courses, Assignments, and School Classes.
-- Fixed 500 errors related to lazy loading and missing cascade types.
+- Optimized performance by replacing full-table scans with role-scoped paginated queries and bounded memory usage for profiles.
+- Hardened security with object-level authorization, request validation, and sensitive data masking (UserSummary).
+- Fixed critical Hibernate 6 soft-delete incompatibilities and improved null-safety in services.
 
 ## Current Todo List
 - [ ] Debug S3 integration issues (e.g., file uploads failing with CORS error / 403).

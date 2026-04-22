@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentUpdateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
@@ -78,10 +79,7 @@ public class AssignmentController {
   @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
   public ResponseEntity<AssignmentDetailResponse> updateAssignment(
       @PathVariable UUID id,
-      @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment
-                  .AssignmentUpdateRequest
-              request,
+      @Valid @RequestBody AssignmentUpdateRequest request,
       Principal principal) {
     User currentUser = getCurrentUser(principal);
     return ResponseEntity.ok(caseService.updateAssignment(id, request, currentUser));

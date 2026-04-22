@@ -155,6 +155,14 @@ public class CourseService {
 
       course.setSchoolClass(sc);
       updatedFields.add("schoolClass");
+
+      // Verify existing lead teacher is valid for new class,
+      // unless we are also updating the lead teacher in this request.
+      if (request.getLeadTeacherId() == null && course.getLeadTeacher() != null) {
+        if (!authorizationService.isMemberOfClass(course.getLeadTeacher(), sc)) {
+          throw new BadRequestException("Lead teacher must be a member of the school class.");
+        }
+      }
     }
 
     if (request.getLeadTeacherId() != null) {

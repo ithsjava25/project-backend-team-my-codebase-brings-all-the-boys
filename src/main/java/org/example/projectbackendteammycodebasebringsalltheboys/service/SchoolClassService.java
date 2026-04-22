@@ -64,11 +64,6 @@ public class SchoolClassService {
   }
 
   @Transactional(readOnly = true)
-  public Optional<SchoolClassDetailResponse> getSchoolClassDetailDto(UUID id) {
-    return schoolClassRepository.findById(id).map(dtoMapper::toSchoolClassDetailResponse);
-  }
-
-  @Transactional(readOnly = true)
   public List<SchoolClassSurfaceResponse> getAllSchoolClassesDto() {
     return schoolClassRepository.findAll().stream()
         .map(dtoMapper::toSchoolClassSurfaceResponse)

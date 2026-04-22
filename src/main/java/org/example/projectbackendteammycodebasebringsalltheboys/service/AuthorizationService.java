@@ -1,11 +1,13 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.stereotype.Service;
@@ -25,10 +27,17 @@ public class AuthorizationService {
   }
 
   @Transactional(readOnly = true)
+  public boolean isTeacherOrMentorInClass(User user, SchoolClass schoolClass) {
+    if (isAdmin(user)) return true;
+    return classEnrollmentRepository.existsByUserAndSchoolClassAndClassRoleIn(
+        user, schoolClass, List.of(ClassRole.TEACHER, ClassRole.MENTOR));
+  }
+
+  @Transactional(readOnly = true)
   public boolean canCreateCourseInClass(User user, SchoolClass schoolClass) {
     if (isAdmin(user)) return true;
-    // For now, allow teachers to create courses in classes they are enrolled in (as mentor/staff)
-    return isTeacher(user) && isMemberOfClass(user, schoolClass);
+    // Require a TEACHER or MENTOR enrollment in the class to create a course
+    return isTeacher(user) && isTeacherOrMentorInClass(user, schoolClass);
   }
 
   @Transactional(readOnly = true)
