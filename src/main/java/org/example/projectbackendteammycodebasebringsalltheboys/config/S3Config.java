@@ -1,9 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.config;
 
-import org.example.projectbackendteammycodebasebringsalltheboys.storage.S3StorageService;
-import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -28,9 +25,6 @@ public class S3Config {
   @Value("${aws.s3.secret-key:dummy}")
   private String secretKey;
 
-  @Value("${aws.s3.bucket-name}")
-  private String bucketName;
-
   @Bean
   public S3Client s3Client() {
     return S3Client.builder()
@@ -47,11 +41,5 @@ public class S3Config {
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
         .build();
-  }
-
-  @ConditionalOnMissingBean(StorageService.class)
-  @Bean
-  public StorageService storageService(S3Client s3Client, S3Presigner s3Presigner) {
-    return new S3StorageService(s3Client, s3Presigner, bucketName);
   }
 }

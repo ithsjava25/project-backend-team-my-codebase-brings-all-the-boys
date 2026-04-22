@@ -16,14 +16,11 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.Activit
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.*;
-import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class DtoMapper {
-
-  private final StorageService storageService;
 
   public CaseResponse toCaseResponse(Assignment assignment) {
     if (assignment == null) return null;
@@ -75,8 +72,8 @@ public class DtoMapper {
     response.setFileSize(metadata.getFileSize());
     response.setContentType(metadata.getContentType());
     response.setUploader(toUserResponse(metadata.getUploader()));
-    if (metadata.getS3Key() != null) {
-      response.setDownloadUrl(storageService.generateDownloadUrl(metadata.getS3Key()));
+    if (metadata.getId() != null) {
+      response.setDownloadUrl("/api/files/" + metadata.getId() + "/download");
     }
     return response;
   }

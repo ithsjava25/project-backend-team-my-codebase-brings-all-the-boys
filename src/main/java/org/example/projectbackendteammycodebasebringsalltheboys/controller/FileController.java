@@ -1,6 +1,8 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +20,12 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFou
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.*;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
 @RequestMapping("/api/files")
@@ -42,6 +48,50 @@ public class FileController {
 
     return ResponseEntity.ok(
         new UploadResponse(generatedUpload.uploadUrl(), generatedUpload.s3Key()));
+  }
+
+  @GetMapping("/{id}/download")
+  public ResponseEntity<StreamingResponseBody> downloadFile(
+      @PathVariable UUID id, Principal principal) {
+
+    if (principal == null) {
+      return ResponseEntity.status(401).build();
+    }
+
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
+    FileMetadata file =
+        fileService.getFileById(id).orElseThrow(() -> new NotFoundException("File not found"));
+
+    if (!canAccessFile(currentUser, file)) {
+      throw new ForbiddenException("You are not allowed to access this file");
+    }
+
+    String contentType = file.getContentType();
+    MediaType mediaType =
+        (contentType != null && !contentType.isBlank())
+            ? MediaType.parseMediaType(contentType)
+            : MediaType.APPLICATION_OCTET_STREAM;
+
+    ContentDisposition disposition =
+        ContentDisposition.attachment()
+            .filename(file.getFileName(), StandardCharsets.UTF_8)
+            .build();
+
+    StreamingResponseBody stream =
+        outputStream -> {
+          try (InputStream inputStream = fileService.downloadFile(file)) {
+            inputStream.transferTo(outputStream);
+          }
+        };
+
+    return ResponseEntity.ok()
+        .contentType(mediaType)
+        .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+        .body(stream);
   }
 
   @PostMapping("/finalize")
@@ -75,7 +125,7 @@ public class FileController {
               .getCaseById(request.getAssignmentId())
               .orElseThrow(() -> new NotFoundException("Assignment not found"));
 
-      if (!authorizationService.canModifyAssignment(currentUser, assignment)) {
+      if (!authorizationService.canAccessCase(currentUser, assignment)) {
         throw new ForbiddenException("You are not allowed to attach files to this assignment");
       }
     }
@@ -134,9 +184,51 @@ public class FileController {
   }
 
   private boolean canAccessFile(User user, FileMetadata file) {
-    // Implement: TEACHER/ADMIN role check OR user is the uploader
-    return user.getId().equals(file.getUploader().getId())
-        || user.getRole().getName().equals("ROLE_ADMIN")
-        || user.getRole().getName().equals("ROLE_TEACHER");
+    // 1. Uploader can always access their own files
+    if (user.getId().equals(file.getUploader().getId())) {
+      return true;
+    }
+
+    // 2. Admin and teachers can access all files
+    if (isAdmin(user) || isTeacher(user)) {
+      return true;
+    }
+
+    // 3. Students can only access files uploaded by teachers/admins (not other students)
+    if (isStudent(user)) {
+      boolean isFromTeacherOrAdmin =
+          "ROLE_TEACHER".equals(file.getUploader().getRole().getName())
+              || "ROLE_ADMIN".equals(file.getUploader().getRole().getName());
+
+      if (isFromTeacherOrAdmin) {
+        // If file is attached to an assignment
+        if (file.getAssignment() != null
+            && authorizationService.canAccessAssignmentDetails(user, file.getAssignment())) {
+          return true;
+        }
+
+        // If file is attached to a comment
+        if (file.getComment() != null
+            && file.getComment().getAssignment() != null
+            && authorizationService.canAccessAssignmentDetails(
+                user, file.getComment().getAssignment())) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private boolean isAdmin(User user) {
+    return user.getRole() != null && "ROLE_ADMIN".equals(user.getRole().getName());
+  }
+
+  private boolean isTeacher(User user) {
+    return user.getRole() != null && "ROLE_TEACHER".equals(user.getRole().getName());
+  }
+
+  private boolean isStudent(User user) {
+    return user.getRole() != null && "ROLE_STUDENT".equals(user.getRole().getName());
   }
 }

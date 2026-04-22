@@ -24,11 +24,19 @@ export const fileApi = {
   },
 
   uploadToS3: async (uploadUrl, file) => {
+    const isLocal = uploadUrl.startsWith('/api/files/local');
+
+    if (isLocal) {
+      return client.put(uploadUrl, file, {
+        headers: { 'Content-Type': file.type },
+        baseURL: ''  // Important: prevents the client's baseURL from being added
+      });
+    }
+
+    // S3 presigned URL
     // We use raw axios here because we don't want the default client headers/baseUrl
     return axios.put(uploadUrl, file, {
-      headers: {
-        'Content-Type': file.type
-      }
+      headers: { 'Content-Type': file.type }
     });
   },
 

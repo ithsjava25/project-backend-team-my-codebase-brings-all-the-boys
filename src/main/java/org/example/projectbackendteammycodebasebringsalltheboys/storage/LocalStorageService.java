@@ -65,15 +65,23 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public String generateDownloadUrl(String s3Key) {
-    // For local development, we could return a link to a local controller
-    // or just the file path for now.
-    throw new IllegalStateException(
-        "Local download URL generation requires GET /api/files/download/{s3Key} endpoint.");
+    return "/api/files/local/" + s3Key;
   }
 
   @Override
   public String generateUploadUrl(String s3Key, String contentType) {
-    throw new IllegalStateException(
-        "Local upload URL generation requires POST/PUT upload endpoint for local storage.");
+    return "/api/files/local/" + s3Key;
+  }
+
+  public void saveWithKey(String s3Key, InputStream inputStream) {
+    try {
+      Path targetPath = this.root.resolve(s3Key).toAbsolutePath().normalize();
+      if (!targetPath.startsWith(this.root)) {
+        throw new IllegalArgumentException("Invalid file key");
+      }
+      Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new RuntimeException("Could not store the file: " + e.getMessage(), e);
+    }
   }
 }

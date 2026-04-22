@@ -28,7 +28,7 @@ class DtoMapperTest {
 
   @BeforeEach
   void setUp() {
-    dtoMapper = new DtoMapper(storageService);
+    dtoMapper = new DtoMapper();
   }
 
   @Test
