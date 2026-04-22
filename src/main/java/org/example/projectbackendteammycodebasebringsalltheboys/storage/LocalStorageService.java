@@ -65,12 +65,12 @@ public class LocalStorageService implements StorageService {
 
   @Override
   public String generateDownloadUrl(String s3Key) {
-    return "http://localhost:8080/api/files/local/" + s3Key;
+    return "/api/files/local/" + s3Key;
   }
 
   @Override
   public String generateUploadUrl(String s3Key, String contentType) {
-    return "http://localhost:8080/api/files/local/" + s3Key;
+    return "/api/files/local/" + s3Key;
   }
 
   public void saveWithKey(String s3Key, InputStream inputStream) {

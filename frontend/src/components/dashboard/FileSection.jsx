@@ -6,13 +6,21 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { FileIcon, Upload, Download, Loader2, X, ZoomIn } from 'lucide-react';
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
-const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
 
 export function FileSection({ files: initialFiles = [], assignmentId, commentId }) {
   const [files, setFiles] = useState(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewBlobUrl) {
+        URL.revokeObjectURL(previewBlobUrl);
+      }
+    };
+  }, [previewBlobUrl]);
 
   const handleUpload = async (e) => {
     const selectedFile = e.target.files[0];
@@ -58,13 +66,9 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
 
       if (!response.ok) {
         let errorMsg;
-        if (response.status === 403) {
-          errorMsg = 'Du har inte behörighet att ladda ner filen';
-        } else if (response.status === 404) {
-          errorMsg = 'Filen kunde inte hittas';
-        } else {
-          errorMsg = 'Nedladdningen misslyckades';
-        }
+        if (response.status === 403) errorMsg = 'Du har inte behörighet att ladda ner filen';
+        else if (response.status === 404) errorMsg = 'Filen kunde inte hittas';
+        else errorMsg = 'Nedladdningen misslyckades';
         setUploadError(errorMsg);
         return;
       }
@@ -90,24 +94,12 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
 
       if (!response.ok) {
         let errorMsg;
-        if (response.status === 403) {
-          errorMsg = 'Du har inte behörighet att se bilden';
-        } else if (response.status === 404) {
-          errorMsg = 'Bilden kunde inte hittas';
-        } else {
-          errorMsg = 'Kunde inte ladda bilden';
-        }
+        if (response.status === 403) errorMsg = 'Du har inte behörighet att se bilden';
+        else if (response.status === 404) errorMsg = 'Bilden kunde inte hittas';
+        else errorMsg = 'Kunde inte ladda bilden';
         setUploadError(errorMsg);
         return;
       }
-
-      useEffect(() => {
-        return () => {
-          if (previewBlobUrl) {
-            URL.revokeObjectURL(previewBlobUrl);
-          }
-        };
-      }, [previewBlobUrl]);
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -207,11 +199,11 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
           }
         }}
       >
-        <DialogContent className="max-w-[95vw] w-fit p-4 sm:p-6">
+        <DialogContent className="max-w-[90vw] w-[90vw] p-4">
           <img
             src={previewBlobUrl || previewFile?.downloadUrl}
             alt={previewFile?.fileName}
-            className="max-w-[90vw] max-h-[80vh] object-contain rounded"
+            className="w-full max-h-[80vh] object-contain rounded"
           />
           <p className="text-center text-sm text-muted-foreground mt-2">
             {previewFile?.fileName}

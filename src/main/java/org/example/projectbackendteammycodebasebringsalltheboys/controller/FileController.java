@@ -185,20 +185,21 @@ public class FileController {
     // 3. Students can only access files uploaded by teachers/admins (not other students)
     if (isStudent(user)) {
       boolean isFromTeacherOrAdmin =
-              "ROLE_TEACHER".equals(file.getUploader().getRole().getName())
-                      || "ROLE_ADMIN".equals(file.getUploader().getRole().getName());
+          "ROLE_TEACHER".equals(file.getUploader().getRole().getName())
+              || "ROLE_ADMIN".equals(file.getUploader().getRole().getName());
 
       if (isFromTeacherOrAdmin) {
         // If file is attached to an assignment
         if (file.getAssignment() != null
-                && authorizationService.canAccessAssignmentDetails(user, file.getAssignment())) {
+            && authorizationService.canAccessAssignmentDetails(user, file.getAssignment())) {
           return true;
         }
 
         // If file is attached to a comment
         if (file.getComment() != null
-                && file.getComment().getAssignment() != null
-                && authorizationService.canAccessAssignmentDetails(user, file.getComment().getAssignment())) {
+            && file.getComment().getAssignment() != null
+            && authorizationService.canAccessAssignmentDetails(
+                user, file.getComment().getAssignment())) {
           return true;
         }
       }
@@ -208,17 +209,14 @@ public class FileController {
   }
 
   private boolean isAdmin(User user) {
-    return user.getRole() != null
-            && "ROLE_ADMIN".equals(user.getRole().getName());
+    return user.getRole() != null && "ROLE_ADMIN".equals(user.getRole().getName());
   }
 
   private boolean isTeacher(User user) {
-    return user.getRole() != null
-            && "ROLE_TEACHER".equals(user.getRole().getName());
+    return user.getRole() != null && "ROLE_TEACHER".equals(user.getRole().getName());
   }
 
   private boolean isStudent(User user) {
-    return user.getRole() != null
-            && "ROLE_STUDENT".equals(user.getRole().getName());
+    return user.getRole() != null && "ROLE_STUDENT".equals(user.getRole().getName());
   }
 }

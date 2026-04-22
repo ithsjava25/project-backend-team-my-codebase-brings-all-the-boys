@@ -24,7 +24,7 @@ export const fileApi = {
   },
 
   uploadToS3: async (uploadUrl, file) => {
-    const isLocal = uploadUrl.startsWith('http://localhost');
+    const isLocal = uploadUrl.startsWith('/api/files/local');
 
     if (isLocal) {
       return client.put(uploadUrl, file, {
