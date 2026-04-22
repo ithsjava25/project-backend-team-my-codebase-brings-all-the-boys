@@ -98,7 +98,7 @@ class CourseServiceTest {
 
     when(courseRepository.findById(courseId)).thenReturn(Optional.of(course));
     when(authorizationService.canModifyCourse(any(), any())).thenReturn(true);
-    when(authorizationService.isMemberOfClass(any(), any())).thenReturn(true);
+    when(authorizationService.isTeacherOrMentorInClass(any(), any())).thenReturn(true);
 
     courseService.updateLeadTeacher(courseId, newLead, updater);
 

@@ -13,6 +13,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.Forbid
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.ClassEnrollmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
@@ -34,6 +35,7 @@ class SchoolClassControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private SchoolClassService schoolClassService;
+  @MockitoBean private ClassEnrollmentService classEnrollmentService;
   @MockitoBean private UserService userService;
   @MockitoBean private DtoMapper dtoMapper;
   @MockitoBean private CustomOAuth2UserService customOAuth2UserService;

@@ -133,6 +133,52 @@ public class FileController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  @GetMapping("/{id}/download")
+  public ResponseEntity<org.springframework.core.io.Resource> downloadFile(
+      @PathVariable UUID id, Principal principal) {
+    if (principal == null) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .UnauthorizedException("Authentication is required");
+    }
+
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(
+                () ->
+                    new org.example.projectbackendteammycodebasebringsalltheboys.exception
+                        .UnauthorizedException("Current user not found"));
+
+    FileMetadata fileMetadata =
+        fileService
+            .getFileById(id)
+            .orElseThrow(
+                () ->
+                    new org.example.projectbackendteammycodebasebringsalltheboys.exception
+                        .NotFoundException("File not found"));
+
+    if (!canAccessFile(currentUser, fileMetadata)) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .ForbiddenException("You are not authorized to download this file");
+    }
+
+    java.io.InputStream inputStream = fileService.downloadFile(fileMetadata);
+    org.springframework.core.io.InputStreamResource resource =
+        new org.springframework.core.io.InputStreamResource(inputStream);
+
+    String contentType = fileMetadata.getContentType();
+    if (contentType == null || contentType.isBlank()) {
+      contentType = "application/octet-stream";
+    }
+
+    return ResponseEntity.ok()
+        .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+        .header(
+            org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + fileMetadata.getFileName() + "\"")
+        .body(resource);
+  }
+
   private boolean canAccessFile(User user, FileMetadata file) {
     // 1. Uploader can always access their own files
     if (user.getId().equals(file.getUploader().getId())) {
