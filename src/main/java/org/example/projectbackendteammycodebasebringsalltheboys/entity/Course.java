@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import org.hibernate.annotations.SoftDelete;
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false, of = "id")
 public class Course extends BaseEntity {
 
   @Column(nullable = false)

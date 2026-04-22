@@ -27,16 +27,16 @@ export const courseApi = {
     },
 
     createCourse: async (courseData) => {
-        const response = await client.post('/admin/courses', courseData);
+        const response = await client.post('/courses', courseData);
         return response.data;
     },
 
     updateCourse: async (id, courseData) => {
-        const response = await client.put(`/admin/courses/${id}`, courseData);
+        const response = await client.put(`/courses/${id}`, courseData);
         return response.data;
     },
 
     deleteCourse: async (id) => {
-        await client.delete(`/admin/courses/${id}`);
+        await client.delete(`/courses/${id}`);
     },
 };

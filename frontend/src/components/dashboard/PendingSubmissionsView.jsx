@@ -95,7 +95,7 @@ export function PendingSubmissionsView({courseId}) {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild size="sm" variant="outline">
-                                            <Link to={`/assignments/${sub.assignmentId}`}>Betygsätt</Link>
+                                            <Link to={`/assignments/${sub.assignmentId}/grade/${sub.studentId}`}>Betygsätt</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

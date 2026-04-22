@@ -16,6 +16,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
@@ -36,6 +37,7 @@ class CourseServiceTest {
   @Mock private SchoolClassRepository schoolClassRepository;
   @Mock private UserRepository userRepository;
   @Mock private AuthorizationService authorizationService;
+  @Mock private AssignmentRepository assignmentRepository;
 
   private CourseService courseService;
 
@@ -44,6 +46,7 @@ class CourseServiceTest {
     courseService =
         new CourseService(
             courseRepository,
+            assignmentRepository,
             activityLogService,
             classEnrollmentService,
             dtoMapper,
@@ -70,7 +73,6 @@ class CourseServiceTest {
     User leadTeacher = new User();
     User creator = new User();
     when(authorizationService.canCreateCourseInClass(any(), any())).thenReturn(true);
-    when(authorizationService.isMemberOfClass(eq(leadTeacher), any())).thenReturn(true);
     when(courseRepository.save(any(Course.class))).thenAnswer(inv -> inv.getArgument(0));
 
     Course result =

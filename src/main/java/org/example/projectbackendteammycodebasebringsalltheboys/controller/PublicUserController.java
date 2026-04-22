@@ -1,8 +1,12 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserProfileResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +20,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class PublicUserController {
 
   private final UserService userService;
+  private final DtoMapper dtoMapper;
+
+  @GetMapping("/teachers")
+  public ResponseEntity<List<UserResponse>> getTeachers() {
+    return ResponseEntity.ok(
+        userService.getUsersByRole("ROLE_TEACHER").stream()
+            .map(dtoMapper::toUserResponse)
+            .collect(Collectors.toList()));
+  }
+
+  @GetMapping("/students")
+  public ResponseEntity<List<UserResponse>> getStudents() {
+    return ResponseEntity.ok(
+        userService.getUsersByRole("ROLE_STUDENT").stream()
+            .map(dtoMapper::toUserResponse)
+            .collect(Collectors.toList()));
+  }
 
   @GetMapping("/profile/{id}")
   public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable UUID id) {

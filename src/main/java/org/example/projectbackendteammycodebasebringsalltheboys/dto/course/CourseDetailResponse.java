@@ -11,7 +11,9 @@ public class CourseDetailResponse {
   private UUID id;
   private String name;
   private String description;
+  private UUID schoolClassId;
   private String schoolClassName;
+  private UUID leadTeacherId;
   private UserResponse leadTeacher;
   private List<UserResponse> assistants;
   private List<UserResponse> students;

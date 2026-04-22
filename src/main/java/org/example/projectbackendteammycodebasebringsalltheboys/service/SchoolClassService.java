@@ -5,10 +5,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassSurfaceResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
@@ -80,12 +83,8 @@ public class SchoolClassService {
     return schoolClassRepository.findAll();
   }
 
+  @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.SCHOOL_CLASS, orphan = true)
   @Transactional
-  @org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity(
-      action =
-          org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction.CREATED,
-      entityType =
-          org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType.SCHOOL_CLASS)
   public SchoolClass createSchoolClass(String name, String description) {
     if (schoolClassRepository.findByName(name).isPresent()) {
       throw new IllegalStateException("School class with name '" + name + "' already exists.");
@@ -126,9 +125,16 @@ public class SchoolClassService {
           org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType.SCHOOL_CLASS,
       parentIdParamIndex = 0)
   public void deleteSchoolClass(UUID id) {
-    if (!schoolClassRepository.existsById(id)) {
-      throw new NotFoundException("School class not found with id: " + id);
-    }
-    schoolClassRepository.deleteById(id);
+    SchoolClass schoolClass =
+        schoolClassRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("School class not found with id: " + id));
+
+    // Ensure all related entities are also soft-deleted by clearing the collections
+    // and letting orphanRemoval = true take care of it.
+    schoolClass.getCourses().clear();
+    schoolClass.getEnrollments().clear();
+
+    schoolClassRepository.delete(schoolClass);
   }
 }

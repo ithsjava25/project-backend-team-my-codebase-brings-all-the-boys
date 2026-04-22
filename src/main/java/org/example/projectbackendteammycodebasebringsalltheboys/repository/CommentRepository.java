@@ -12,4 +12,6 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   List<Comment> findByAssignment(Assignment assignment);
 
   List<Comment> findByAssignmentOrderByCreatedAtAsc(Assignment assignment);
+
+  void deleteByAuthor_Id(UUID authorId);
 }

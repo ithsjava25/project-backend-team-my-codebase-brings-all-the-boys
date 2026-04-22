@@ -26,4 +26,12 @@ export const schoolClassApi = {
     deleteSchoolClass: async (id) => {
         await client.delete(`/admin/school-classes/${id}`);
     },
+
+    enrollUser: async (classId, userId, role) => {
+        await client.post(`/admin/school-classes/${classId}/enroll?userId=${userId}&role=${role}`);
+    },
+
+    removeEnrollment: async (classId, userId) => {
+        await client.delete(`/admin/school-classes/${classId}/enroll/${userId}`);
+    },
 };

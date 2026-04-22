@@ -1,18 +1,46 @@
 import {useParams, Link, useNavigate} from 'react-router-dom';
+import {useState, useEffect} from 'react';
 import {useAssignmentDetail} from '@/hooks/useAssignmentDetail';
+import {userAssignmentApi} from '@/api/userAssignments';
 import {CommentSection} from '@/components/dashboard/CommentSection';
 import {FileSection} from '@/components/dashboard/FileSection';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
-import {ArrowLeft, Calendar, User, Edit} from 'lucide-react';
+import {ArrowLeft, Calendar, User, Edit, ClipboardCheck} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useAuthContext} from '@/context/AuthContext';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 
 export default function AssignmentDetailPage() {
     const {assignmentId} = useParams();
     const {assignment, loading, error} = useAssignmentDetail(assignmentId);
     const {user} = useAuthContext();
     const navigate = useNavigate();
+
+    const [userAssignments, setUserAssignments] = useState([]);
+    const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+
+    const isAdmin = user?.role?.name === 'ROLE_ADMIN';
+    const isTeacher = user?.role?.name === 'ROLE_TEACHER';
+    const canManageSubmissions = isAdmin || isTeacher;
+
+    useEffect(() => {
+        if (canManageSubmissions && assignment) {
+            const fetchSubmissions = async () => {
+                try {
+                    setLoadingSubmissions(true);
+                    const data = await userAssignmentApi.getByAssignment(assignmentId);
+                    setUserAssignments(data);
+                } catch (err) {
+                    console.error('Failed to fetch submissions:', err);
+                } finally {
+                    setLoadingSubmissions(false);
+                }
+            };
+            fetchSubmissions();
+        }
+    }, [assignmentId, canManageSubmissions, assignment]);
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -101,6 +129,55 @@ export default function AssignmentDetailPage() {
                 </div>
 
                 <div className="space-y-6">
+                    {canManageSubmissions && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <ClipboardCheck className="h-5 w-5" />
+                                    Studentinlämningar
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {loadingSubmissions ? (
+                                    <p className="text-sm text-muted-foreground">Laddar inlämningar...</p>
+                                ) : userAssignments.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground italic">Inga studenter tilldelade än.</p>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Elev</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Grad</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {userAssignments.map((ua) => (
+                                                <TableRow 
+                                                    key={ua.id} 
+                                                    className="cursor-pointer hover:bg-muted/50"
+                                                    onClick={() => navigate(`/assignments/${assignmentId}/grade/${ua.student.id}`)}
+                                                >
+                                                    <TableCell className="font-medium text-xs truncate max-w-[100px]">
+                                                        {ua.student.username}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={ua.status === 'EVALUATED' ? 'default' : 'secondary'} className="text-[10px] px-1 h-5">
+                                                            {ua.status === 'EVALUATED' ? 'Klar' : 'Väntar'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right font-bold">
+                                                        {ua.grade || '-'}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Information</CardTitle>

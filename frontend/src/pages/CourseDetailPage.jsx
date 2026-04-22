@@ -6,11 +6,12 @@ import {useAuthContext} from '@/context/AuthContext';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
-import {ArrowLeft, Edit} from 'lucide-react';
+import {ArrowLeft, Edit, PlusCircle, Trash2} from 'lucide-react';
 import {Link, useNavigate} from 'react-router-dom';
 import {AssignmentListView} from '@/components/dashboard/AssignmentListView';
 import {PendingSubmissionsView} from '@/components/dashboard/PendingSubmissionsView';
 import {Button} from '@/components/ui/button';
+import {courseApi} from '@/api/courses';
 
 export default function CourseDetailPage() {
     const {courseId} = useParams();
@@ -19,6 +20,9 @@ export default function CourseDetailPage() {
     const {user} = useAuthContext();
     const navigate = useNavigate();
     const role = user?.role?.name;
+
+    const isLeadTeacher = course?.leadTeacher?.id === user?.id;
+    const canManageCourse = role === 'ROLE_ADMIN' || (role === 'ROLE_TEACHER' && isLeadTeacher);
 
     const getValidTabs = () => {
         const base = ['overview', 'assignments'];
@@ -73,6 +77,19 @@ export default function CourseDetailPage() {
         });
     };
 
+    const handleDelete = async () => {
+        if (!confirm('Är du säker på att du vill ta bort denna kurs? Detta går inte att ångra.')) return;
+
+        try {
+            await courseApi.deleteCourse(courseId);
+            alert('Kursen har tagits bort.');
+            navigate('/dashboard');
+        } catch (err) {
+            console.error('Failed to delete course:', err);
+            alert(err.response?.data?.message || 'Kunde inte ta bort kursen.');
+        }
+    };
+
     if (error) return <div className="p-8 text-destructive">Ett fel uppstod: {error}</div>;
     if (!course) return <div className="p-8">Laddar kurs...</div>;
 
@@ -113,13 +130,21 @@ export default function CourseDetailPage() {
                         <Badge variant="secondary">{courseData.schoolClassName}</Badge>
                     </div>
 
-                    {role === 'ROLE_ADMIN' && (
-                        <Button variant="outline" onClick={() => navigate(`/admin/courses/${courseId}/edit`)}
-                                className="gap-2">
-                            <Edit className="h-4 w-4"/>
-                            Redigera kurs
-                        </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {canManageCourse && (
+                            <>
+                                <Button variant="outline" onClick={() => navigate(`/admin/courses/${courseId}/edit`)}
+                                        className="gap-2">
+                                    <Edit className="h-4 w-4"/>
+                                    Redigera kurs
+                                </Button>
+                                <Button variant="destructive" onClick={handleDelete} className="gap-2">
+                                    <Trash2 className="h-4 w-4"/>
+                                    Ta bort
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -160,7 +185,15 @@ export default function CourseDetailPage() {
                 </TabsContent>
 
                 {/* Uppgifter */}
-                <TabsContent value="assignments">
+                <TabsContent value="assignments" className="space-y-4">
+                    {(role === 'ROLE_TEACHER' || role === 'ROLE_ADMIN') && (
+                        <div className="flex justify-end">
+                            <Button onClick={() => navigate(`/courses/${courseId}/assignments/new`)} className="gap-2">
+                                <PlusCircle className="h-4 w-4"/>
+                                Ny uppgift
+                            </Button>
+                        </div>
+                    )}
                     <AssignmentListView
                         assignments={courseData.assignments}
                         title={`Uppgifter i ${courseData.name}`}

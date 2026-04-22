@@ -10,6 +10,8 @@ import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
 import SchoolClassDetailPage from './pages/SchoolClassDetailPage';
 import AssignmentDetailPage from './pages/AssignmentDetailPage';
+import AssignmentCreatePage from './pages/AssignmentCreatePage';
+import AssignmentGradingPage from './pages/AssignmentGradingPage';
 import UserCreatePage from './pages/admin/UserCreatePage';
 import UserEditPage from './pages/admin/UserEditPage';
 import CourseCreatePage from './pages/admin/CourseCreatePage';
@@ -45,32 +47,27 @@ export default function App() {
                             >
                                 <Route path="/dashboard" element={<Dashboard/>}/>
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
-                                <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
+                                <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreatePage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
+                                <Route path="/assignments/:assignmentId/grade/:studentId" element={<AssignmentGradingPage/>}/>
+                                <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
 
-                                {/* Admin routes - role-gated */}
-                                <Route
-                                    path="admin/*"
-                                    element={
-                                        <ProtectedRoute requiredRole="ROLE_ADMIN">
-                                            <Outlet/>
-                                        </ProtectedRoute>
-                                    }
-                                >
-                                    {/* Users */}
-                                    <Route path="users" element={<UserManagementPage/>}/>
-                                    <Route path="users/new" element={<UserCreatePage/>}/>
-                                    <Route path="users/:id/edit" element={<UserEditPage/>}/>
-
-                                    {/* Courses */}
-                                    <Route path="courses" element={<CourseManagementPage/>}/>
+                                {/* Admin-prefixed routes */}
+                                <Route path="admin">
+                                    {/* Shared (Teacher + Admin) */}
                                     <Route path="courses/new" element={<CourseCreatePage/>}/>
                                     <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
 
-                                    {/* School Classes */}
-                                    <Route path="school-classes" element={<SchoolClassManagementPage/>}/>
-                                    <Route path="school-classes/new" element={<SchoolClassCreatePage/>}/>
-                                    <Route path="school-classes/:id/edit" element={<SchoolClassEditPage/>}/>
+                                    {/* Strictly Admin */}
+                                    <Route element={<ProtectedRoute requiredRole="ROLE_ADMIN"><Outlet/></ProtectedRoute>}>
+                                        <Route path="users" element={<UserManagementPage/>}/>
+                                        <Route path="users/new" element={<UserCreatePage/>}/>
+                                        <Route path="users/:id/edit" element={<UserEditPage/>}/>
+                                        <Route path="courses" element={<CourseManagementPage/>}/>
+                                        <Route path="school-classes" element={<SchoolClassManagementPage/>}/>
+                                        <Route path="school-classes/new" element={<SchoolClassCreatePage/>}/>
+                                        <Route path="school-classes/:id/edit" element={<SchoolClassEditPage/>}/>
+                                    </Route>
                                 </Route>
                             </Route>
 

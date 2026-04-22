@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.SubmissionResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.UserAssignmentResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.CaseResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.comment.CommentResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
@@ -142,9 +144,13 @@ public class DtoMapper {
     response.setName(course.getName());
     response.setDescription(course.getDescription());
     if (course.getSchoolClass() != null) {
+      response.setSchoolClassId(course.getSchoolClass().getId());
       response.setSchoolClassName(course.getSchoolClass().getName());
     }
-    response.setLeadTeacher(toUserResponse(course.getLeadTeacher()));
+    if (course.getLeadTeacher() != null) {
+      response.setLeadTeacherId(course.getLeadTeacher().getId());
+      response.setLeadTeacher(toUserResponse(course.getLeadTeacher()));
+    }
     response.setAssistants(
         course.getAssistants() != null
             ? course.getAssistants().stream().map(this::toUserResponse).collect(Collectors.toList())
@@ -198,6 +204,11 @@ public class DtoMapper {
     response.setUpdatedAt(assignment.getUpdatedAt());
     response.setDeadline(assignment.getDeadline());
 
+    if (assignment.getCourse() != null) {
+      response.setCourseId(assignment.getCourse().getId());
+      response.setCourseName(assignment.getCourse().getName());
+    }
+
     response.setComments(
         assignment.getComments() != null
             ? assignment.getComments().stream()
@@ -210,6 +221,38 @@ public class DtoMapper {
             ? assignment.getFiles().stream().map(this::toFileResponse).collect(Collectors.toList())
             : Collections.emptyList());
 
+    return response;
+  }
+
+  public UserAssignmentResponse toUserAssignmentResponse(UserAssignment ua) {
+    if (ua == null) return null;
+    UserAssignmentResponse response = new UserAssignmentResponse();
+    response.setId(ua.getId());
+    response.setAssignmentId(ua.getAssignment().getId());
+    response.setStudent(toUserResponse(ua.getStudent()));
+    response.setStatus(ua.getStatus());
+    response.setGrade(ua.getGrade());
+    response.setFeedback(ua.getFeedback());
+    response.setTurnedInAt(ua.getTurnedInAt());
+    response.setSubmissions(
+        ua.getSubmissions() != null
+            ? ua.getSubmissions().stream()
+                .map(this::toSubmissionResponse)
+                .collect(Collectors.toList())
+            : Collections.emptyList());
+    return response;
+  }
+
+  public SubmissionResponse toSubmissionResponse(Submission submission) {
+    if (submission == null) return null;
+    SubmissionResponse response = new SubmissionResponse();
+    response.setId(submission.getId());
+    response.setContent(submission.getContent());
+    response.setSubmittedAt(submission.getSubmittedAt());
+    response.setFiles(
+        submission.getFiles() != null
+            ? submission.getFiles().stream().map(this::toFileResponse).collect(Collectors.toList())
+            : Collections.emptyList());
     return response;
   }
 

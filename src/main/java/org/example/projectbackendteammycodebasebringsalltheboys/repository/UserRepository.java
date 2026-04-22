@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
@@ -15,6 +16,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   Optional<User> findByUsername(String username);
 
   Optional<User> findByEmail(String email);
+
+  List<User> findByRole_Name(String roleName);
 
   boolean existsByUsername(String username);
 

@@ -13,7 +13,9 @@ import {UpcomingDeadlinesView} from '@/components/dashboard/UpcomingDeadlinesVie
 import {PendingSubmissionsView} from '@/components/dashboard/PendingSubmissionsView';
 import SchoolClassListView from '@/components/dashboard/SchoolClassListView';
 import UserManagementPage from './admin/UserManagementPage';
-import {useSearchParams} from "react-router-dom";
+import {useSearchParams, useNavigate} from "react-router-dom";
+import {PlusCircle} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 
 export default function Dashboard() {
     const {user} = useAuthContext();
@@ -21,6 +23,7 @@ export default function Dashboard() {
     const {assignments, error: assignmentsError} = useAssignments();
 
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     const role = user?.role?.name;
 
@@ -93,7 +96,15 @@ export default function Dashboard() {
                     )}
                 </TabsContent>
 
-                <TabsContent value="courses">
+                <TabsContent value="courses" className="space-y-4">
+                    {role === 'ROLE_TEACHER' && (
+                        <div className="flex justify-end">
+                            <Button onClick={() => navigate('/admin/courses/new')} className="gap-2">
+                                <PlusCircle className="h-4 w-4"/>
+                                Ny kurs
+                            </Button>
+                        </div>
+                    )}
                     {coursesError ? (
                         <p className="text-destructive">Fel: {coursesError}</p>
                     ) : (

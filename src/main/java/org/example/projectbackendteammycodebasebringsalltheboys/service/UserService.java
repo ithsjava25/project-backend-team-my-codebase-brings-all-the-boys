@@ -17,6 +17,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.*;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,7 +36,13 @@ public class UserService {
   private final SchoolClassRepository schoolClassRepository;
   private final CourseRepository courseRepository;
   private final ClassEnrollmentRepository classEnrollmentRepository;
+  private final UserAssignmentRepository userAssignmentRepository;
+  private final SubmissionRepository submissionRepository;
+  private final FileMetadataRepository fileMetadataRepository;
+  private final CommentRepository commentRepository;
+  private final ActivityLogRepository activityLogRepository;
   private final AuthorizationService authorizationService;
+  private final AssignmentRepository assignmentRepository;
 
   @Transactional(readOnly = true)
   public UserProfileResponse getUserProfile(UUID id) {
@@ -53,9 +60,8 @@ public class UserService {
 
     // For courses, we need to check lead teacher AND assistants
     // Use a bounded set to deduplicate and prevent unbounded memory usage
-    java.util.Set<Course> uniqueCourses = new java.util.LinkedHashSet<>();
-    org.springframework.data.domain.Pageable limit =
-        org.springframework.data.domain.PageRequest.of(0, 100);
+    Set<Course> uniqueCourses = new LinkedHashSet<>();
+    Pageable limit = PageRequest.of(0, 100);
     String roleName = target.getRole() != null ? target.getRole().getName() : "";
 
     if (roleName.equals("ROLE_TEACHER")) {
@@ -69,8 +75,7 @@ public class UserService {
       uniqueCourses.addAll(courseRepository.findAll(limit).getContent());
     }
 
-    return dtoMapper.toUserProfileResponse(
-        target, classes, new java.util.ArrayList<>(uniqueCourses));
+    return dtoMapper.toUserProfileResponse(target, classes, new ArrayList<>(uniqueCourses));
   }
 
   @Transactional(readOnly = true)
@@ -231,11 +236,36 @@ public class UserService {
     User user =
         userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 
+    User actor = getCurrentUser();
+
+    // 1. Delete student-scoped records (Cascade is often LAZY or missing for soft-delete)
+    submissionRepository.deleteByUserAssignment_Student_Id(id);
+    userAssignmentRepository.deleteByStudent_Id(id);
+
+    // 2. Nullify references where the user is an uploader or creator
+    fileMetadataRepository.nullifyUploader(id);
+    assignmentRepository.nullifyCreator(id);
+
+    // 3. Delete comments and activity logs (cleanup redundant trace data)
+    commentRepository.deleteByAuthor_Id(id);
+    activityLogRepository.deleteByUser_Id(id);
+
+    // 4. Handle Course associations
+    courseRepository.nullifyLeadTeacher(id);
+    courseRepository.removeAssistantFromAllCourses(id);
+
+    // 5. Cleanup class enrollments
     // Manual cleanup is required because @SoftDelete turns deletions into UPDATEs,
     // which bypasses DDL-level @OnDelete(CASCADE) constraints.
     classEnrollmentRepository.deleteByUserId(id);
 
+    // 6. Finally soft-delete the user
     userRepository.delete(user);
+  }
+
+  @Transactional(readOnly = true)
+  public List<User> getUsersByRole(String roleName) {
+    return userRepository.findByRole_Name(roleName);
   }
 
   @Transactional(readOnly = true)

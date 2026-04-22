@@ -13,11 +13,13 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolCla
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CourseService {
 
   private final CourseRepository courseRepository;
+  private final AssignmentRepository assignmentRepository;
   private final ActivityLogService activityLogService;
   private final ClassEnrollmentService enrollmentService;
   private final DtoMapper dtoMapper;
@@ -72,9 +75,9 @@ public class CourseService {
       throw new ForbiddenException("You are not authorized to create courses in this class.");
     }
 
-    // Optional: Validate lead teacher belongs to the class too
-    if (leadTeacher != null && !authorizationService.isMemberOfClass(leadTeacher, schoolClass)) {
-      throw new BadRequestException("Lead teacher must be a member of the school class.");
+    // Auto-enroll lead teacher if not already in class
+    if (leadTeacher != null && !enrollmentService.isUserInClass(leadTeacher, schoolClass)) {
+      enrollmentService.enrollUser(leadTeacher, schoolClass, ClassRole.TEACHER, creator);
     }
 
     Course course = new Course();
@@ -105,8 +108,9 @@ public class CourseService {
       throw new ForbiddenException("You are not authorized to modify this course.");
     }
 
-    if (!authorizationService.isMemberOfClass(newLead, course.getSchoolClass())) {
-      throw new BadRequestException("Lead teacher must be a member of the school class.");
+    if (!authorizationService.isTeacherOrMentorInClass(newLead, course.getSchoolClass())) {
+      throw new BadRequestException(
+          "Lead teacher must be a teacher or mentor in the school class.");
     }
 
     course.setLeadTeacher(newLead);
@@ -137,6 +141,10 @@ public class CourseService {
       updatedFields.add("description");
     }
     if (request.getEndDate() != null) {
+      if (assignmentRepository.existsByCourse_IdAndDeadlineAfter(id, request.getEndDate())) {
+        throw new BadRequestException(
+            "Cannot set course end date before one or more assignment deadlines.");
+      }
       course.setEndDate(request.getEndDate());
       updatedFields.add("endDate");
     }
@@ -171,8 +179,9 @@ public class CourseService {
               .findById(request.getLeadTeacherId())
               .orElseThrow(() -> new NotFoundException("Lead Teacher not found"));
 
-      if (!authorizationService.isMemberOfClass(teacher, course.getSchoolClass())) {
-        throw new BadRequestException("Lead teacher must be a member of the school class.");
+      // Auto-enroll lead teacher if not already in class
+      if (!enrollmentService.isUserInClass(teacher, course.getSchoolClass())) {
+        enrollmentService.enrollUser(teacher, course.getSchoolClass(), ClassRole.TEACHER, updater);
       }
 
       course.setLeadTeacher(teacher);
@@ -349,8 +358,7 @@ public class CourseService {
   }
 
   private Page<Course> getTeacherCourses(User teacher, Pageable pageable) {
-    // TODO: Merge with assistants - for now just return lead courses
-    return courseRepository.findByLeadTeacherId(teacher.getId(), pageable);
+    return courseRepository.findAccessibleByTeacher(teacher.getId(), pageable);
   }
 
   private boolean hasAccess(Course course, User user) {
@@ -366,6 +374,7 @@ public class CourseService {
         return isLead || isAssistant;
       }
       case "ROLE_STUDENT" -> {
+        if (course.getSchoolClass() == null) return false;
         return enrollmentService.isUserInClass(user, course.getSchoolClass());
       }
     }

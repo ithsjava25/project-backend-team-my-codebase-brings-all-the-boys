@@ -10,8 +10,10 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassUpdateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.ClassEnrollmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class SchoolClassController {
 
   private final SchoolClassService schoolClassService;
+  private final ClassEnrollmentService enrollmentService;
   private final UserService userService;
   private final DtoMapper dtoMapper;
 
@@ -72,5 +75,46 @@ public class SchoolClassController {
   public ResponseEntity<Void> deleteSchoolClass(@PathVariable UUID id) {
     schoolClassService.deleteSchoolClass(id);
     return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/admin/school-classes/{id}/enroll")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Void> enrollUser(
+      @PathVariable UUID id,
+      @RequestParam UUID userId,
+      @RequestParam ClassRole role,
+      java.security.Principal principal) {
+    User actor =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Actor not found"));
+    SchoolClass sc =
+        schoolClassService
+            .getSchoolClassById(id)
+            .orElseThrow(() -> new RuntimeException("Class not found"));
+    User user =
+        userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+    enrollmentService.enrollUser(user, sc, role, actor);
+    return ResponseEntity.ok().build();
+  }
+
+  @DeleteMapping("/admin/school-classes/{id}/enroll/{userId}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Void> removeEnrollment(
+      @PathVariable UUID id, @PathVariable UUID userId, java.security.Principal principal) {
+    User actor =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Actor not found"));
+    SchoolClass sc =
+        schoolClassService
+            .getSchoolClassById(id)
+            .orElseThrow(() -> new RuntimeException("Class not found"));
+    User user =
+        userService.getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+    enrollmentService.removeEnrollment(sc, user, actor);
+    return ResponseEntity.ok().build();
   }
 }

@@ -19,4 +19,6 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, UUID> 
       EntityType entityType, UUID parentId, Pageable pageable);
 
   Page<ActivityLog> findByParentIdOrderByTimestampDescIdDesc(UUID caseId, Pageable pageable);
+
+  void deleteByUser_Id(UUID userId);
 }

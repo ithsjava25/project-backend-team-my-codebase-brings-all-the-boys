@@ -29,5 +29,7 @@ public interface ClassEnrollmentRepository extends JpaRepository<ClassEnrollment
       "SELECT count(e1) > 0 FROM ClassEnrollment e1 JOIN ClassEnrollment e2 ON e1.schoolClass = e2.schoolClass WHERE e1.user.id = :userId1 AND e2.user.id = :userId2")
   boolean hasSharedSchoolClass(UUID userId1, UUID userId2);
 
+  void deleteBySchoolClassAndUser(SchoolClass schoolClass, User user);
+
   void deleteByUserId(UUID userId);
 }

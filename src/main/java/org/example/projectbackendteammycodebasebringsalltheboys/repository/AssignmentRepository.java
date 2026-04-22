@@ -8,7 +8,9 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -19,10 +21,16 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
 
   List<Assignment> findByDeadlineBetween(LocalDateTime start, LocalDateTime end);
 
+  @Modifying
+  @Query("UPDATE Assignment a SET a.creator = null WHERE a.creator.id = :userId")
+  void nullifyCreator(@Param("userId") UUID userId);
+
   List<Assignment> findByCourse_LeadTeacher_IdAndDeadlineBetween(
       UUID teacherId, LocalDateTime start, LocalDateTime end);
 
   Page<Assignment> findByCourse_LeadTeacher_Id(UUID teacherId, Pageable pageable);
+
+  boolean existsByCourse_IdAndDeadlineAfter(UUID courseId, LocalDateTime deadline);
 
   @Query(
       "SELECT DISTINCT a FROM Assignment a "
