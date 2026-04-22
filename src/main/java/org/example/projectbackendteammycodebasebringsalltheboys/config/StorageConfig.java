@@ -26,7 +26,7 @@ public class StorageConfig {
   @Bean
   @Primary
   @ConditionalOnProperty(name = "storage.type", havingValue = "local", matchIfMissing = true)
-  public StorageService localStorageService() {
+  public LocalStorageService localStorageService() {
     return new LocalStorageService();
   }
 }

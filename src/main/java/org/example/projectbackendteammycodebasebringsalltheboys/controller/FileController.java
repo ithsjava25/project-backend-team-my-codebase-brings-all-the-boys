@@ -172,9 +172,53 @@ public class FileController {
   }
 
   private boolean canAccessFile(User user, FileMetadata file) {
-    // Implement: TEACHER/ADMIN role check OR user is the uploader
-    return user.getId().equals(file.getUploader().getId())
-        || user.getRole().getName().equals("ROLE_ADMIN")
-        || user.getRole().getName().equals("ROLE_TEACHER");
+    // 1. Uploader can always access their own files
+    if (user.getId().equals(file.getUploader().getId())) {
+      return true;
+    }
+
+    // 2. Admin and teachers can access all files
+    if (isAdmin(user) || isTeacher(user)) {
+      return true;
+    }
+
+    // 3. Students can only access files uploaded by teachers/admins (not other students)
+    if (isStudent(user)) {
+      boolean isFromTeacherOrAdmin =
+              "ROLE_TEACHER".equals(file.getUploader().getRole().getName())
+                      || "ROLE_ADMIN".equals(file.getUploader().getRole().getName());
+
+      if (isFromTeacherOrAdmin) {
+        // If file is attached to an assignment
+        if (file.getAssignment() != null
+                && authorizationService.canAccessAssignmentDetails(user, file.getAssignment())) {
+          return true;
+        }
+
+        // If file is attached to a comment
+        if (file.getComment() != null
+                && file.getComment().getAssignment() != null
+                && authorizationService.canAccessAssignmentDetails(user, file.getComment().getAssignment())) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private boolean isAdmin(User user) {
+    return user.getRole() != null
+            && "ROLE_ADMIN".equals(user.getRole().getName());
+  }
+
+  private boolean isTeacher(User user) {
+    return user.getRole() != null
+            && "ROLE_TEACHER".equals(user.getRole().getName());
+  }
+
+  private boolean isStudent(User user) {
+    return user.getRole() != null
+            && "ROLE_STUDENT".equals(user.getRole().getName());
   }
 }

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @ConditionalOnProperty(name = "storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalFileController {
 
-  private final StorageService storageService;
+  private final LocalStorageService storageService;
 
   @PutMapping("/{s3Key:.+}")
   public ResponseEntity<Void> uploadFile(
@@ -24,7 +24,7 @@ public class LocalFileController {
       @RequestHeader("Content-Type") String contentType, // available for future validation
       InputStream body) {
 
-    ((LocalStorageService) storageService).saveWithKey(s3Key, body);
+    storageService.saveWithKey(s3Key, body);
     return ResponseEntity.ok().build();
   }
 
