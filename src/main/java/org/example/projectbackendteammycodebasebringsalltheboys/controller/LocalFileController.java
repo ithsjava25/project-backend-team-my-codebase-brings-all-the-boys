@@ -9,6 +9,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+
+import static org.springframework.web.servlet.function.RequestPredicates.contentType;
 
 @RestController
 @RequestMapping("/api/files/local")
@@ -29,11 +32,14 @@ public class LocalFileController {
   }
 
   @GetMapping("/{s3Key:.+}")
-  public ResponseEntity<byte[]> downloadFile(@PathVariable String s3Key) throws IOException {
-    try (InputStream is = storageService.downloadFile(s3Key)) {
-      return ResponseEntity.ok()
-          .contentType(MediaType.APPLICATION_OCTET_STREAM)
-          .body(is.readAllBytes());
-    }
+  public ResponseEntity<StreamingResponseBody> downloadFile(@PathVariable String s3Key) {
+    StreamingResponseBody body = out -> {
+      try (InputStream inputStream = storageService.downloadFile(s3Key)) {
+        inputStream.transferTo(out);
+      }
+    };
+    return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(body);
   }
 }
