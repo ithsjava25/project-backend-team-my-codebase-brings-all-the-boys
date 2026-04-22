@@ -59,6 +59,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
   };
 
   const handleDownload = async (file) => {
+    setUploadError(null)
     try {
       const response = await fetch(file.downloadUrl, {
         credentials: 'include'
@@ -87,6 +88,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
   };
 
   const handlePreview = async (file) => {
+    setUploadError(null)
     try {
       const response = await fetch(file.downloadUrl, {
         credentials: 'include'
