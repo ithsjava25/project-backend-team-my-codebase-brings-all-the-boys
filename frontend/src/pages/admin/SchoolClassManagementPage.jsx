@@ -134,7 +134,7 @@ export default function SchoolClassManagementPage() {
                             // Assuming DataTable handles arrays too if pagination props are missing or adapted
                             page={0}
                             setPage={() => {}}
-                            pageSize={classes.length}
+                            pageSize={Math.max(classes.length, 10)}
                             setPageSize={() => {}}
                             totalPages={1}
                         />

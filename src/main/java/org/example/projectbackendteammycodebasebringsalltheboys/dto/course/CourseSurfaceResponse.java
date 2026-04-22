@@ -2,7 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.dto.course;
 
 import java.util.UUID;
 import lombok.Data;
-import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserSummary;
 
 @Data
 public class CourseSurfaceResponse {
@@ -10,7 +10,7 @@ public class CourseSurfaceResponse {
   private String name;
   private String description;
   private String schoolClassName;
-  private UserResponse leadTeacher;
+  private UserSummary leadTeacher;
 
   private java.time.LocalDateTime endDate;
 }

@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -23,9 +21,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 public class ClassEnrollment extends BaseEntity {
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", nullable = false)
-  @NotFound(action = NotFoundAction.IGNORE)
   @OnDelete(action = OnDeleteAction.CASCADE)
   private User user;
 

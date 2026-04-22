@@ -17,12 +17,21 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.Activit
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.RoleResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserProfileResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserSummary;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.*;
+import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class DtoMapper {
+
+  private final StorageService storageService;
+
+  public UserSummary toUserSummary(User user) {
+    if (user == null) return null;
+    return new UserSummary(user.getId(), user.getUsername());
+  }
 
   public CaseResponse toCaseResponse(Assignment assignment) {
     if (assignment == null) return null;
@@ -121,7 +130,7 @@ public class DtoMapper {
     if (course.getSchoolClass() != null) {
       response.setSchoolClassName(course.getSchoolClass().getName());
     }
-    response.setLeadTeacher(toUserResponse(course.getLeadTeacher()));
+    response.setLeadTeacher(toUserSummary(course.getLeadTeacher()));
     response.setEndDate(course.getEndDate());
     return response;
   }

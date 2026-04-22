@@ -17,7 +17,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import {BookOpenIcon, Shield, Users} from "lucide-react";
+import {BookOpenIcon, Shield, Users, Activity} from "lucide-react";
 import {useMemo} from "react";
 
 export function AppSidebar({ ...props }) {
@@ -69,11 +69,13 @@ export function AppSidebar({ ...props }) {
         ]
       });
     } else {
-      // Add activity log for non-admins too
-      const lastItem = items[items.length - 1];
-      if (lastItem && lastItem.items) {
-          lastItem.items.push({ title: "Min Aktivitet", url: "/dashboard?tab=activity" });
-      }
+      // Add activity log as a top-level item for non-admins
+      items.push({
+          title: "Min Aktivitet",
+          url: "/dashboard?tab=activity",
+          icon: Activity,
+          items: []
+      });
     }
 
     return items;

@@ -3,6 +3,8 @@ package org.example.projectbackendteammycodebasebringsalltheboys.service;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
@@ -15,6 +17,39 @@ public class AuthorizationService {
 
   private final UserAssignmentRepository userAssignmentRepository;
   private final ClassEnrollmentRepository classEnrollmentRepository;
+
+  @Transactional(readOnly = true)
+  public boolean isMemberOfClass(User user, SchoolClass schoolClass) {
+    if (isAdmin(user)) return true;
+    return classEnrollmentRepository.existsByUserAndSchoolClass(user, schoolClass);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean canCreateCourseInClass(User user, SchoolClass schoolClass) {
+    if (isAdmin(user)) return true;
+    // For now, allow teachers to create courses in classes they are enrolled in (as mentor/staff)
+    return isTeacher(user) && isMemberOfClass(user, schoolClass);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean canModifyCourse(User user, Course course) {
+    if (isAdmin(user)) return true;
+    if (!isTeacher(user)) return false;
+
+    boolean isLead =
+        course.getLeadTeacher() != null && course.getLeadTeacher().getId().equals(user.getId());
+    // Assistants might be allowed to modify some aspects, but usually lead or admin
+    return isLead;
+  }
+
+  @Transactional(readOnly = true)
+  public boolean canViewUserProfile(User actor, User target) {
+    if (isAdmin(actor)) return true;
+    if (actor.getId().equals(target.getId())) return true;
+
+    // Check if they share any classes
+    return classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId());
+  }
 
   @Transactional(readOnly = true)
   public boolean canAccessCase(User user, Assignment assignment) {
@@ -60,7 +95,7 @@ public class AuthorizationService {
 
     if (isTeacher(user)) {
       if (assignment.getCourse() == null)
-        return true; // Orphan assignments? Allow for now or creator only.
+        return false; // Orphan assignments: only creator or admin (checked above)
 
       boolean isLead =
           assignment.getCourse().getLeadTeacher() != null

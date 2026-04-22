@@ -30,6 +30,7 @@ class UserServiceTest {
   @Mock private SchoolClassRepository schoolClassRepository;
   @Mock private CourseRepository courseRepository;
   @Mock private ClassEnrollmentRepository classEnrollmentRepository;
+  @Mock private AuthorizationService authorizationService;
 
   private UserService userService;
 
@@ -43,7 +44,8 @@ class UserServiceTest {
             dtoMapper,
             schoolClassRepository,
             courseRepository,
-            classEnrollmentRepository);
+            classEnrollmentRepository,
+            authorizationService);
   }
 
   // --- helpers ---

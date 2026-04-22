@@ -67,7 +67,7 @@ public class ActivityLog {
     this.action = action;
     this.entityType = entityType;
     this.childId = childId;
-    this.details = details;
+    this.details = details != null ? new HashMap<>(details) : new HashMap<>();
     this.status = status;
     this.timestamp = LocalDateTime.now(clock);
   }

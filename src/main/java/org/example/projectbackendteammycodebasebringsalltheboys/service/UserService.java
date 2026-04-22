@@ -35,30 +35,42 @@ public class UserService {
   private final SchoolClassRepository schoolClassRepository;
   private final CourseRepository courseRepository;
   private final ClassEnrollmentRepository classEnrollmentRepository;
+  private final AuthorizationService authorizationService;
 
   @Transactional(readOnly = true)
   public UserProfileResponse getUserProfile(UUID id) {
-    User user =
+    User target =
         userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 
-    List<SchoolClass> classes = schoolClassRepository.findByEnrollments_UserId(user.getId());
+    User actor = getCurrentUser();
 
-    // For courses, we need to check lead teacher AND assistants
-    // We'll just fetch all and filter for now, or add a custom query
-    List<Course> courses = new ArrayList<>();
-    if (user.getRole().getName().equals("ROLE_TEACHER")) {
-      courses.addAll(
-          courseRepository.findByLeadTeacherId(user.getId(), Pageable.unpaged()).getContent());
-      courses.addAll(
-          courseRepository.findByAssistantsId(user.getId(), Pageable.unpaged()).getContent());
-    } else if (user.getRole().getName().equals("ROLE_STUDENT")) {
-      courses.addAll(
-          courseRepository.findByEnrollments_UserId(user.getId(), Pageable.unpaged()).getContent());
-    } else if (user.getRole().getName().equals("ROLE_ADMIN")) {
-      courses.addAll(courseRepository.findAll());
+    if (!authorizationService.canViewUserProfile(actor, target)) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .ForbiddenException("You are not authorized to view this user's profile.");
     }
 
-    return dtoMapper.toUserProfileResponse(user, classes, courses);
+    List<SchoolClass> classes = schoolClassRepository.findByEnrollments_UserId(target.getId());
+
+    // For courses, we need to check lead teacher AND assistants
+    // Use a bounded set to deduplicate and prevent unbounded memory usage
+    java.util.Set<Course> uniqueCourses = new java.util.LinkedHashSet<>();
+    org.springframework.data.domain.Pageable limit =
+        org.springframework.data.domain.PageRequest.of(0, 100);
+    String roleName = target.getRole() != null ? target.getRole().getName() : "";
+
+    if (roleName.equals("ROLE_TEACHER")) {
+      uniqueCourses.addAll(
+          courseRepository.findByLeadTeacherId(target.getId(), limit).getContent());
+      uniqueCourses.addAll(courseRepository.findByAssistantsId(target.getId(), limit).getContent());
+    } else if (roleName.equals("ROLE_STUDENT")) {
+      uniqueCourses.addAll(
+          courseRepository.findByEnrollments_UserId(target.getId(), limit).getContent());
+    } else if (roleName.equals("ROLE_ADMIN")) {
+      uniqueCourses.addAll(courseRepository.findAll(limit).getContent());
+    }
+
+    return dtoMapper.toUserProfileResponse(
+        target, classes, new java.util.ArrayList<>(uniqueCourses));
   }
 
   @Transactional(readOnly = true)

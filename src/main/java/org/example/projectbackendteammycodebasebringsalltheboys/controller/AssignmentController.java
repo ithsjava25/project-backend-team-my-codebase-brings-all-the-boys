@@ -18,6 +18,9 @@ import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper
 import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.CaseService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -51,9 +54,14 @@ public class AssignmentController {
   }
 
   @GetMapping
-  public ResponseEntity<List<AssignmentResponse>> getAllAssignments(Principal principal) {
+  public ResponseEntity<Page<AssignmentResponse>> getAllAssignments(
+      @PageableDefault(
+              sort = "createdAt",
+              direction = org.springframework.data.domain.Sort.Direction.DESC)
+          Pageable pageable,
+      Principal principal) {
     User currentUser = getCurrentUser(principal);
-    return ResponseEntity.ok(caseService.getAccessibleAssignments(currentUser));
+    return ResponseEntity.ok(caseService.getAccessibleAssignmentsDto(currentUser, pageable));
   }
 
   @GetMapping("/{id}")

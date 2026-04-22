@@ -31,25 +31,29 @@ public class SchoolClassService {
             .orElseThrow(() -> new NotFoundException("School class not found with id: " + id));
 
     // Authorization check: Allow Admins, Teachers, Mentors, and enrolled Students to view details
-    boolean isTeacherOrAdmin =
-        currentUser.getRole().getName().equals("ROLE_ADMIN")
-            || currentUser.getRole().getName().equals("ROLE_TEACHER");
+    String roleName =
+        (currentUser != null && currentUser.getRole() != null)
+            ? currentUser.getRole().getName()
+            : "";
+    boolean isTeacherOrAdmin = roleName.equals("ROLE_ADMIN") || roleName.equals("ROLE_TEACHER");
 
-    boolean isMentor =
-        schoolClass.getEnrollments().stream()
-            .anyMatch(
-                e ->
-                    e.getUser() != null
-                        && e.getUser().getId().equals(currentUser.getId())
-                        && e.getClassRole() == ClassRole.MENTOR);
+    boolean isMentor = false;
+    boolean isEnrolledStudent = false;
 
-    boolean isEnrolledStudent =
-        schoolClass.getEnrollments().stream()
-            .anyMatch(
-                e ->
-                    e.getUser() != null
-                        && e.getUser().getId().equals(currentUser.getId())
-                        && e.getClassRole() == ClassRole.STUDENT);
+    if (currentUser != null) {
+      for (org.example.projectbackendteammycodebasebringsalltheboys.entity.ClassEnrollment
+          enrollment : schoolClass.getEnrollments()) {
+        if (enrollment.getUser() != null
+            && enrollment.getUser().getId().equals(currentUser.getId())) {
+          if (enrollment.getClassRole() == ClassRole.MENTOR) {
+            isMentor = true;
+          } else if (enrollment.getClassRole() == ClassRole.STUDENT) {
+            isEnrolledStudent = true;
+          }
+        }
+        if (isMentor && isEnrolledStudent) break;
+      }
+    }
 
     if (isTeacherOrAdmin || isMentor || isEnrolledStudent) {
       return dtoMapper.toSchoolClassDetailResponse(schoolClass);

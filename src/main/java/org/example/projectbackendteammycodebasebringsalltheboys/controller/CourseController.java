@@ -1,9 +1,12 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseCreateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseSurfaceResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseUpdateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
@@ -58,9 +61,7 @@ public class CourseController {
   @PostMapping("/admin/courses")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<CourseDetailResponse> createCourseAdmin(
-      @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseCreateRequest
-              request) {
+      @Valid @RequestBody CourseCreateRequest request) {
     return createCourse(request);
   }
 
@@ -77,10 +78,7 @@ public class CourseController {
   @PutMapping("/admin/courses/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<CourseDetailResponse> updateCourseAdmin(
-      @PathVariable UUID id,
-      @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseUpdateRequest
-              request) {
+      @PathVariable UUID id, @Valid @RequestBody CourseUpdateRequest request) {
     return updateCourse(id, request);
   }
 
@@ -93,9 +91,7 @@ public class CourseController {
   @PostMapping("/courses")
   @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
   public ResponseEntity<CourseDetailResponse> createCourse(
-      @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseCreateRequest
-              request) {
+      @Valid @RequestBody CourseCreateRequest request) {
     User creator = getCurrentUser();
 
     org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass schoolClass =
@@ -132,10 +128,7 @@ public class CourseController {
   @PutMapping("/courses/{id}")
   @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
   public ResponseEntity<CourseDetailResponse> updateCourse(
-      @PathVariable UUID id,
-      @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.course.CourseUpdateRequest
-              request) {
+      @PathVariable UUID id, @Valid @RequestBody CourseUpdateRequest request) {
     User updater = getCurrentUser();
     return ResponseEntity.ok(courseService.updateCourse(id, request, updater));
   }

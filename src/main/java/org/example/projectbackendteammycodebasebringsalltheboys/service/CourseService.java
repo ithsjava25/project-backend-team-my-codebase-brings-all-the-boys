@@ -15,6 +15,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAc
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
@@ -35,6 +36,7 @@ public class CourseService {
   private final DtoMapper dtoMapper;
   private final SchoolClassRepository schoolClassRepository;
   private final UserRepository userRepository;
+  private final AuthorizationService authorizationService;
 
   @Transactional
   @SuppressWarnings("unused")
@@ -65,6 +67,16 @@ public class CourseService {
     if (schoolClass == null) {
       throw new BadRequestException("SchoolClass cannot be null");
     }
+
+    if (!authorizationService.canCreateCourseInClass(creator, schoolClass)) {
+      throw new ForbiddenException("You are not authorized to create courses in this class.");
+    }
+
+    // Optional: Validate lead teacher belongs to the class too
+    if (leadTeacher != null && !authorizationService.isMemberOfClass(leadTeacher, schoolClass)) {
+      throw new BadRequestException("Lead teacher must be a member of the school class.");
+    }
+
     Course course = new Course();
     course.setName(name);
     course.setDescription(description);
@@ -88,6 +100,15 @@ public class CourseService {
         courseRepository
             .findById(courseId)
             .orElseThrow(() -> new NotFoundException("Course not found"));
+
+    if (!authorizationService.canModifyCourse(updater, course)) {
+      throw new ForbiddenException("You are not authorized to modify this course.");
+    }
+
+    if (!authorizationService.isMemberOfClass(newLead, course.getSchoolClass())) {
+      throw new BadRequestException("Lead teacher must be a member of the school class.");
+    }
+
     course.setLeadTeacher(newLead);
     courseRepository.save(course);
   }
@@ -101,16 +122,39 @@ public class CourseService {
     Course course =
         courseRepository.findById(id).orElseThrow(() -> new NotFoundException("Course not found"));
 
-    if (request.getName() != null) course.setName(request.getName());
-    if (request.getDescription() != null) course.setDescription(request.getDescription());
-    if (request.getEndDate() != null) course.setEndDate(request.getEndDate());
+    if (!authorizationService.canModifyCourse(updater, course)) {
+      throw new ForbiddenException("You are not authorized to modify this course.");
+    }
+
+    java.util.List<String> updatedFields = new java.util.ArrayList<>();
+
+    if (request.getName() != null) {
+      course.setName(request.getName());
+      updatedFields.add("name");
+    }
+    if (request.getDescription() != null) {
+      course.setDescription(request.getDescription());
+      updatedFields.add("description");
+    }
+    if (request.getEndDate() != null) {
+      course.setEndDate(request.getEndDate());
+      updatedFields.add("endDate");
+    }
 
     if (request.getSchoolClassId() != null) {
       SchoolClass sc =
           schoolClassRepository
               .findById(request.getSchoolClassId())
               .orElseThrow(() -> new NotFoundException("School Class not found"));
+
+      // Check if user can move course to another class (create permission in target class)
+      if (!course.getSchoolClass().getId().equals(sc.getId())
+          && !authorizationService.canCreateCourseInClass(updater, sc)) {
+        throw new ForbiddenException("You are not authorized to move course to this class.");
+      }
+
       course.setSchoolClass(sc);
+      updatedFields.add("schoolClass");
     }
 
     if (request.getLeadTeacherId() != null) {
@@ -118,14 +162,20 @@ public class CourseService {
           userRepository
               .findById(request.getLeadTeacherId())
               .orElseThrow(() -> new NotFoundException("Lead Teacher not found"));
+
+      if (!authorizationService.isMemberOfClass(teacher, course.getSchoolClass())) {
+        throw new BadRequestException("Lead teacher must be a member of the school class.");
+      }
+
       course.setLeadTeacher(teacher);
+      updatedFields.add("leadTeacher");
     }
 
     Course saved = courseRepository.save(course);
 
     java.util.Map<String, Object> details = new java.util.HashMap<>();
     details.put("name", saved.getName());
-    details.put("updatedFields", "name,description,endDate,schoolClass,leadTeacher");
+    details.put("updatedFields", String.join(",", updatedFields));
 
     activityLogService.log(
         updater,
@@ -217,6 +267,10 @@ public class CourseService {
         courseRepository
             .findById(id)
             .orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
+
+    if (!authorizationService.canModifyCourse(updater, course)) {
+      throw new ForbiddenException("You are not authorized to delete this course.");
+    }
 
     java.util.Map<String, Object> details = new java.util.HashMap<>();
     details.put("name", course.getName());

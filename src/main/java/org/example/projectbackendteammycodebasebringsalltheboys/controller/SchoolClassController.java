@@ -1,10 +1,14 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassCreateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassSurfaceResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassUpdateRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
@@ -48,11 +52,8 @@ public class SchoolClassController {
   @PostMapping("/admin/school-classes")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<SchoolClassSurfaceResponse> createSchoolClass(
-      @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass
-                  .SchoolClassSurfaceResponse
-              request) {
-    org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass sc =
+      @Valid @RequestBody SchoolClassCreateRequest request) {
+    SchoolClass sc =
         schoolClassService.createSchoolClass(request.getName(), request.getDescription());
     return ResponseEntity.ok(dtoMapper.toSchoolClassSurfaceResponse(sc));
   }
@@ -60,12 +61,8 @@ public class SchoolClassController {
   @PutMapping("/admin/school-classes/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<SchoolClassSurfaceResponse> updateSchoolClass(
-      @PathVariable UUID id,
-      @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass
-                  .SchoolClassSurfaceResponse
-              request) {
-    org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass sc =
+      @PathVariable UUID id, @Valid @RequestBody SchoolClassUpdateRequest request) {
+    SchoolClass sc =
         schoolClassService.updateSchoolClass(id, request.getName(), request.getDescription());
     return ResponseEntity.ok(dtoMapper.toSchoolClassSurfaceResponse(sc));
   }

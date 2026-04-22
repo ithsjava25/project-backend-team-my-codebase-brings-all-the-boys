@@ -18,6 +18,8 @@ import CourseEditPage from './pages/admin/CourseEditPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import CourseManagementPage from './pages/admin/CourseManagementPage';
 import SchoolClassManagementPage from './pages/admin/SchoolClassManagementPage';
+import SchoolClassCreatePage from './pages/admin/SchoolClassCreatePage';
+import SchoolClassEditPage from './pages/admin/SchoolClassEditPage';
 
 export default function App() {
     return (
@@ -67,6 +69,8 @@ export default function App() {
 
                                     {/* School Classes */}
                                     <Route path="school-classes" element={<SchoolClassManagementPage/>}/>
+                                    <Route path="school-classes/new" element={<SchoolClassCreatePage/>}/>
+                                    <Route path="school-classes/:id/edit" element={<SchoolClassEditPage/>}/>
                                 </Route>
                             </Route>
 

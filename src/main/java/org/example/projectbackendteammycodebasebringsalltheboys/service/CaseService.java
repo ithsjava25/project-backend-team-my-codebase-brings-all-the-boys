@@ -24,6 +24,8 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFou
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,10 +73,24 @@ public class CaseService {
       throw new ForbiddenException("You do not have permission to modify this assignment");
     }
 
-    if (request.getTitle() != null) assignment.setTitle(request.getTitle());
-    if (request.getDescription() != null) assignment.setDescription(request.getDescription());
-    if (request.getDeadline() != null) assignment.setDeadline(request.getDeadline());
-    if (request.getStatus() != null) assignment.setStatus(request.getStatus());
+    java.util.List<String> updatedFields = new java.util.ArrayList<>();
+
+    if (request.getTitle() != null) {
+      assignment.setTitle(request.getTitle());
+      updatedFields.add("title");
+    }
+    if (request.getDescription() != null) {
+      assignment.setDescription(request.getDescription());
+      updatedFields.add("description");
+    }
+    if (request.getDeadline() != null) {
+      assignment.setDeadline(request.getDeadline());
+      updatedFields.add("deadline");
+    }
+    if (request.getStatus() != null) {
+      assignment.setStatus(request.getStatus());
+      updatedFields.add("status");
+    }
 
     if (request.getCourseId() != null) {
       Course course =
@@ -88,6 +104,7 @@ public class CaseService {
         throw new BadRequestException("Deadline cannot be after course end date");
       }
       assignment.setCourse(course);
+      updatedFields.add("course");
     }
 
     Assignment saved = assignmentRepository.save(assignment);
@@ -97,15 +114,32 @@ public class CaseService {
         ActivityAction.UPDATED,
         EntityType.ASSIGNMENT,
         null,
-        Map.of(
-            "title", saved.getTitle(), "updatedFields", "title,description,deadline,status,course"),
+        Map.of("title", saved.getTitle(), "updatedFields", String.join(",", updatedFields)),
         ActivityStatus.SUCCESS);
 
     return dtoMapper.toAssignmentDetailResponse(saved);
   }
 
   @Transactional(readOnly = true)
+  public Page<AssignmentResponse> getAccessibleAssignmentsDto(User user, Pageable pageable) {
+    if (user == null) return Page.empty();
+
+    Page<Assignment> assignments =
+        switch (user.getRole().getName()) {
+          case "ROLE_ADMIN" -> assignmentRepository.findAll(pageable);
+          case "ROLE_TEACHER" ->
+              assignmentRepository.findAccessibleByTeacher(user.getId(), pageable);
+          case "ROLE_STUDENT" ->
+              assignmentRepository.findByStudentEnrollment(user.getId(), pageable);
+          default -> Page.empty();
+        };
+
+    return assignments.map(dtoMapper::toAssignmentResponse);
+  }
+
+  @Transactional(readOnly = true)
   public List<AssignmentResponse> getAccessibleAssignments(User user) {
+    // Keep for backward compatibility if needed, but preferably use the paged version
     return assignmentRepository.findAll().stream()
         .filter(a -> authorizationService.canViewAssignment(user, a))
         .map(dtoMapper::toAssignmentResponse)
