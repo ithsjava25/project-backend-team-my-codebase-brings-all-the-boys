@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFou
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.*;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +70,17 @@ public class FileController {
       throw new ForbiddenException("You are not allowed to access this file");
     }
 
+    String contentType = file.getContentType();
+    MediaType mediaType =
+        (contentType != null && !contentType.isBlank())
+            ? MediaType.parseMediaType(contentType)
+            : MediaType.APPLICATION_OCTET_STREAM;
+
+    ContentDisposition disposition =
+        ContentDisposition.attachment()
+            .filename(file.getFileName(), StandardCharsets.UTF_8)
+            .build();
+
     StreamingResponseBody stream =
         outputStream -> {
           try (InputStream inputStream = fileService.downloadFile(file)) {
@@ -76,9 +89,8 @@ public class FileController {
         };
 
     return ResponseEntity.ok()
-        .contentType(MediaType.parseMediaType(file.getContentType()))
-        .header(
-            HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName() + "\"")
+        .contentType(mediaType)
+        .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
         .body(stream);
   }
 

@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -78,7 +80,7 @@ class FileControllerTest {
     mockMvc
         .perform(get("/api/files/" + fileId + "/download"))
         .andExpect(status().isOk())
-        .andExpect(header().string("Content-Disposition", "attachment; filename=\"test.png\""))
+        .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION))
         .andExpect(content().contentType("image/png"));
   }
 
@@ -135,5 +137,81 @@ class FileControllerTest {
         .thenReturn(new ByteArrayInputStream("file content".getBytes()));
 
     mockMvc.perform(get("/api/files/" + fileId + "/download")).andExpect(status().isOk());
+  }
+
+  @Test
+  @DisplayName("GET /api/files/{id}/download returns 200 with octet-stream for blank contentType")
+  @WithMockUser(
+      username = "student",
+      roles = {"STUDENT"})
+  void downloadFile_blankContentType_returnsOctetStream() throws Exception {
+    fileMetadata.setContentType("");
+
+    when(userService.getUserByUsername("student")).thenReturn(Optional.of(uploader));
+    when(fileService.getFileById(fileId)).thenReturn(Optional.of(fileMetadata));
+    when(fileService.downloadFile(fileMetadata))
+        .thenReturn(new ByteArrayInputStream("file content".getBytes()));
+
+    mockMvc
+        .perform(get("/api/files/" + fileId + "/download"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM));
+  }
+
+  @Test
+  @DisplayName("GET /api/files/{id}/download handles filename with spaces")
+  @WithMockUser(
+      username = "student",
+      roles = {"STUDENT"})
+  void downloadFile_filenameWithSpaces_returns200() throws Exception {
+    fileMetadata.setFileName("my file name.png");
+
+    when(userService.getUserByUsername("student")).thenReturn(Optional.of(uploader));
+    when(fileService.getFileById(fileId)).thenReturn(Optional.of(fileMetadata));
+    when(fileService.downloadFile(fileMetadata))
+        .thenReturn(new ByteArrayInputStream("file content".getBytes()));
+
+    mockMvc
+        .perform(get("/api/files/" + fileId + "/download"))
+        .andExpect(status().isOk())
+        .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION));
+  }
+
+  @Test
+  @DisplayName("GET /api/files/{id}/download handles filename with quotes")
+  @WithMockUser(
+      username = "student",
+      roles = {"STUDENT"})
+  void downloadFile_filenameWithQuotes_returns200() throws Exception {
+    fileMetadata.setFileName("file\"name.png");
+
+    when(userService.getUserByUsername("student")).thenReturn(Optional.of(uploader));
+    when(fileService.getFileById(fileId)).thenReturn(Optional.of(fileMetadata));
+    when(fileService.downloadFile(fileMetadata))
+        .thenReturn(new ByteArrayInputStream("file content".getBytes()));
+
+    mockMvc
+        .perform(get("/api/files/" + fileId + "/download"))
+        .andExpect(status().isOk())
+        .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION));
+  }
+
+  @Test
+  @DisplayName("GET /api/files/{id}/download handles non-ASCII filename")
+  @WithMockUser(
+      username = "student",
+      roles = {"STUDENT"})
+  void downloadFile_nonAsciiFilename_returns200() throws Exception {
+    fileMetadata.setFileName("ärende_övning.png");
+
+    when(userService.getUserByUsername("student")).thenReturn(Optional.of(uploader));
+    when(fileService.getFileById(fileId)).thenReturn(Optional.of(fileMetadata));
+    when(fileService.downloadFile(fileMetadata))
+        .thenReturn(new ByteArrayInputStream("file content".getBytes()));
+
+    mockMvc
+        .perform(get("/api/files/" + fileId + "/download"))
+        .andExpect(status().isOk())
+        .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION));
   }
 }

@@ -152,7 +152,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
           {uploadError && (
             <div className="text-sm text-destructive flex items-center justify-between bg-destructive/10 p-2 rounded">
               {uploadError}
-              <Button variant="ghost" size="icon" className="h-4 w-4" onClick={() => setUploadError(null)}>
+              <Button variant="ghost" size="icon" className="h-4 w-4" aria-label="Stäng felmeddelande" onClick={() => setUploadError(null)}>
                 <X className="h-3 w-3" />
               </Button>
             </div>
@@ -176,11 +176,11 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
                   </div>
                   <div className="flex items-center gap-1">
                     {isImage(file) && (
-                      <Button variant="ghost" size="icon" onClick={() => handlePreview(file)}>
+                      <Button variant="ghost" size="icon" aria-label={`Förhandsvisa ${file.fileName}`} onClick={() => handlePreview(file)}>
                         <ZoomIn className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon" onClick={() => handleDownload(file)}>
+                    <Button variant="ghost" size="icon" aria-label={`Ladda ner ${file.fileName}`} onClick={() => handleDownload(file)}>
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>
