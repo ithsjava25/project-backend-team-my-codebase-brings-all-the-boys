@@ -19,8 +19,8 @@ import {Button} from '@/components/ui/button';
 
 export default function Dashboard() {
     const {user} = useAuthContext();
-    const {courses, error: coursesError} = useCourses();
-    const {assignments, error: assignmentsError} = useAssignments();
+    const {courses, loading: coursesLoading, error: coursesError} = useCourses();
+    const {assignments, loading: assignmentsLoading, error: assignmentsError} = useAssignments();
 
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -87,7 +87,12 @@ export default function Dashboard() {
                     {role === 'ROLE_STUDENT' && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div className="lg:col-span-2">
-                                <CourseListView courses={mappedCourses} view="grid" role="student"/>
+                                <CourseListView 
+                                    courses={mappedCourses} 
+                                    view="grid" 
+                                    role="student"
+                                    loading={coursesLoading}
+                                />
                             </div>
                             <div>
                                 <UpcomingDeadlinesView/>
@@ -111,6 +116,7 @@ export default function Dashboard() {
                         <CourseListView
                             courses={mappedCourses}
                             view="grid"
+                            loading={coursesLoading}
                             role={
                                 role === 'ROLE_ADMIN' ? 'admin' :
                                     role === 'ROLE_TEACHER' ? 'teacher' : 'student'
@@ -123,6 +129,7 @@ export default function Dashboard() {
                     <AssignmentListView
                         assignments={assignments}
                         error={assignmentsError}
+                        loading={assignmentsLoading}
                     />
                 </TabsContent>
 

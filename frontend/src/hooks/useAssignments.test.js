@@ -12,10 +12,7 @@ describe('useAssignments', () => {
   });
 
   it('starts with loading true, assignments empty and error null', async () => {
-    vi.mocked(assignmentApi.getAllAssignments).mockResolvedValue({
-      content: [mockAssignment],
-      totalPages: 1
-    });
+    vi.mocked(assignmentApi.getAllAssignments).mockResolvedValue({ content: [mockAssignment], totalPages: 1 });
 
     const { result } = renderHook(() => useAssignments());
 
@@ -27,15 +24,13 @@ describe('useAssignments', () => {
   });
 
   it('fetches assignments on mount', async () => {
-    vi.mocked(assignmentApi.getAllAssignments).mockResolvedValue({
-      content: [mockAssignment],
-      totalPages: 1
-    });
+    vi.mocked(assignmentApi.getAllAssignments).mockResolvedValue({ content: [mockAssignment], totalPages: 1 });
 
     const { result } = renderHook(() => useAssignments());
 
     await waitFor(() => {
       expect(result.current.assignments).toEqual([mockAssignment]);
+      expect(result.current.totalPages).toBe(1);
       expect(result.current.loading).toBe(false);
     });
 
@@ -43,10 +38,7 @@ describe('useAssignments', () => {
   });
 
   it('handles empty response from backend', async () => {
-    vi.mocked(assignmentApi.getAllAssignments).mockResolvedValue({
-      content: [],
-      totalPages: 0
-    });
+    vi.mocked(assignmentApi.getAllAssignments).mockResolvedValue({ content: [], totalPages: 0 });
 
     const { result } = renderHook(() => useAssignments());
 

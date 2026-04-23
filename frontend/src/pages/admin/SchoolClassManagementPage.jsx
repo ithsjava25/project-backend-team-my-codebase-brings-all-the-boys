@@ -42,6 +42,7 @@ export default function SchoolClassManagementPage() {
         if (window.confirm(`Är du säker på att du vill ta bort klassen "${sc.name}"?`)) {
             try {
                 await schoolClassApi.deleteSchoolClass(sc.id);
+                window.dispatchEvent(new CustomEvent('courses-changed'));
                 alert('Klassen har tagits bort.');
                 await fetchClasses();
             } catch (error) {

@@ -115,6 +115,7 @@ export default function CourseEditPage() {
                 endDate: form.endDate === '' ? null : form.endDate
             };
             await courseApi.updateCourse(id, submissionData);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Kursen har uppdaterats!');
             navigate('/admin/courses');
         } catch (err) {

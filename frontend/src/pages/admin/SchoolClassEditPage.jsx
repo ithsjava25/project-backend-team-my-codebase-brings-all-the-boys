@@ -43,6 +43,7 @@ export default function SchoolClassEditPage() {
         setError(null);
         try {
             await schoolClassApi.updateSchoolClass(id, form);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Klassen har uppdaterats!');
             navigate('/admin/school-classes');
         } catch (err) {

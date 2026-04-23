@@ -116,6 +116,7 @@ export default function CourseCreatePage() {
             };
             
             await courseApi.createCourse(submissionData);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Kursen har skapats!');
             navigate('/admin/courses');
         } catch (err) {

@@ -12,6 +12,9 @@ public interface SchoolClassRepository extends JpaRepository<SchoolClass, UUID> 
   Optional<SchoolClass> findByName(String name);
 
   @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
+  java.util.List<SchoolClass> findByEnrollments_User_Id(UUID userId);
+
+  @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
   org.springframework.data.domain.Page<SchoolClass> findByEnrollments_UserId(
       UUID userId, org.springframework.data.domain.Pageable pageable);
 }

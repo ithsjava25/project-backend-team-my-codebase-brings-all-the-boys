@@ -32,8 +32,18 @@ public class SchoolClassController {
   private final DtoMapper dtoMapper;
 
   @GetMapping("/school-classes")
-  public ResponseEntity<List<SchoolClassSurfaceResponse>> getAllSchoolClasses() {
-    return ResponseEntity.ok(schoolClassService.getAllSchoolClassesDto());
+  public ResponseEntity<List<SchoolClassSurfaceResponse>> getAllSchoolClasses(
+      java.security.Principal principal) {
+    if (principal == null) {
+      throw new UnauthorizedException("Authentication is required");
+    }
+
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
+    return ResponseEntity.ok(schoolClassService.getAccessibleSchoolClassesDto(currentUser));
   }
 
   @GetMapping("/school-classes/{id}")

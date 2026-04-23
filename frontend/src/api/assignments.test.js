@@ -17,7 +17,7 @@ describe('assignmentApi', () => {
 
       const result = await assignmentApi.getAllAssignments();
 
-      expect(client.get).toHaveBeenCalledWith('/assignments');
+      expect(client.get).toHaveBeenCalledWith('/assignments', { params: {} });
       expect(result).toEqual([mockAssignment]);
     });
 

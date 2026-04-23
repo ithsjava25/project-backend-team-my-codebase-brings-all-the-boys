@@ -15,8 +15,22 @@ export function AssignmentListView({
   title = "Uppgifter",
   subtitle,
   error,
+  loading,
   emptyMessage = "Inga uppgifter än."
 }) {
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Laddar uppgifter...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (error) {
     return (
       <Card>
@@ -27,7 +41,7 @@ export function AssignmentListView({
     );
   }
 
-  if (!assignments || assignments.length === 0) {
+  if (!Array.isArray(assignments) || assignments.length === 0) {
     return (
       <Card>
         <CardHeader>

@@ -67,6 +67,23 @@ public class SchoolClassService {
   }
 
   @Transactional(readOnly = true)
+  public List<SchoolClassSurfaceResponse> getAccessibleSchoolClassesDto(
+      org.example.projectbackendteammycodebasebringsalltheboys.entity.User user) {
+    String roleName = user.getRole().getName();
+    List<SchoolClass> classes;
+
+    if (roleName.equals("ROLE_ADMIN") || roleName.equals("ROLE_TEACHER")) {
+      classes = schoolClassRepository.findAll();
+    } else {
+      classes = schoolClassRepository.findByEnrollments_User_Id(user.getId());
+    }
+
+    return classes.stream()
+        .map(dtoMapper::toSchoolClassSurfaceResponse)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true)
   public List<SchoolClassSurfaceResponse> getAllSchoolClassesDto() {
     return schoolClassRepository.findAll().stream()
         .map(dtoMapper::toSchoolClassSurfaceResponse)

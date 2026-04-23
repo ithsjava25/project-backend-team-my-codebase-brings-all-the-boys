@@ -45,7 +45,13 @@ class SchoolClassControllerTest {
       username = "admin",
       roles = {"ADMIN"})
   void getAllSchoolClasses_AdminAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
+    User admin = new User();
+    admin.setUsername("admin");
+    admin.setRole(new Role("ROLE_ADMIN"));
+
+    Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
+    Mockito.when(schoolClassService.getAccessibleSchoolClassesDto(admin))
+        .thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -55,7 +61,13 @@ class SchoolClassControllerTest {
       username = "teacher",
       roles = {"TEACHER"})
   void getAllSchoolClasses_TeacherAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
+    User teacher = new User();
+    teacher.setUsername("teacher");
+    teacher.setRole(new Role("ROLE_TEACHER"));
+
+    Mockito.when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(teacher));
+    Mockito.when(schoolClassService.getAccessibleSchoolClassesDto(teacher))
+        .thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -65,7 +77,13 @@ class SchoolClassControllerTest {
       username = "student",
       roles = {"STUDENT"})
   void getAllSchoolClasses_StudentAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
+    User student = new User();
+    student.setUsername("student");
+    student.setRole(new Role("ROLE_STUDENT"));
+
+    Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
+    Mockito.when(schoolClassService.getAccessibleSchoolClassesDto(student))
+        .thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }

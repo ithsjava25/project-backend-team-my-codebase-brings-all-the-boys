@@ -14,8 +14,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 
-export function CourseListView({ courses, view: initialView = 'grid', role = 'student' }) {
+export function CourseListView({ courses, view: initialView = 'grid', role = 'student', loading }) {
   const [view, setView] = useState(initialView);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Mina Kurser</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Laddar kurser...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!courses || courses.length === 0) {
     return (
