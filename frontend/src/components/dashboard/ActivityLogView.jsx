@@ -80,7 +80,11 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
             COURSE: "kurs",
             STUDENT: "elev",
             TEACHER: "lärare",
-            CLASS: "klass",
+            SCHOOL_CLASS: "klass",
+            USER_ASSIGNMENT: "uppgift",
+            COMMENT: "kommentar",
+            CLASS_ENROLLMENT: "klass",
+            SUBMISSION: "inlämning",
         };
 
         switch (action) {
