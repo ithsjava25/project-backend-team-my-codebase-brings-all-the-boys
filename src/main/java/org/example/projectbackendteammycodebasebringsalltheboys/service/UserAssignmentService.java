@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogActivity;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
@@ -148,5 +149,10 @@ public class UserAssignmentService {
   @Transactional(readOnly = true)
   public Optional<UserAssignment> getByAssignmentAndStudent(Assignment assignment, User student) {
     return userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<UserAssignment> getById(UUID id) {
+    return userAssignmentRepository.findById(id);
   }
 }

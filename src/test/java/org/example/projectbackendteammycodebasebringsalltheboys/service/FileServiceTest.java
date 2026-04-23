@@ -8,7 +8,6 @@ import static org.mockito.Mockito.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
-import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
@@ -71,18 +70,19 @@ class FileServiceTest {
 
   @Test
   @DisplayName(
-      "savePresignedMetadata throws exception if both assignment and comment are null or both present")
+      "savePresignedMetadata throws exception if assignment, userAssignment, and comment are all null or more than one is present")
   void savePresignedMetadata_invalidInput_throwsException() {
     User uploader = new User();
     assertThatThrownBy(
             () ->
-                fileService.savePresignedMetadata("key", "file", 0L, "type", uploader, null, null))
+                fileService.savePresignedMetadata(
+                    "key", "file", 0L, "type", uploader, null, null, null))
         .isInstanceOf(IllegalArgumentException.class);
 
     assertThatThrownBy(
             () ->
                 fileService.savePresignedMetadata(
-                    "key", "file", 0L, "type", uploader, new Assignment(), new Comment()))
+                    "key", "file", 0L, "type", uploader, new Assignment(), null, null))
         .isInstanceOf(IllegalArgumentException.class);
   }
 

@@ -12,6 +12,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignmen
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
@@ -105,10 +106,14 @@ public class FileService {
       String contentType,
       User uploader,
       Assignment assignment,
+      UserAssignment userAssignment,
       Comment comment) {
 
-    if ((assignment == null) == (comment == null)) {
-      throw new IllegalArgumentException("Exactly one of assignment or comment must be provided");
+    int parentCount =
+        (assignment != null ? 1 : 0) + (userAssignment != null ? 1 : 0) + (comment != null ? 1 : 0);
+    if (parentCount != 1) {
+      throw new IllegalArgumentException(
+          "Exactly one of assignment, userAssignment, or comment must be provided");
     }
 
     FileMetadata metadata = new FileMetadata();
@@ -118,13 +123,25 @@ public class FileService {
     metadata.setContentType(contentType);
     metadata.setUploader(uploader);
     metadata.setAssignment(assignment);
+    metadata.setUserAssignment(userAssignment);
     metadata.setComment(comment);
 
     try {
       FileMetadata saved = fileMetadataRepository.save(metadata);
 
-      EntityType logEntityType = assignment != null ? EntityType.FILE : EntityType.COMMENT_FILE;
-      UUID logParentId = assignment != null ? assignment.getId() : comment.getAssignment().getId();
+      EntityType logEntityType;
+      UUID logParentId;
+
+      if (assignment != null) {
+        logEntityType = EntityType.FILE;
+        logParentId = assignment.getId();
+      } else if (userAssignment != null) {
+        logEntityType = EntityType.FILE;
+        logParentId = userAssignment.getId();
+      } else {
+        logEntityType = EntityType.COMMENT_FILE;
+        logParentId = comment.getAssignment().getId();
+      }
 
       activityLogService.log(
           uploader,

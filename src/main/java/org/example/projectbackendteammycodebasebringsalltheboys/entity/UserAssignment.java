@@ -45,4 +45,7 @@ public class UserAssignment extends BaseEntity {
 
   @OneToMany(mappedBy = "userAssignment", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Submission> submissions = new ArrayList<>();
+
+  @OneToMany(mappedBy = "userAssignment", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Comment> comments = new ArrayList<>();
 }

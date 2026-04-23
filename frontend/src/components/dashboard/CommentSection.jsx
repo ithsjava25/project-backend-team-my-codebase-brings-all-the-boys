@@ -7,8 +7,9 @@ import {Textarea} from '@/components/ui/textarea';
 import {Avatar, AvatarFallback} from '@/components/ui/avatar';
 import {formatDistanceToNow} from 'date-fns';
 import {sv} from 'date-fns/locale';
+import {Paperclip, Download} from 'lucide-react';
 
-export function CommentSection({assignmentId}) {
+export function CommentSection({assignmentId, userAssignmentId}) {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -18,8 +19,13 @@ export function CommentSection({assignmentId}) {
     const fetchComments = async () => {
         try {
             setIsLoading(true);
-            const data = await commentApi.getCommentsByAssignment(assignmentId);
-            setComments(data);
+            let data;
+            if (userAssignmentId) {
+                data = await commentApi.getPersonalComments(userAssignmentId);
+            } else if (assignmentId) {
+                data = await commentApi.getCommentsByAssignment(assignmentId);
+            }
+            setComments(data || []);
         } catch (error) {
             console.error('Failed to fetch comments:', error);
         } finally {
@@ -28,10 +34,10 @@ export function CommentSection({assignmentId}) {
     };
 
     useEffect(() => {
-        if (assignmentId) {
+        if (userAssignmentId || assignmentId) {
             fetchComments();
         }
-    }, [assignmentId]);
+    }, [userAssignmentId, assignmentId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -39,7 +45,12 @@ export function CommentSection({assignmentId}) {
 
         try {
             setIsSubmitting(true);
-            const comment = await commentApi.addComment(assignmentId, newComment);
+            let comment;
+            if (userAssignmentId) {
+                comment = await commentApi.addPersonalComment(userAssignmentId, newComment);
+            } else if (assignmentId) {
+                comment = await commentApi.addComment(assignmentId, newComment);
+            }
             setComments([...comments, comment]);
             setNewComment('');
         } catch (error) {
@@ -67,7 +78,7 @@ export function CommentSection({assignmentId}) {
                     ) : comments.length === 0 ? (
                         <p className="text-sm text-muted-foreground">Inga kommentarer än.</p>
                     ) : (
-                        comments.map((comment) => (
+                        comments.filter((c) => c?.id).map((comment) => (
                             <div key={comment.id} className="flex gap-4">
                                 <Avatar className="h-8 w-8">
                                     <AvatarFallback>{getInitials(comment.author?.username)}</AvatarFallback>
@@ -83,6 +94,23 @@ export function CommentSection({assignmentId}) {
                     </span>
                                     </div>
                                     <p className="text-sm">{comment.text}</p>
+                                    {comment.files && comment.files.length > 0 && (
+                                        <div className="mt-2 space-y-1">
+                                            {comment.files.map((file) => (
+                                                <a
+                                                    key={file.id}
+                                                    href={file.downloadUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                                                >
+                                                    <Paperclip className="h-3 w-3"/>
+                                                    <span>{file.fileName}</span>
+                                                    <Download className="h-3 w-3"/>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))

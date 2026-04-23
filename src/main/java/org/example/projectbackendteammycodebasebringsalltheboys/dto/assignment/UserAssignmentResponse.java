@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.Data;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.comment.CommentResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 
@@ -17,4 +18,5 @@ public class UserAssignmentResponse {
   private String grade;
   private LocalDateTime turnedInAt;
   private List<SubmissionResponse> submissions;
+  private List<CommentResponse> comments;
 }

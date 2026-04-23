@@ -12,6 +12,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignmen
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
@@ -30,6 +31,7 @@ public class FileController {
   private final UserService userService;
   private final CaseService caseService;
   private final CommentService commentService;
+  private final UserAssignmentService userAssignmentService;
   private final AuthorizationService authorizationService;
   private final DtoMapper dtoMapper;
 
@@ -57,10 +59,13 @@ public class FileController {
     }
 
     boolean hasAssignment = request.getAssignmentId() != null;
+    boolean hasUserAssignment = request.getUserAssignmentId() != null;
     boolean hasComment = request.getCommentId() != null;
 
-    if (hasAssignment == hasComment) {
-      throw new BadRequestException("Exactly one of assignmentId or commentId must be provided");
+    int parentCount = (hasAssignment ? 1 : 0) + (hasUserAssignment ? 1 : 0) + (hasComment ? 1 : 0);
+    if (parentCount != 1) {
+      throw new BadRequestException(
+          "Exactly one of assignmentId, userAssignmentId, or commentId must be provided");
     }
 
     User currentUser =
@@ -77,6 +82,18 @@ public class FileController {
 
       if (!authorizationService.canAccessCase(currentUser, assignment)) {
         throw new ForbiddenException("You are not allowed to attach files to this assignment");
+      }
+    }
+
+    UserAssignment userAssignment = null;
+    if (request.getUserAssignmentId() != null) {
+      userAssignment =
+          userAssignmentService
+              .getById(request.getUserAssignmentId())
+              .orElseThrow(() -> new NotFoundException("UserAssignment not found"));
+
+      if (!authorizationService.canAccessUserAssignment(currentUser, userAssignment)) {
+        throw new ForbiddenException("You are not allowed to attach files to this user assignment");
       }
     }
 
@@ -110,6 +127,7 @@ public class FileController {
             request.getContentType(),
             currentUser,
             assignment,
+            userAssignment,
             comment);
 
     return ResponseEntity.ok(dtoMapper.toFileResponse(metadata));

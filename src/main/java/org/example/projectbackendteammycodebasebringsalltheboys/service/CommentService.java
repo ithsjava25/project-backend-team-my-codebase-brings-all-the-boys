@@ -9,6 +9,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.annotation.LogAc
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
@@ -48,5 +49,31 @@ public class CommentService {
   @Transactional(readOnly = true)
   public Optional<Comment> getCommentById(UUID id) {
     return commentRepository.findById(id);
+  }
+
+  @LogActivity(
+      action = ActivityAction.ADDED,
+      entityType = EntityType.COMMENT,
+      parentIdParamIndex = 0)
+  @Transactional
+  public Comment addCommentToUserAssignment(
+      UserAssignment userAssignment, User author, String text) {
+    Objects.requireNonNull(userAssignment, "UserAssignment cannot be null");
+    Objects.requireNonNull(author, "Author cannot be null");
+    if (text == null || text.isBlank()) {
+      throw new IllegalArgumentException("Comment text cannot be empty");
+    }
+    Comment comment = new Comment();
+    comment.setUserAssignment(userAssignment);
+    comment.setAssignment(userAssignment.getAssignment());
+    comment.setAuthor(author);
+    comment.setText(text);
+
+    return commentRepository.save(comment);
+  }
+
+  @Transactional(readOnly = true)
+  public List<Comment> getCommentsByUserAssignment(UserAssignment userAssignment) {
+    return commentRepository.findByUserAssignmentOrderByCreatedAtAsc(userAssignment);
   }
 }

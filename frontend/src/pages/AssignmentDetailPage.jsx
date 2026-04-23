@@ -19,11 +19,13 @@ export default function AssignmentDetailPage() {
     const navigate = useNavigate();
 
     const [userAssignments, setUserAssignments] = useState([]);
+    const [myUserAssignment, setMyUserAssignment] = useState(null);
     const [loadingSubmissions, setLoadingSubmissions] = useState(false);
     const [submissionError, setSubmissionError] = useState(null);
 
     const isAdmin = user?.role?.name === 'ROLE_ADMIN';
     const isTeacher = user?.role?.name === 'ROLE_TEACHER';
+    const isStudent = user?.role?.name === 'ROLE_STUDENT';
     const canManageSubmissions = isAdmin || isTeacher;
 
     useEffect(() => {
@@ -44,6 +46,20 @@ export default function AssignmentDetailPage() {
             fetchSubmissions();
         }
     }, [assignment?.id, canManageSubmissions]);
+
+    useEffect(() => {
+        if (isStudent && assignment?.id) {
+            const fetchMyAssignment = async () => {
+                try {
+                    const data = await userAssignmentApi.getMyAssignment(assignment.id);
+                    setMyUserAssignment(data);
+                } catch (err) {
+                    console.error('Failed to fetch my assignment:', err);
+                }
+            };
+            fetchMyAssignment();
+        }
+    }, [assignment?.id, isStudent]);
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -128,7 +144,10 @@ export default function AssignmentDetailPage() {
                         </CardContent>
                     </Card>
 
-                    <CommentSection assignmentId={assignmentId}/>
+                    <CommentSection
+                        assignmentId={isStudent ? undefined : assignmentId}
+                        userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
+                    />
                 </div>
 
                 <div className="space-y-6">
@@ -208,8 +227,9 @@ export default function AssignmentDetailPage() {
                     </Card>
 
                     <FileSection
-                        files={assignment.files ?? []}
-                        assignmentId={assignmentId}
+                        files={isStudent ? [] : (assignment.files ?? [])}
+                        assignmentId={isStudent ? undefined : assignmentId}
+                        userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
                     />
                 </div>
             </div>

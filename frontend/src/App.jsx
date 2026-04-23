@@ -49,7 +49,14 @@ export default function App() {
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
                                 <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreatePage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
-                                <Route path="/assignments/:assignmentId/grade/:studentId" element={<AssignmentGradingPage/>}/>
+                                <Route
+                                    path="/assignments/:assignmentId/grade/:studentId"
+                                    element={
+                                        <ProtectedRoute allowedRoles={['ROLE_TEACHER', 'ROLE_ADMIN']}>
+                                            <AssignmentGradingPage/>
+                                        </ProtectedRoute>
+                                    }
+                                />
                                 <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
 
                                 {/* Admin-prefixed routes */}

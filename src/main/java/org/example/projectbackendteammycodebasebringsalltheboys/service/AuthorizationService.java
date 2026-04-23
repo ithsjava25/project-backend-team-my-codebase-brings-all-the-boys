@@ -7,6 +7,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
@@ -154,6 +155,21 @@ public class AuthorizationService {
     return user.getRole().getName().equals("ROLE_ADMIN")
         || user.getRole().getName().equals("ROLE_TEACHER")
         || comment.getAuthor().getId().equals(user.getId());
+  }
+
+  @Transactional(readOnly = true)
+  public boolean canAccessUserAssignment(User user, UserAssignment ua) {
+    if (isAdmin(user)) return true;
+
+    if (isStudent(user)) {
+      return ua.getStudent() != null && ua.getStudent().getId().equals(user.getId());
+    }
+
+    if (isTeacher(user) && ua.getAssignment() != null && ua.getAssignment().getCourse() != null) {
+      return canModifyCourse(user, ua.getAssignment().getCourse());
+    }
+
+    return false;
   }
 
   private boolean isAdmin(User user) {
