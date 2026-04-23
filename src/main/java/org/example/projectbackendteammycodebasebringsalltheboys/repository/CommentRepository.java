@@ -18,6 +18,10 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
   @Modifying
   @Transactional
+  void deleteByAssignment(Assignment assignment);
+
+  @Modifying
+  @Transactional
   void deleteByAuthor_Id(UUID authorId);
 
   List<Comment> findByUserAssignment(UserAssignment userAssignment);

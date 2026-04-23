@@ -13,6 +13,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +30,7 @@ class CaseServiceTest {
   @Mock private AuthorizationService authorizationService;
   @Mock private CourseRepository courseRepository;
   @Mock private ActivityLogService activityLogService;
+  @Mock private CommentRepository commentRepository;
 
   private CaseService caseService;
 
@@ -40,7 +42,8 @@ class CaseServiceTest {
             dtoMapper,
             authorizationService,
             courseRepository,
-            activityLogService);
+            activityLogService,
+            commentRepository);
   }
 
   @Test
