@@ -165,8 +165,8 @@ public class AuthorizationService {
       return ua.getStudent() != null && ua.getStudent().getId().equals(user.getId());
     }
 
-    if (isTeacher(user) && ua.getAssignment() != null && ua.getAssignment().getCourse() != null) {
-      return canModifyCourse(user, ua.getAssignment().getCourse());
+    if (isTeacher(user) && ua.getAssignment() != null) {
+      return canViewAssignment(user, ua.getAssignment());
     }
 
     return false;

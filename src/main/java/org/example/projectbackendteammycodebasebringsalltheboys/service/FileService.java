@@ -140,7 +140,11 @@ public class FileService {
         logParentId = userAssignment.getId();
       } else {
         logEntityType = EntityType.COMMENT_FILE;
-        logParentId = comment.getAssignment().getId();
+        if (comment.getUserAssignment() != null) {
+          logParentId = comment.getUserAssignment().getId();
+        } else {
+          logParentId = comment.getAssignment().getId();
+        }
       }
 
       activityLogService.log(

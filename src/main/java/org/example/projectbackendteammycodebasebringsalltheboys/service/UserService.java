@@ -19,6 +19,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -240,6 +241,11 @@ public class UserService {
     User actor = getCurrentUser();
 
     // 1. Delete student-scoped records (Cascade is often LAZY or missing for soft-delete)
+    // First delete comments linked to student's UserAssignments to avoid FK constraints
+    commentRepository.deleteByUserAssignment_Student_Id(id);
+    // Then delete comments authored by the student (e.g., on others' submissions)
+    commentRepository.deleteByAuthor_Id(id);
+    // Now safe to delete submissions and UserAssignments
     submissionRepository.deleteByUserAssignment_Student_Id(id);
     userAssignmentRepository.deleteByStudent_Id(id);
 
@@ -247,8 +253,7 @@ public class UserService {
     fileMetadataRepository.nullifyUploader(id);
     assignmentRepository.nullifyCreator(id);
 
-    // 3. Delete comments and activity logs (cleanup redundant trace data)
-    commentRepository.deleteByAuthor_Id(id);
+    // 3. Delete activity logs (cleanup redundant trace data)
     activityLogRepository.deleteByUser_Id(id);
 
     // 4. Handle Course associations
@@ -260,7 +265,7 @@ public class UserService {
     // which bypasses DDL-level @OnDelete(CASCADE) constraints.
     classEnrollmentRepository.deleteByUserId(id);
 
-    // 6. Finally soft-delete the user
+    // 6. Finally delete the user
     userRepository.delete(user);
   }
 
@@ -272,7 +277,9 @@ public class UserService {
   @Transactional(readOnly = true)
   public User getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !authentication.isAuthenticated()) {
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || authentication instanceof AnonymousAuthenticationToken) {
       throw new UnauthorizedException("User not authenticated");
     }
     String username = authentication.getName();

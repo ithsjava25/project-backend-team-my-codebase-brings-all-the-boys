@@ -42,6 +42,7 @@ export function CommentSection({assignmentId, userAssignmentId}) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!newComment.trim()) return;
+        if (!userAssignmentId && !assignmentId) return;
 
         try {
             setIsSubmitting(true);
@@ -51,7 +52,10 @@ export function CommentSection({assignmentId, userAssignmentId}) {
             } else if (assignmentId) {
                 comment = await commentApi.addComment(assignmentId, newComment);
             }
-            setComments([...comments, comment]);
+
+            if (!comment) throw new Error('No comment returned from API');
+
+            setComments((currentComments) => [...currentComments, comment]);
             setNewComment('');
         } catch (error) {
             console.error('Failed to add comment:', error);
@@ -132,7 +136,10 @@ export function CommentSection({assignmentId, userAssignmentId}) {
                                     className="min-h-[100px]"
                                 />
                                 <div className="flex justify-end">
-                                    <Button type="submit" disabled={isSubmitting || !newComment.trim()}>
+                                    <Button
+                                      type="submit"
+                                      disabled={isSubmitting || !newComment.trim() || (!userAssignmentId && !assignmentId)}
+                                    >
                                         {isSubmitting ? 'Skickar...' : 'Skicka kommentar'}
                                     </Button>
                                 </div>

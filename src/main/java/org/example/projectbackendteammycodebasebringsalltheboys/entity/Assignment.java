@@ -37,7 +37,9 @@ public class Assignment extends BaseEntity {
 
   @Column private java.time.LocalDateTime deadline;
 
-  @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(
+      mappedBy = "assignment",
+      cascade = {CascadeType.PERSIST, CascadeType.MERGE})
   private List<Comment> comments = new ArrayList<>();
 
   @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true)

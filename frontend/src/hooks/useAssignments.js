@@ -13,8 +13,8 @@ export function useAssignments() {
       try {
         setLoading(true);
         const data = await assignmentApi.getAllAssignments();
-        setAssignments(data.content || []);
-        setTotalPages(data.totalPages || 1);
+        setAssignments(data.content ?? []);
+        setTotalPages(data.totalPages ?? 0);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch assignments');
       } finally {
