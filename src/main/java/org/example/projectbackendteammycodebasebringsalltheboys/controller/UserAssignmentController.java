@@ -39,19 +39,19 @@ public class UserAssignmentController {
 
   @GetMapping("/my/{assignmentId}")
   public ResponseEntity<UserAssignmentResponse> getMyAssignment(
-          @PathVariable UUID assignmentId, Principal principal) {
+      @PathVariable UUID assignmentId, Principal principal) {
     User currentUser = getCurrentUser(principal);
 
     Assignment assignment =
-            assignmentRepository
-                    .findById(assignmentId)
-                    .orElseThrow(() -> new NotFoundException("Assignment not found"));
+        assignmentRepository
+            .findById(assignmentId)
+            .orElseThrow(() -> new NotFoundException("Assignment not found"));
 
     return userAssignmentService
-            .getByAssignmentAndStudent(assignment, currentUser)
-            .map(dtoMapper::toUserAssignmentResponse)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+        .getByAssignmentAndStudent(assignment, currentUser)
+        .map(dtoMapper::toUserAssignmentResponse)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   private User getCurrentUser(Principal principal) {
@@ -59,21 +59,21 @@ public class UserAssignmentController {
       throw new UnauthorizedException("Authentication is required");
     }
     return userService
-            .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+        .getUserByUsername(principal.getName())
+        .orElseThrow(() -> new UnauthorizedException("Current user not found"));
   }
 
   @GetMapping("/assignment/{assignmentId}/student/{studentId}")
   public ResponseEntity<UserAssignmentResponse> getUserAssignment(
-          @PathVariable UUID assignmentId, @PathVariable UUID studentId) {
+      @PathVariable UUID assignmentId, @PathVariable UUID studentId) {
     Assignment assignment =
-            assignmentRepository
-                    .findById(assignmentId)
-                    .orElseThrow(() -> new NotFoundException("Assignment not found"));
+        assignmentRepository
+            .findById(assignmentId)
+            .orElseThrow(() -> new NotFoundException("Assignment not found"));
     User student =
-            userService
-                    .getUserById(studentId)
-                    .orElseThrow(() -> new NotFoundException("Student not found"));
+        userService
+            .getUserById(studentId)
+            .orElseThrow(() -> new NotFoundException("Student not found"));
 
     User currentUser = userService.getCurrentUser();
     boolean isSelf = currentUser.getId().equals(studentId);
@@ -84,21 +84,21 @@ public class UserAssignmentController {
     }
 
     return userAssignmentService
-            .getByAssignmentAndStudent(assignment, student)
-            .map(dtoMapper::toUserAssignmentResponse)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+        .getByAssignmentAndStudent(assignment, student)
+        .map(dtoMapper::toUserAssignmentResponse)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping("/assignment/{assignmentId}")
   @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<List<UserAssignmentResponse>> getByAssignment(
-          @PathVariable UUID assignmentId, Principal principal) {
+      @PathVariable UUID assignmentId, Principal principal) {
 
     Assignment assignment =
-            assignmentRepository
-                    .findById(assignmentId)
-                    .orElseThrow(() -> new NotFoundException("Assignment not found"));
+        assignmentRepository
+            .findById(assignmentId)
+            .orElseThrow(() -> new NotFoundException("Assignment not found"));
 
     User currentUser = userService.getCurrentUser();
 
@@ -107,19 +107,19 @@ public class UserAssignmentController {
     }
 
     return ResponseEntity.ok(
-            userAssignmentRepository.findByAssignment(assignment).stream()
-                    .map(dtoMapper::toUserAssignmentResponse)
-                    .collect(Collectors.toList()));
+        userAssignmentRepository.findByAssignment(assignment).stream()
+            .map(dtoMapper::toUserAssignmentResponse)
+            .collect(Collectors.toList()));
   }
 
   @PostMapping("/{id}/evaluate")
   @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<UserAssignmentResponse> evaluateAssignment(
-          @PathVariable UUID id, @Valid @RequestBody EvaluationRequest request) {
+      @PathVariable UUID id, @Valid @RequestBody EvaluationRequest request) {
     UserAssignment ua =
-            userAssignmentRepository
-                    .findById(id)
-                    .orElseThrow(() -> new NotFoundException("UserAssignment not found"));
+        userAssignmentRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("UserAssignment not found"));
 
     User evaluator = userService.getCurrentUser();
 
@@ -128,7 +128,7 @@ public class UserAssignmentController {
     }
 
     userAssignmentService.evaluateAssignment(
-            ua, request.getGrade(), request.getFeedback(), evaluator);
+        ua, request.getGrade(), request.getFeedback(), evaluator);
 
     return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
   }

@@ -40,6 +40,7 @@ class FileControllerTest {
   @MockitoBean private CommentService commentService;
   @MockitoBean private AuthorizationService authorizationService;
   @MockitoBean private DtoMapper dtoMapper;
+  @MockitoBean private UserAssignmentService userAssignmentService;
 
   private UUID fileId;
   private FileMetadata fileMetadata;

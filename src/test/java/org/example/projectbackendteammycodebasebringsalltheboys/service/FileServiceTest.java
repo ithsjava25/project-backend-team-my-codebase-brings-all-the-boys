@@ -10,6 +10,7 @@ import java.io.InputStream;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.FileMetadata;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,10 +70,10 @@ class FileServiceTest {
   }
 
   @Test
-  @DisplayName(
-      "savePresignedMetadata throws exception if assignment, userAssignment, and comment are all null or more than one is present")
+  @DisplayName("savePresignedMetadata throws exception if not exactly one parent is provided")
   void savePresignedMetadata_invalidInput_throwsException() {
     User uploader = new User();
+
     assertThatThrownBy(
             () ->
                 fileService.savePresignedMetadata(
@@ -82,7 +83,14 @@ class FileServiceTest {
     assertThatThrownBy(
             () ->
                 fileService.savePresignedMetadata(
-                    "key", "file", 0L, "type", uploader, new Assignment(), null, null))
+                    "key",
+                    "file",
+                    0L,
+                    "type",
+                    uploader,
+                    new Assignment(),
+                    new UserAssignment(),
+                    null))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
