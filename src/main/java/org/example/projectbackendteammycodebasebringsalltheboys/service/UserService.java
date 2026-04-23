@@ -272,12 +272,10 @@ public class UserService {
   @Transactional(readOnly = true)
   public User getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null
-        || !authentication.isAuthenticated()
-        || !(authentication.getPrincipal() instanceof String)) {
+    if (authentication == null || !authentication.isAuthenticated()) {
       throw new UnauthorizedException("User not authenticated");
     }
-    String username = (String) authentication.getPrincipal();
+    String username = authentication.getName();
     return userRepository
         .findByUsername(username)
         .orElseThrow(() -> new NotFoundException("Current user not found"));

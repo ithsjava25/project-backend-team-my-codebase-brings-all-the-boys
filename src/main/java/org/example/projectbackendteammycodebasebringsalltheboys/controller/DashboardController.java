@@ -30,7 +30,7 @@ public class DashboardController {
   }
 
   @GetMapping("/pending-submissions")
-  @PreAuthorize("hasAnyRole('ROLE_TEACHER', 'ROLE_ADMIN')")
+  @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<List<PendingSubmissionDTO>> getPendingSubmissions(
       java.security.Principal principal) {
     User user = resolveUser(principal);
