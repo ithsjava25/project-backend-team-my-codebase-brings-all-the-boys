@@ -23,6 +23,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.Forbid
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,7 @@ public class CaseService {
   private final AuthorizationService authorizationService;
   private final CourseRepository courseRepository;
   private final ActivityLogService activityLogService;
+  private final CommentRepository commentRepository;
 
   @Transactional
   public AssignmentDetailResponse createCase(CaseRequest request, User creator) {
@@ -176,6 +178,10 @@ public class CaseService {
         null,
         Map.of("title", assignment.getTitle()),
         ActivityStatus.SUCCESS);
+
+    // Delete all comments linked to this assignment (both assignment-scoped and
+    // user-assignment-scoped)
+    commentRepository.deleteByAssignment(assignment);
 
     assignmentRepository.delete(assignment);
   }

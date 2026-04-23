@@ -7,7 +7,7 @@ import { FileIcon, Upload, Download, Loader2, X, ZoomIn } from 'lucide-react';
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
 
-export function FileSection({ files: initialFiles = [], assignmentId, commentId }) {
+export function FileSection({ files: initialFiles = [], assignmentId, userAssignmentId, commentId }) {
   const [files, setFiles] = useState(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
@@ -34,6 +34,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
         selectedFile.name,
         selectedFile.type,
         assignmentId,
+        userAssignmentId,
         commentId
       );
 
@@ -45,6 +46,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, commentId 
         selectedFile.type,
         selectedFile.size,
         assignmentId,
+        userAssignmentId,
         commentId
       );
 

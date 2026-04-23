@@ -30,6 +30,10 @@ public class FileMetadata extends BaseEntity {
   private Assignment assignment;
 
   @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "user_assignment_id")
+  private UserAssignment userAssignment;
+
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "comment_id")
   private Comment comment;
 
@@ -41,6 +45,7 @@ public class FileMetadata extends BaseEntity {
   private boolean hasExactlyOneParent() {
     int count = 0;
     if (assignment != null) count++;
+    if (userAssignment != null) count++;
     if (comment != null) count++;
     if (submission != null) count++;
     return count == 1;

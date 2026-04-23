@@ -11,4 +11,5 @@ public class UploadRequest {
   private Long fileSize;
   private UUID assignmentId;
   private UUID commentId;
+  private UUID userAssignmentId;
 }

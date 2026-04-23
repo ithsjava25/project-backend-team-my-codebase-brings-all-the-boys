@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import {ArrowLeft, Download, FileText} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
+import {CommentSection} from '@/components/dashboard/CommentSection';
 
 export default function AssignmentGradingPage() {
     const {assignmentId, studentId} = useParams();
@@ -131,10 +132,12 @@ export default function AssignmentGradingPage() {
                                 <p className="text-muted-foreground italic">Ingen inlämning har gjorts än.</p>
                             )}
                         </CardContent>
-                    </Card>
-                </div>
+                     </Card>
 
-                {/* Grading Form */}
+                     <CommentSection userAssignmentId={ua.id} />
+                 </div>
+
+                 {/* Grading Form */}
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>

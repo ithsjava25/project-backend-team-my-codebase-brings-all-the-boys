@@ -2,22 +2,24 @@ import client from './client';
 import axios from 'axios';
 
 export const fileApi = {
-  getUploadUrl: async (fileName, contentType, assignmentId = null, commentId = null) => {
+  getUploadUrl: async (fileName, contentType, assignmentId = null, userAssignmentId = null, commentId = null) => {
     const response = await client.post('/files/upload-url', {
       fileName,
       contentType,
       assignmentId,
+      userAssignmentId,
       commentId
     });
     return response.data; // returns { uploadUrl, s3Key }
   },
 
-  finalizeUpload: async (s3Key, fileName, contentType, fileSize, assignmentId = null, commentId = null) => {
+  finalizeUpload: async (s3Key, fileName, contentType, fileSize, assignmentId = null, userAssignmentId = null, commentId = null) => {
     const response = await client.post(`/files/finalize?s3Key=${encodeURIComponent(s3Key)}`, {
       fileName,
       contentType,
       fileSize,
       assignmentId,
+      userAssignmentId,
       commentId
     });
     return response.data;

@@ -56,6 +56,10 @@ public class DtoMapper {
     response.setText(comment.getText());
     response.setAuthor(toUserResponse(comment.getAuthor()));
     response.setCreatedAt(comment.getCreatedAt());
+    response.setFiles(
+        comment.getFiles() != null
+            ? comment.getFiles().stream().map(this::toFileResponse).collect(Collectors.toList())
+            : Collections.emptyList());
     return response;
   }
 
@@ -243,6 +247,10 @@ public class DtoMapper {
             ? ua.getSubmissions().stream()
                 .map(this::toSubmissionResponse)
                 .collect(Collectors.toList())
+            : Collections.emptyList());
+    response.setComments(
+        ua.getComments() != null
+            ? ua.getComments().stream().map(this::toCommentResponse).collect(Collectors.toList())
             : Collections.emptyList());
     return response;
   }

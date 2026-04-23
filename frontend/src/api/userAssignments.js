@@ -11,6 +11,11 @@ export const userAssignmentApi = {
         return response.data;
     },
 
+    getMyAssignment: async (assignmentId) => {
+        const response = await client.get(`/user-assignments/my/${assignmentId}`);
+        return response.data;
+    },
+
     evaluate: async (id, evaluationData) => {
         const response = await client.post(`/user-assignments/${id}/evaluate`, evaluationData);
         return response.data;

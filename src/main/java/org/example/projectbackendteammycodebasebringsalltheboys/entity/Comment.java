@@ -21,6 +21,10 @@ public class Comment extends BaseEntity {
   private Assignment assignment;
 
   @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "user_assignment_id")
+  private UserAssignment userAssignment;
+
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "author_id", nullable = false)
   private User author;
 
