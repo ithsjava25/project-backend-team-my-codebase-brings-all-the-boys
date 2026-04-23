@@ -29,6 +29,17 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
 
   long countByStudent_IdAndStatus(UUID studentId, StudentAssignmentStatus status);
 
+  @org.springframework.data.jpa.repository.Query(
+      "SELECT COUNT(DISTINCT ua) FROM UserAssignment ua "
+          + "JOIN ua.assignment a "
+          + "JOIN a.course c "
+          + "JOIN c.schoolClass sc "
+          + "JOIN sc.enrollments e "
+          + "WHERE e.user.id = :studentId AND ua.student.id = :studentId AND ua.status = :status")
+  long countByStudentEnrollmentAndStatus(
+      @org.springframework.data.repository.query.Param("studentId") UUID studentId,
+      @org.springframework.data.repository.query.Param("status") StudentAssignmentStatus status);
+
   List<UserAssignment> findByStatusAndAssignment_Course_LeadTeacher_Id(
       StudentAssignmentStatus status, UUID teacherId);
 

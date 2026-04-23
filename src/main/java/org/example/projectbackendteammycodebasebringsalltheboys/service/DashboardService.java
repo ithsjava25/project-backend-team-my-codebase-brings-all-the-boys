@@ -47,7 +47,7 @@ public class DashboardService {
       // Pending = Total Enrolled - Evaluated
       long totalEnrolled = assignmentRepository.countByStudentEnrollment(user.getId());
       long evaluated =
-          userAssignmentRepository.countByStudent_IdAndStatus(
+          userAssignmentRepository.countByStudentEnrollmentAndStatus(
               user.getId(), StudentAssignmentStatus.EVALUATED);
 
       stats.put("pendingAssignments", Math.max(0, totalEnrolled - evaluated));
