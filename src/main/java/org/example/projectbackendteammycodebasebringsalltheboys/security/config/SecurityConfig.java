@@ -14,6 +14,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 
 @Configuration
 @EnableMethodSecurity
@@ -28,10 +30,13 @@ public class SecurityConfig {
       CustomOAuth2UserService customOAuth2UserService,
       OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
 
-    http.csrf(
-            csrf ->
-                csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    .ignoringRequestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/oauth2/**"))
+    http
+            .csrf(csrf ->
+                    csrf.csrfTokenRepository(new LazyCsrfTokenRepository(
+                                    CookieCsrfTokenRepository.withHttpOnlyFalse()
+                            ))
+                            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                            .ignoringRequestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/oauth2/**"))
         .cors(Customizer.withDefaults()) // Removed this line to rely solely on CorsConfig bean
         .authorizeHttpRequests(
             auth ->
