@@ -233,7 +233,7 @@ public class DataSeeder implements CommandLineRunner {
 
   private void getOrCreateComment(
       String text, Assignment assignment, User author, UserAssignment ua) {
-    if (commentRepository.findAll().stream().noneMatch(c -> c.getText().equals(text))) {
+    if (!commentRepository.existsByTextAndAssignmentAndAuthor(text, assignment, author)) {
       Comment comment = new Comment();
       comment.setText(text);
       comment.setAuthor(author);

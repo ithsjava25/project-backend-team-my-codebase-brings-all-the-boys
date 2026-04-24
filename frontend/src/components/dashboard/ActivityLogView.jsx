@@ -36,16 +36,9 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
             setLoading(true);
             let data;
             if (isAdmin && !initialUserId && !entityId) {
-                const activeFilters = { ...filters };
-                if (activeFilters.userId === 'ALL') delete activeFilters.userId;
-                data = await activityLogApi.getAllLogs(0, limit, activeFilters);
+                data = await activityLogApi.getAllLogs(0, limit, filters);
             } else if (filters.userId || initialUserId) {
-                const targetId = (filters.userId === 'ALL' || !filters.userId) ? initialUserId : filters.userId;
-                if (targetId) {
-                    data = await activityLogApi.getUserLogs(targetId, 0, limit);
-                } else {
-                    data = await activityLogApi.getAllLogs(0, limit);
-                }
+                data = await activityLogApi.getUserLogs(filters.userId || initialUserId, 0, limit);
             } else if (filters.entityType || initialEntityType) {
                 data = await activityLogApi.getEntityLogs(filters.entityType || initialEntityType, entityId, 0, limit);
             } else {
@@ -176,8 +169,8 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                                 <User className="h-3 w-3"/> Användare
                             </label>
                             <Select 
-                                value={filters.userId} 
-                                onValueChange={(v) => setFilters(f => ({...f, userId: v}))}
+                                value={filters.userId || 'ALL'} 
+                                onValueChange={(v) => setFilters(f => ({...f, userId: v === 'ALL' ? '' : v}))}
                             >
                                 <SelectTrigger className="h-9">
                                     <SelectValue placeholder="Alla användare"/>
@@ -196,7 +189,7 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                                 <Filter className="h-3 w-3"/> Åtgärd
                             </label>
                             <Select 
-                                value={filters.action} 
+                                value={filters.action || 'ALL'} 
                                 onValueChange={(v) => setFilters(f => ({...f, action: v === 'ALL' ? '' : v}))}
                             >
                                 <SelectTrigger className="h-9">
@@ -220,7 +213,7 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                                 <Activity className="h-3 w-3"/> Typ
                             </label>
                             <Select 
-                                value={filters.entityType} 
+                                value={filters.entityType || 'ALL'} 
                                 onValueChange={(v) => setFilters(f => ({...f, entityType: v === 'ALL' ? '' : v}))}
                             >
                                 <SelectTrigger className="h-9">

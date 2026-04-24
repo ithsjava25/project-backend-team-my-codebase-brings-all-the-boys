@@ -1,5 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,8 +66,7 @@ class ActivityLogControllerTest {
 
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
     Mockito.when(userService.getUserById(targetUserId)).thenReturn(Optional.of(targetUser));
-    Mockito.when(
-            activityLogService.getLogsForUser(Mockito.eq(targetUser), Mockito.any(Pageable.class)))
+    Mockito.when(activityLogService.getLogsForUser(Mockito.eq(targetUser), any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
@@ -92,7 +93,7 @@ class ActivityLogControllerTest {
 
     Mockito.when(userService.getUserByUsername("alice_student")).thenReturn(Optional.of(alice));
     Mockito.when(userService.getUserById(aliceId)).thenReturn(Optional.of(alice));
-    Mockito.when(activityLogService.getLogsForUser(Mockito.eq(alice), Mockito.any(Pageable.class)))
+    Mockito.when(activityLogService.getLogsForUser(Mockito.eq(alice), any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
@@ -140,9 +141,7 @@ class ActivityLogControllerTest {
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
     Mockito.when(
             activityLogService.getLogsForParent(
-                Mockito.eq(EntityType.ASSIGNMENT),
-                Mockito.eq(entityId),
-                Mockito.any(Pageable.class)))
+                Mockito.eq(EntityType.ASSIGNMENT), Mockito.eq(entityId), any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
@@ -174,5 +173,44 @@ class ActivityLogControllerTest {
                 .param("page", "0")
                 .param("size", "10"))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(
+      username = "admin",
+      roles = {"ADMIN"})
+  void getAllActivityLogs_WithFilters() throws Exception {
+    User admin = new User();
+    admin.setRole(new Role("ROLE_ADMIN"));
+    Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
+
+    Page<?> emptyPage = new PageImpl<>(Collections.emptyList());
+    Mockito.when(activityLogService.getLogs(any(), any(), any(), any(), any(), any(), any()))
+        .thenReturn((Page) emptyPage);
+
+    mockMvc
+        .perform(
+            get("/api/activity-logs")
+                .param("action", "CREATED")
+                .param("entityType", "COURSE")
+                .param("status", "SUCCESS")
+                .param("page", "0")
+                .param("size", "10"))
+        .andExpect(status().isOk());
+
+    verify(activityLogService)
+        .getLogs(
+            any(),
+            Mockito.eq(
+                org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction
+                    .CREATED),
+            Mockito.eq(
+                org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType.COURSE),
+            Mockito.eq(
+                org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus
+                    .SUCCESS),
+            any(),
+            any(),
+            any());
   }
 }

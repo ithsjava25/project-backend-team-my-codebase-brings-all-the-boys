@@ -1,6 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,7 +15,9 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ActivityLogRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -48,11 +51,20 @@ public class ActivityLogService {
       ActivityAction action,
       EntityType entityType,
       ActivityStatus status,
-      java.time.LocalDateTime start,
-      java.time.LocalDateTime end,
+      LocalDateTime start,
+      LocalDateTime end,
       Pageable pageable) {
 
-    Specification<ActivityLog> spec = Specification.allOf();
+    // Ensure deterministic paging if unsorted
+    if (pageable.getSort().isUnsorted()) {
+      pageable =
+          PageRequest.of(
+              pageable.getPageNumber(),
+              pageable.getPageSize(),
+              Sort.by("timestamp").descending().and(Sort.by("id").descending()));
+    }
+
+    Specification<ActivityLog> spec = Specification.where((Specification<ActivityLog>) null);
 
     if (userId != null) {
       spec = spec.and((root, query, cb) -> cb.equal(root.get("user").get("id"), userId));
@@ -76,6 +88,10 @@ public class ActivityLogService {
 
     if (end != null) {
       spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("timestamp"), end));
+    }
+
+    if (spec == null) {
+      return activityLogRepository.findAll(pageable);
     }
 
     return activityLogRepository.findAll(spec, pageable);

@@ -17,21 +17,31 @@ export default function UserProfilePage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchProfile = async () => {
       try {
         setLoading(true);
         setError(null);
         const data = await userApi.getUserProfile(id);
-        setProfile(data);
+        if (!cancelled) {
+          setProfile(data);
+        }
       } catch (err) {
-        console.error('Failed to fetch profile:', err);
-        setError(err.response?.data?.message || 'Kunde inte hämta profil.');
+        if (!cancelled) {
+          console.error('Failed to fetch profile:', err);
+          setError(err.response?.data?.message || 'Kunde inte hämta profil.');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     if (id) fetchProfile();
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const isAdmin = currentUser?.role?.name === 'ROLE_ADMIN';
@@ -66,10 +76,10 @@ export default function UserProfilePage() {
           <ArrowLeft className="h-4 w-4" />
           Tillbaka
         </Button>
-        {isAdmin && (
+        {(isAdmin || isOwnProfile) && (
           <Button onClick={() => navigate(`/admin/users/${id}/edit`)} className="gap-2">
             <Edit className="h-4 w-4" />
-            Redigera användare
+            Redigera {isOwnProfile ? 'din profil' : 'användare'}
           </Button>
         )}
       </div>

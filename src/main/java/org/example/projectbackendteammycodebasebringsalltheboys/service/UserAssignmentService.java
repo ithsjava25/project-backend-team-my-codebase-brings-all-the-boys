@@ -133,6 +133,24 @@ public class UserAssignmentService {
       actorParamIndex = 3)
   @Transactional
   public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
+    evaluateAssignment(ua, grade, feedback, evaluator, false);
+  }
+
+  @Transactional
+  public void evaluateAssignment(
+      UserAssignment ua,
+      String grade,
+      String feedback,
+      User evaluator,
+      boolean allowWithoutSubmission) {
+    if (!allowWithoutSubmission
+        && ua.getStatus() != StudentAssignmentStatus.TURNED_IN
+        && ua.getStatus() != StudentAssignmentStatus.EVALUATED) {
+      throw new IllegalStateException(
+          "Cannot evaluate assignment in status: "
+              + ua.getStatus()
+              + ". Must be TURNED_IN or EVALUATED (for re-grading).");
+    }
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
     ua.setGrade(grade);
     ua.setFeedback(feedback);
@@ -145,31 +163,41 @@ public class UserAssignmentService {
   }
 
   @Transactional(readOnly = true)
-  public List<UserAssignment> getEvaluatedAssignmentsForTeacher(User teacher) {
-    return userAssignmentRepository.findByStatusAndAssignment_Course_LeadTeacher_Id(
-        StudentAssignmentStatus.EVALUATED, teacher.getId());
+  public List<UserAssignment> getEvaluatedAssignmentsForTeacher(User user) {
+    if (user.getRole().getName().equals("ROLE_ADMIN")) {
+      return userAssignmentRepository.findByStatus(StudentAssignmentStatus.EVALUATED);
+    }
+    return userAssignmentRepository.findByStatusAndTeacherConnection(
+        StudentAssignmentStatus.EVALUATED, user.getId());
+  }
+
+  @Transactional(readOnly = true)
+  public Optional<UserAssignment> getByAssignmentAndStudent(Assignment assignment, User student) {
+    return userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
   }
 
   @Transactional
-  public Optional<UserAssignment> getByAssignmentAndStudent(Assignment assignment, User student) {
+  public UserAssignment getOrCreateForStudent(Assignment assignment, User student) {
     Optional<UserAssignment> existing =
         userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
 
     if (existing.isPresent()) {
-      return existing;
+      return existing.get();
     }
 
-    // Lazy create if authorized
-    if (authorizationService.canViewAssignment(student, assignment)
-        && student.getRole().getName().equals("ROLE_STUDENT")) {
+    // Lazy create if authorized student
+    if (student.getRole() != null
+        && "ROLE_STUDENT".equals(student.getRole().getName())
+        && authorizationService.canViewAssignment(student, assignment)) {
       UserAssignment ua = new UserAssignment();
       ua.setAssignment(assignment);
       ua.setStudent(student);
       ua.setStatus(StudentAssignmentStatus.ASSIGNED);
-      return Optional.of(userAssignmentRepository.save(ua));
+      return userAssignmentRepository.save(ua);
     }
 
-    return Optional.empty();
+    throw new org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException(
+        "UserAssignment not found and could not be created for user: " + student.getUsername());
   }
 
   @Transactional(readOnly = true)

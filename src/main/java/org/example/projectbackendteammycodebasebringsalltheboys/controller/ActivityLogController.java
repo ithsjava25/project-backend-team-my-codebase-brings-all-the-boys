@@ -1,10 +1,14 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ActivityLogResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ActivityLog;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
@@ -14,6 +18,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.service.Activity
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,21 +34,14 @@ public class ActivityLogController {
   @GetMapping
   public ResponseEntity<Page<ActivityLogResponse>> getAllActivityLogs(
       @RequestParam(required = false) UUID userId,
-      @RequestParam(required = false)
-          org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction action,
-      @RequestParam(required = false)
-          org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType entityType,
-      @RequestParam(required = false)
-          org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus status,
-      @RequestParam(required = false)
-          @org.springframework.format.annotation.DateTimeFormat(
-              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
-          java.time.LocalDateTime start,
-      @RequestParam(required = false)
-          @org.springframework.format.annotation.DateTimeFormat(
-              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
-          java.time.LocalDateTime end,
-      java.security.Principal principal,
+      @RequestParam(required = false) ActivityAction action,
+      @RequestParam(required = false) EntityType entityType,
+      @RequestParam(required = false) ActivityStatus status,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime start,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime end,
+      Principal principal,
       Pageable pageable) {
 
     if (principal == null) {
@@ -68,7 +66,7 @@ public class ActivityLogController {
 
   @GetMapping("/user/{userId}")
   public ResponseEntity<Page<ActivityLogResponse>> getUserActivityLogs(
-      @PathVariable UUID userId, java.security.Principal principal, Pageable pageable) {
+      @PathVariable UUID userId, Principal principal, Pageable pageable) {
 
     if (principal == null) {
       throw new UnauthorizedException("Authentication is required");
@@ -99,7 +97,7 @@ public class ActivityLogController {
   public ResponseEntity<Page<ActivityLogResponse>> getEntityActivityLogs(
       @PathVariable EntityType entityType,
       @PathVariable UUID entityId,
-      java.security.Principal principal,
+      Principal principal,
       Pageable pageable) {
 
     if (principal == null) {

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
+import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ExternalRegistrationRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
@@ -267,5 +268,85 @@ class UserServiceTest {
     ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
     verify(userRepository).save(captor.capture());
     assertThat(captor.getValue().getRole()).isSameAs(role);
+  }
+
+  @Test
+  @DisplayName("updateUser synchronizes school class enrollments")
+  void updateUser_syncsSchoolClasses() {
+    UUID userId = UUID.randomUUID();
+    UUID classId1 = UUID.randomUUID();
+    UUID classId2 = UUID.randomUUID();
+
+    org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserRequest request =
+        new org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserRequest();
+    request.setUsername("updated");
+    request.setEmail("updated@test.com");
+    request.setRoleName("ROLE_STUDENT");
+    request.setSchoolClassIds(java.util.List.of(classId1, classId2));
+
+    User existing = new User();
+    existing.setId(userId);
+    existing.setRole(studentRole());
+
+    org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass sc1 =
+        new org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass();
+    sc1.setId(classId1);
+    org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass sc2 =
+        new org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass();
+    sc2.setId(classId2);
+
+    when(userRepository.findById(userId)).thenReturn(Optional.of(existing));
+    when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(studentRole()));
+    when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    when(schoolClassRepository.findAllById(any())).thenReturn(java.util.List.of(sc1, sc2));
+
+    // Mock authentication for getCurrentUser()
+    org.springframework.security.core.Authentication auth =
+        mock(org.springframework.security.core.Authentication.class);
+    when(auth.getName()).thenReturn("admin");
+    when(auth.isAuthenticated()).thenReturn(true);
+    org.springframework.security.core.context.SecurityContextHolder.getContext()
+        .setAuthentication(auth);
+    when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User()));
+
+    userService.updateUser(userId, request);
+
+    verify(classEnrollmentRepository).deleteByUserId(userId);
+    verify(classEnrollmentService, times(2)).enrollUser(any(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("updateUser throws NotFoundException if some class IDs are missing")
+  void updateUser_missingClass_throwsException() {
+    UUID userId = UUID.randomUUID();
+    UUID classId1 = UUID.randomUUID();
+
+    org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserRequest request =
+        new org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserRequest();
+    request.setSchoolClassIds(java.util.List.of(classId1));
+    request.setRoleName("ROLE_STUDENT");
+
+    User existing = new User();
+    existing.setRole(studentRole());
+
+    when(userRepository.findById(userId)).thenReturn(Optional.of(existing));
+    when(roleRepository.findByName("ROLE_STUDENT")).thenReturn(Optional.of(studentRole()));
+    when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+    when(schoolClassRepository.findAllById(any())).thenReturn(java.util.List.of()); // Found none
+
+    // Mock authentication for getCurrentUser()
+    org.springframework.security.core.Authentication auth =
+        mock(org.springframework.security.core.Authentication.class);
+    when(auth.getName()).thenReturn("admin");
+    when(auth.isAuthenticated()).thenReturn(true);
+    org.springframework.security.core.context.SecurityContextHolder.getContext()
+        .setAuthentication(auth);
+    when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User()));
+
+    assertThatThrownBy(() -> userService.updateUser(userId, request))
+        .isInstanceOf(
+            org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException
+                .class)
+        .hasMessageContaining("School classes not found");
   }
 }

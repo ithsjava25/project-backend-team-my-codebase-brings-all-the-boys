@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {schoolClassApi} from '@/api/schoolClasses';
 import {userApi} from '@/api/users';
@@ -15,6 +15,7 @@ export default function SchoolClassEditPage() {
     const {id} = useParams();
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isMutating, setIsMutating] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -23,7 +24,11 @@ export default function SchoolClassEditPage() {
     const [allStudents, setAllStudents] = useState([]);
     const [studentSearch, setStudentSearch] = useState('');
 
-    const fetchData = useCallback(async () => {
+    const studentEnrollments = useMemo(() => 
+        enrollments.filter(e => e.classRole === 'STUDENT'), 
+    [enrollments]);
+
+    const fetchData = useCallback(async (signal) => {
         try {
             setLoading(true);
             const [classData, students] = await Promise.all([
@@ -31,6 +36,8 @@ export default function SchoolClassEditPage() {
                 userApi.getStudents()
             ]);
             
+            if (signal?.aborted) return;
+
             setForm({
                 name: classData.name || '',
                 description: classData.description || ''
@@ -38,6 +45,7 @@ export default function SchoolClassEditPage() {
             setEnrollments(classData.enrollments || []);
             setAllStudents(students || []);
         } catch (err) {
+            if (err.name === 'AbortError') return;
             console.error('Failed to fetch class:', err);
             setError('Kunde inte hämta data.');
         } finally {
@@ -46,7 +54,9 @@ export default function SchoolClassEditPage() {
     }, [id]);
 
     useEffect(() => {
-        if (id) fetchData();
+        const controller = new AbortController();
+        if (id) fetchData(controller.signal);
+        return () => controller.abort();
     }, [id, fetchData]);
 
     const handleSubmit = async (e) => {
@@ -57,6 +67,7 @@ export default function SchoolClassEditPage() {
         try {
             await schoolClassApi.updateSchoolClass(id, form);
             window.dispatchEvent(new CustomEvent('courses-changed'));
+            // Use toast or similar if available, but for now stick to alert if no toast API found
             alert('Klassen har uppdaterats!');
             navigate('/admin/school-classes');
         } catch (err) {
@@ -68,30 +79,42 @@ export default function SchoolClassEditPage() {
     };
 
     const handleEnroll = async (studentId) => {
+        if (isMutating || !studentId) return;
+        setIsMutating(true);
         try {
             await schoolClassApi.enrollUser(id, studentId, 'STUDENT');
-            fetchData();
+            await fetchData();
         } catch (err) {
             alert('Kunde inte lägga till student: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setIsMutating(false);
         }
     };
 
     const handleRemove = async (studentId) => {
+        if (isMutating || !studentId) return;
         if (!window.confirm('Är du säker på att du vill ta bort studenten från klassen?')) return;
+        setIsMutating(true);
         try {
             await schoolClassApi.removeEnrollment(id, studentId);
-            fetchData();
+            await fetchData();
         } catch (err) {
             alert('Kunde inte ta bort student: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setIsMutating(false);
         }
     };
 
     const enrolledStudentIds = enrollments.map(e => e.user?.id);
-    const availableStudents = allStudents.filter(s => 
-        !enrolledStudentIds.includes(s.id) && 
-        (s.username.toLowerCase().includes(studentSearch.toLowerCase()) || 
-         s.email.toLowerCase().includes(studentSearch.toLowerCase()))
-    );
+    const availableStudents = allStudents.filter(s => {
+        if (enrolledStudentIds.includes(s.id)) return false;
+        
+        const username = (s.username ?? '').toString().toLowerCase();
+        const email = (s.email ?? '').toString().toLowerCase();
+        const search = (studentSearch ?? '').toString().toLowerCase();
+        
+        return username.includes(search) || email.includes(search);
+    });
 
     if (loading) return <div className="p-8">Laddar...</div>;
     if (error && !form) return <div className="p-8 text-destructive">Fel: {error}</div>;
@@ -104,7 +127,7 @@ export default function SchoolClassEditPage() {
             <Tabs defaultValue="general">
                 <TabsList>
                     <TabsTrigger value="general">Allmänt</TabsTrigger>
-                    <TabsTrigger value="students">Studenter ({enrollments.filter(e => e.classRole === 'STUDENT').length})</TabsTrigger>
+                    <TabsTrigger value="students">Studenter ({studentEnrollments.length})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="general" className="mt-4">
@@ -199,18 +222,23 @@ export default function SchoolClassEditPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {enrollments.filter(e => e.classRole === 'STUDENT').map((e) => (
+                                        {studentEnrollments.map((e) => (
                                             <TableRow key={e.id}>
                                                 <TableCell className="font-medium">{e.user?.username}</TableCell>
                                                 <TableCell>{e.user?.email}</TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="ghost" size="icon" onClick={() => handleRemove(e.user?.id)}>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        onClick={() => handleRemove(e.user?.id)}
+                                                        disabled={isMutating || !e.user?.id}
+                                                    >
                                                         <Trash2 className="h-4 w-4 text-destructive" />
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
-                                        {enrollments.filter(e => e.classRole === 'STUDENT').length === 0 && (
+                                        {studentEnrollments.length === 0 && (
                                             <TableRow>
                                                 <TableCell colSpan={3} className="text-center py-4 text-muted-foreground italic">
                                                     Inga studenter i den här klassen än.

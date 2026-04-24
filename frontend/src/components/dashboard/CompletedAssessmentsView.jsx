@@ -63,23 +63,31 @@ export function CompletedAssessmentsView() {
                             {assessments.map((ua) => (
                                 <TableRow key={ua.id}>
                                     <TableCell className="font-medium">
-                                        <Link to={`/profile/${ua.student.id}`} className="hover:underline text-primary">
-                                            {ua.student.username}
-                                        </Link>
+                                        {ua.student ? (
+                                            <Link to={`/profile/${ua.student.id}`} className="hover:underline text-primary">
+                                                {ua.student.username}
+                                            </Link>
+                                        ) : (
+                                            <span className="text-muted-foreground italic">Okänd student</span>
+                                        )}
                                     </TableCell>
                                     <TableCell className="truncate max-w-[150px]" title={ua.assignmentTitle}>
-                                        {ua.assignmentTitle}
+                                        {ua.assignmentTitle || 'Okänd uppgift'}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="default" className="font-bold">{ua.grade}</Badge>
+                                        <Badge variant="default" className="font-bold">{ua.grade || '-'}</Badge>
                                     </TableCell>
                                     <TableCell className="text-xs text-muted-foreground">
                                         {ua.turnedInAt ? format(new Date(ua.turnedInAt), 'PP', {locale: sv}) : '-'}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <Button asChild size="sm" variant="ghost">
-                                            <Link to={`/assignments/${ua.assignmentId}/grade/${ua.student.id}`}>Ändra</Link>
-                                        </Button>
+                                        {ua.assignmentId && ua.student ? (
+                                            <Button asChild size="sm" variant="ghost">
+                                                <Link to={`/assignments/${ua.assignmentId}/grade/${ua.student.id}`}>Ändra</Link>
+                                            </Button>
+                                        ) : (
+                                            <Button size="sm" variant="ghost" disabled>Ändra</Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}

@@ -59,11 +59,6 @@ public class AuthorizationService {
     if (isAdmin(actor)) return true;
     if (actor.getId().equals(target.getId())) return true;
 
-    // Teachers can always see student profiles
-    if (isTeacher(actor) && target.getRole().getName().equals("ROLE_STUDENT")) {
-      return true;
-    }
-
     // Check if they share any classes or courses
     return classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId())
         || courseRepository.hasSharedCourse(actor.getId(), target.getId());

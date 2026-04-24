@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,6 +70,9 @@ public class SchoolClassService {
   @Transactional(readOnly = true)
   public List<SchoolClassSurfaceResponse> getAccessibleSchoolClassesDto(
       org.example.projectbackendteammycodebasebringsalltheboys.entity.User user) {
+    if (user == null || user.getRole() == null) {
+      return Collections.emptyList();
+    }
     String roleName = user.getRole().getName();
     List<SchoolClass> classes;
 

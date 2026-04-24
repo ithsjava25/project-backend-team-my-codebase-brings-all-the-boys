@@ -126,4 +126,50 @@ class AuthorizationServiceTest {
     comment.setAuthor(other);
     assertThat(authorizationService.canModifyComment(student, comment)).isFalse();
   }
+
+  @Test
+  @DisplayName("canViewUserProfile returns true if users share a course")
+  void canViewUserProfile_sharedCourse_returnsTrue() {
+    User actor = createUser("ROLE_STUDENT");
+    User target = createUser("ROLE_STUDENT");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns false if no common ground")
+  void canViewUserProfile_noCommonGround_returnsFalse() {
+    User actor = createUser("ROLE_STUDENT");
+    User target = createUser("ROLE_STUDENT");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(false);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isFalse();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns true for teacher viewing student")
+  void canViewUserProfile_teacherViewingStudent_returnsTrue() {
+    User teacher = createUser("ROLE_TEACHER");
+    User student = createUser("ROLE_STUDENT");
+    teacher.setId(UUID.randomUUID());
+    student.setId(UUID.randomUUID());
+
+    // Blanket allowance for teachers removed in refactoring, now they need shared class/course
+    // I should test that they CAN view if shared class exists
+    when(classEnrollmentRepository.hasSharedSchoolClass(teacher.getId(), student.getId()))
+        .thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(teacher, student)).isTrue();
+  }
 }

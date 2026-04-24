@@ -237,24 +237,29 @@ public class UserService {
 
     // Sync school classes if provided
     if (request.getSchoolClassIds() != null) {
-      // 1. Remove existing enrollments
+      // 1. Deduplicate and bulk load
+      List<UUID> uniqueIds = request.getSchoolClassIds().stream().distinct().toList();
+      List<SchoolClass> classes = schoolClassRepository.findAllById(uniqueIds);
+
+      if (classes.size() != uniqueIds.size()) {
+        List<UUID> foundIds = classes.stream().map(SchoolClass::getId).toList();
+        List<UUID> missingIds =
+            uniqueIds.stream().filter(idReq -> !foundIds.contains(idReq)).toList();
+        throw new NotFoundException("School classes not found: " + missingIds);
+      }
+
+      // 2. Remove existing enrollments
       classEnrollmentRepository.deleteByUserId(id);
 
-      // 2. Add new enrollments
-      for (UUID classId : request.getSchoolClassIds()) {
-        SchoolClass sc =
-            schoolClassRepository
-                .findById(classId)
-                .orElseThrow(() -> new NotFoundException("School class not found: " + classId));
+      // 3. Add new enrollments
+      ClassRole classRole = ClassRole.STUDENT;
+      if (role.getName().equals("ROLE_TEACHER")) {
+        classRole = ClassRole.TEACHER;
+      } else if (role.getName().equals("ROLE_ADMIN")) {
+        classRole = ClassRole.MENTOR;
+      }
 
-        ClassRole classRole = ClassRole.STUDENT;
-        if (role.getName().equals("ROLE_TEACHER")) {
-          classRole = ClassRole.TEACHER;
-        } else if (role.getName().equals("ROLE_ADMIN")) {
-          classRole = ClassRole.MENTOR;
-        }
-
-        // Use the injected classEnrollmentService
+      for (SchoolClass sc : classes) {
         this.classEnrollmentService.enrollUser(savedUser, sc, classRole, actor);
       }
     }

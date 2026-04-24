@@ -31,4 +31,9 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   @Modifying
   @Transactional
   void deleteByUserAssignment_Student_Id(UUID studentId);
+
+  boolean existsByTextAndAssignmentAndAuthor(
+      String text,
+      Assignment assignment,
+      org.example.projectbackendteammycodebasebringsalltheboys.entity.User author);
 }

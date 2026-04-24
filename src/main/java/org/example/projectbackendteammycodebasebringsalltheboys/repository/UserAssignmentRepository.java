@@ -43,6 +43,18 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
   List<UserAssignment> findByStatusAndAssignment_Course_LeadTeacher_Id(
       StudentAssignmentStatus status, UUID teacherId);
 
+  @org.springframework.data.jpa.repository.Query(
+      "SELECT DISTINCT ua FROM UserAssignment ua "
+          + "JOIN ua.assignment a "
+          + "JOIN a.course c "
+          + "LEFT JOIN c.assistants ast "
+          + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId)")
+  List<UserAssignment> findByStatusAndTeacherConnection(
+      @org.springframework.data.repository.query.Param("status") StudentAssignmentStatus status,
+      @org.springframework.data.repository.query.Param("teacherId") UUID teacherId);
+
+  List<UserAssignment> findByStatus(StudentAssignmentStatus status);
+
   List<UserAssignment> findByStudentAndAssignmentIn(
       User student, Collection<Assignment> assignments);
 

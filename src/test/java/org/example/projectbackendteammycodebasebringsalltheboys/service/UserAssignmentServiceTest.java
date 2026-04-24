@@ -153,7 +153,7 @@ class UserAssignmentServiceTest {
   }
 
   @Test
-  @DisplayName("evaluateAssignment updates grade and feedback")
+  @DisplayName("evaluateAssignment updates grade and feedback for TURNED_IN")
   void evaluateAssignment_valid_updatesUa() {
     UserAssignment ua = new UserAssignment();
     ua.setStatus(StudentAssignmentStatus.TURNED_IN);
@@ -164,5 +164,69 @@ class UserAssignmentServiceTest {
     assertThat(ua.getGrade()).isEqualTo("A");
     assertThat(ua.getFeedback()).isEqualTo("Great job");
     verify(userAssignmentRepository).save(ua);
+  }
+
+  @Test
+  @DisplayName("evaluateAssignment allows re-grading for EVALUATED status")
+  void evaluateAssignment_regrading_updatesUa() {
+    UserAssignment ua = new UserAssignment();
+    ua.setStatus(StudentAssignmentStatus.EVALUATED);
+    ua.setGrade("C");
+
+    userAssignmentService.evaluateAssignment(ua, "A", "Improved", new User());
+
+    assertThat(ua.getStatus()).isEqualTo(StudentAssignmentStatus.EVALUATED);
+    assertThat(ua.getGrade()).isEqualTo("A");
+    verify(userAssignmentRepository).save(ua);
+  }
+
+  @Test
+  @DisplayName("evaluateAssignment throws IllegalStateException for invalid status")
+  void evaluateAssignment_invalidStatus_throwsException() {
+    UserAssignment ua = new UserAssignment();
+    ua.setStatus(StudentAssignmentStatus.ASSIGNED);
+
+    assertThatThrownBy(
+            () -> userAssignmentService.evaluateAssignment(ua, "A", "Feedback", new User()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Cannot evaluate assignment in status");
+  }
+
+  @Test
+  @DisplayName("getOrCreateForStudent returns existing if present")
+  void getOrCreateForStudent_existing_returnsExisting() {
+    Assignment a = new Assignment();
+    User student = new User();
+    UserAssignment existing = new UserAssignment();
+    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+        .thenReturn(Optional.of(existing));
+
+    UserAssignment result = userAssignmentService.getOrCreateForStudent(a, student);
+
+    assertThat(result).isSameAs(existing);
+    verify(userAssignmentRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("getOrCreateForStudent creates new if absent and authorized")
+  void getOrCreateForStudent_absent_createsNew() {
+    Assignment a = new Assignment();
+    User student = new User();
+    org.example.projectbackendteammycodebasebringsalltheboys.entity.Role role =
+        new org.example.projectbackendteammycodebasebringsalltheboys.entity.Role();
+    role.setName("ROLE_STUDENT");
+    student.setRole(role);
+    student.setUsername("alice");
+
+    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+        .thenReturn(Optional.empty());
+    when(authorizationService.canViewAssignment(student, a)).thenReturn(true);
+    when(userAssignmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    UserAssignment result = userAssignmentService.getOrCreateForStudent(a, student);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatus()).isEqualTo(StudentAssignmentStatus.ASSIGNED);
+    verify(userAssignmentRepository).save(any());
   }
 }

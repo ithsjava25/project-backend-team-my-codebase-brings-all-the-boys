@@ -28,15 +28,13 @@ export default function UserEditPage() {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const [user, classes] = await Promise.all([
+                const [user, classes, profile] = await Promise.all([
                     userApi.getUserById(id),
-                    schoolClassApi.getAllSchoolClasses()
+                    schoolClassApi.getAllSchoolClasses(),
+                    userApi.getUserProfile(id)
                 ]);
                 
                 setAllClasses(classes);
-                
-                // Get profile to see current classes
-                const profile = await userApi.getUserProfile(id);
                 const currentClassIds = profile.classes?.map(c => c.id) || [];
 
                 setFormData({

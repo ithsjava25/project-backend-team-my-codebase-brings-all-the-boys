@@ -47,11 +47,8 @@ public class UserAssignmentController {
             .findById(assignmentId)
             .orElseThrow(() -> new NotFoundException("Assignment not found"));
 
-    return userAssignmentService
-        .getByAssignmentAndStudent(assignment, currentUser)
-        .map(dtoMapper::toUserAssignmentResponse)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+    UserAssignment ua = userAssignmentService.getOrCreateForStudent(assignment, currentUser);
+    return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
   }
 
   private User getCurrentUser(Principal principal) {
@@ -148,7 +145,7 @@ public class UserAssignmentController {
   @PreAuthorize("hasAuthority('ROLE_STUDENT')")
   public ResponseEntity<UserAssignmentResponse> submitWork(
       @PathVariable UUID id,
-      @RequestBody
+      @Valid @RequestBody
           org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.SubmissionRequest
               request) {
     UserAssignment ua =
