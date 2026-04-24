@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 
 @Configuration
 @EnableMethodSecurity
@@ -26,54 +25,54 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(
-      HttpSecurity http,
-      CustomOAuth2UserService customOAuth2UserService,
-      OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+          HttpSecurity http,
+          CustomOAuth2UserService customOAuth2UserService,
+          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
 
-    http
-            .csrf(csrf ->
-                    csrf.csrfTokenRepository(new LazyCsrfTokenRepository(
-                                    CookieCsrfTokenRepository.withHttpOnlyFalse()
-                            ))
-                            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                            .ignoringRequestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/oauth2/**"))
-        .cors(Customizer.withDefaults()) // Removed this line to rely solely on CorsConfig bean
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/api/auth/me")
-                    .permitAll()
-                    .requestMatchers("/api/auth/register")
-                    .permitAll()
-                    .requestMatchers("/api/auth/login")
-                    .permitAll()
-                    .requestMatchers("/error")
-                    .permitAll()
-                    .requestMatchers("/oauth2/**")
-                    .permitAll()
-                    .requestMatchers("/admin/**")
-                    .hasRole("ADMIN")
-                    .requestMatchers("/api/**")
-                    .authenticated()
-                    .anyRequest()
-                    .authenticated())
-        .exceptionHandling(
-            ex ->
-                ex.authenticationEntryPoint(
-                    (req, response, authException) ->
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
-        .oauth2Login(
-            oauth ->
-                oauth
-                    .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
-                    .successHandler(oAuth2LoginSuccessHandler))
-        .logout(
-            logout ->
-                logout
-                    .logoutUrl("/api/auth/logout")
-                    .logoutSuccessUrl(frontendUrl)
-                    .invalidateHttpSession(true)
-                    .clearAuthentication(true)
-                    .deleteCookies("JSESSIONID"));
+    http.csrf(csrf -> {
+              CsrfTokenRequestAttributeHandler handler = new CsrfTokenRequestAttributeHandler();
+              handler.setCsrfRequestAttributeName(null); // Deactivates deferred token loading
+              csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                      .csrfTokenRequestHandler(handler)
+                      .ignoringRequestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout", "/oauth2/**");
+            })
+            .cors(Customizer.withDefaults()) // Removed this line to rely solely on CorsConfig bean
+            .authorizeHttpRequests(
+                    auth ->
+                            auth.requestMatchers("/api/auth/me")
+                                    .permitAll()
+                                    .requestMatchers("/api/auth/register")
+                                    .permitAll()
+                                    .requestMatchers("/api/auth/login")
+                                    .permitAll()
+                                    .requestMatchers("/error")
+                                    .permitAll()
+                                    .requestMatchers("/oauth2/**")
+                                    .permitAll()
+                                    .requestMatchers("/admin/**")
+                                    .hasRole("ADMIN")
+                                    .requestMatchers("/api/**")
+                                    .authenticated()
+                                    .anyRequest()
+                                    .authenticated())
+            .exceptionHandling(
+                    ex ->
+                            ex.authenticationEntryPoint(
+                                    (req, response, authException) ->
+                                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")))
+            .oauth2Login(
+                    oauth ->
+                            oauth
+                                    .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
+                                    .successHandler(oAuth2LoginSuccessHandler))
+            .logout(
+                    logout ->
+                            logout
+                                    .logoutUrl("/api/auth/logout")
+                                    .logoutSuccessUrl(frontendUrl)
+                                    .invalidateHttpSession(true)
+                                    .clearAuthentication(true)
+                                    .deleteCookies("JSESSIONID"));
 
     return http.build();
   }
