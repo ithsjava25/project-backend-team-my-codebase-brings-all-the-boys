@@ -6,6 +6,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
+import {Alert, AlertDescription} from '@/components/ui/alert';
 import {ArrowLeft} from 'lucide-react';
 
 export default function AssignmentEditPage() {
@@ -14,6 +15,7 @@ export default function AssignmentEditPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [submitError, setSubmitError] = useState(null);
 
     const [form, setForm] = useState({
         title: '',
@@ -23,24 +25,35 @@ export default function AssignmentEditPage() {
     });
 
     useEffect(() => {
+        let cancelled = false;
         const fetchAssignment = async () => {
             try {
                 const data = await assignmentApi.getAssignmentById(id);
-                setForm({
-                    title: data.title || '',
-                    description: data.description || '',
-                    deadline: data.deadline ? data.deadline.substring(0, 16) : '',
-                    status: data.status || 'CREATED'
-                });
+                if (!cancelled) {
+                    setForm({
+                        title: data.title || '',
+                        description: data.description || '',
+                        deadline: data.deadline ? data.deadline.substring(0, 16) : '',
+                        status: data.status || 'CREATED'
+                    });
+                }
             } catch (err) {
-                console.error('Failed to fetch assignment:', err);
-                setError('Kunde inte hämta uppgiftsinformation.');
+                if (!cancelled) {
+                    console.error('Failed to fetch assignment:', err);
+                    setError('Kunde inte hämta uppgiftsinformation.');
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         };
 
         if (id) fetchAssignment();
+        
+        return () => {
+            cancelled = true;
+        };
     }, [id]);
 
     const handleSubmit = async (e) => {
@@ -48,13 +61,13 @@ export default function AssignmentEditPage() {
         if (isSubmitting || !id) return;
 
         setIsSubmitting(true);
+        setSubmitError(null);
         try {
             await assignmentApi.updateAssignment(id, form);
-            alert('Uppgiften har uppdaterats!');
             navigate(`/assignments/${id}`);
         } catch (err) {
             console.error('Failed to update assignment:', err);
-            alert(err.response?.data?.message || 'Kunde inte uppdatera uppgift.');
+            setSubmitError(err.response?.data?.message || 'Kunde inte uppdatera uppgift.');
         } finally {
             setIsSubmitting(false);
         }
@@ -91,6 +104,11 @@ export default function AssignmentEditPage() {
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {submitError && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{submitError}</AlertDescription>
+                                </Alert>
+                            )}
                             <div className="space-y-2">
                                 <Label htmlFor="title">Titel</Label>
                                 <Input
