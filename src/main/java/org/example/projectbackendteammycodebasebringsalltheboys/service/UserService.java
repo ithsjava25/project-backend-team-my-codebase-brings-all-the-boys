@@ -251,6 +251,12 @@ public class UserService {
       // 2. Remove existing enrollments
       classEnrollmentRepository.deleteByUserId(id);
 
+      // Reload user to ensure it's attached to the context after bulk delete
+      User managedUser =
+          userRepository
+              .findById(id)
+              .orElseThrow(() -> new NotFoundException("User not found: " + id));
+
       // 3. Add new enrollments
       ClassRole classRole = ClassRole.STUDENT;
       if (role.getName().equals("ROLE_TEACHER")) {
@@ -260,11 +266,11 @@ public class UserService {
       }
 
       for (SchoolClass sc : classes) {
-        this.classEnrollmentService.enrollUser(savedUser, sc, classRole, actor);
+        this.classEnrollmentService.enrollUser(managedUser, sc, classRole, actor);
       }
     }
 
-    return savedUser;
+    return userRepository.findById(id).orElse(savedUser);
   }
 
   @Transactional

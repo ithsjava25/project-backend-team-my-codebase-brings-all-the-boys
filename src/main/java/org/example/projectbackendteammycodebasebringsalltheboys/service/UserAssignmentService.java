@@ -134,17 +134,7 @@ public class UserAssignmentService {
       actorParamIndex = 3)
   @Transactional
   public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
-    evaluateAssignment(ua, grade, feedback, evaluator, false);
-  }
-
-  private void evaluateAssignment(
-      UserAssignment ua,
-      String grade,
-      String feedback,
-      User evaluator,
-      boolean allowWithoutSubmission) {
-    if (!allowWithoutSubmission
-        && ua.getStatus() != StudentAssignmentStatus.TURNED_IN
+    if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN
         && ua.getStatus() != StudentAssignmentStatus.EVALUATED) {
       throw new IllegalStateException(
           "Cannot evaluate assignment in status: "
@@ -163,14 +153,13 @@ public class UserAssignmentService {
   }
 
   @Transactional(readOnly = true)
-  public List<UserAssignment> getEvaluatedAssignmentsForTeacher(User user, Pageable pageable) {
+  public org.springframework.data.domain.Page<UserAssignment> getEvaluatedAssignmentsForTeacher(
+      User user, Pageable pageable) {
     if (user.getRole() != null && user.getRole().getName().equals("ROLE_ADMIN")) {
-      return userAssignmentRepository
-          .findByStatus(StudentAssignmentStatus.EVALUATED, pageable)
-          .getContent();
+      return userAssignmentRepository.findByStatus(StudentAssignmentStatus.EVALUATED, pageable);
     }
     return userAssignmentRepository.findByStatusAndTeacherConnection(
-        StudentAssignmentStatus.EVALUATED, user.getId());
+        StudentAssignmentStatus.EVALUATED, user.getId(), pageable);
   }
 
   @Transactional(readOnly = true)

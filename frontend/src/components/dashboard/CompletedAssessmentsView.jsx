@@ -13,35 +13,74 @@ export function CompletedAssessmentsView() {
     const [assessments, setAssessments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const size = 10;
 
-    const fetchAssessments = async () => {
+    const fetchAssessments = async (signal) => {
         try {
             setLoading(true);
             setError(null);
-            const data = await userAssignmentApi.getEvaluatedAssignments();
-            setAssessments(data);
+            const data = await userAssignmentApi.getEvaluatedAssignments(page, size, signal);
+            
+            if (!signal?.aborted) {
+                // If backend returns a Page object, use .content, otherwise use data directly
+                const content = data.content !== undefined ? data.content : data;
+                setAssessments(content || []);
+                setTotalPages(data.totalPages || 0);
+            }
         } catch (err) {
+            if (err.name === 'CanceledError' || err.name === 'AbortError') return;
             console.error('Failed to fetch completed assessments:', err);
-            setError(err.response?.data?.message || 'Kunde inte hämta bedömningar.');
-            setAssessments([]);
+            if (!signal?.aborted) {
+                setError(err.response?.data?.message || 'Kunde inte hämta bedömningar.');
+                setAssessments([]);
+            }
         } finally {
-            setLoading(false);
+            if (!signal?.aborted) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchAssessments();
-    }, []);
+        const controller = new AbortController();
+        fetchAssessments(controller.signal);
+        return () => controller.abort();
+    }, [page]);
 
     if (loading && assessments.length === 0) return <p className="text-sm text-muted-foreground p-4">Laddar bedömningar...</p>;
 
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-green-500"/>
                     Utförda bedömningar
                 </CardTitle>
+                {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                            disabled={page === 0 || loading}
+                        >
+                            Föregående
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                            Sida {page + 1} av {totalPages}
+                        </span>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                            disabled={page >= totalPages - 1 || loading}
+                        >
+                            Nästa
+                        </Button>
+                    </div>
+                )}
             </CardHeader>
             <CardContent>
                 {error && <p className="text-sm text-destructive mb-4">{error}</p>}

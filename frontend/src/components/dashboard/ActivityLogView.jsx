@@ -27,9 +27,24 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
 
     useEffect(() => {
         if (isAdmin) {
-            userApi.getAllUsers({size: 100})
-                .then(data => setAllUsers(data.content || []))
-                .catch(err => console.error('Failed to fetch users for filtering:', err));
+            const fetchAllUsers = async () => {
+                try {
+                    let allFetchedUsers = [];
+                    let page = 0;
+                    let totalPages = 1;
+                    
+                    while (page < totalPages) {
+                        const data = await userApi.getAllUsers({ page, size: 100 });
+                        allFetchedUsers = [...allFetchedUsers, ...(data.content || [])];
+                        totalPages = data.totalPages || 0;
+                        page++;
+                    }
+                    setAllUsers(allFetchedUsers);
+                } catch (err) {
+                    console.error('Failed to fetch users for filtering:', err);
+                }
+            };
+            fetchAllUsers();
         }
     }, [isAdmin]);
 
@@ -67,7 +82,9 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
         } catch (error) {
             if (error.name === 'CanceledError' || error.name === 'AbortError') return;
             console.error('Failed to fetch activity logs:', error);
-            setLogs([]);
+            if (!signal?.aborted) {
+                setLogs([]);
+            }
         } finally {
             if (!signal?.aborted) {
                 setLoading(false);

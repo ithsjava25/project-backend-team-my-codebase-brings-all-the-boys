@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
@@ -179,6 +181,23 @@ class ActivityLogControllerTest {
   @WithMockUser(
       username = "admin",
       roles = {"ADMIN"})
+  void getAllActivityLogs_InvalidDateRange_ReturnsBadRequest() throws Exception {
+    User admin = new User();
+    admin.setRole(new Role("ROLE_ADMIN"));
+    Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
+
+    mockMvc
+        .perform(
+            get("/api/activity-logs")
+                .param("start", "2026-04-25T10:00:00")
+                .param("end", "2026-04-24T10:00:00"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(
+      username = "admin",
+      roles = {"ADMIN"})
   void getAllActivityLogs_WithFilters() throws Exception {
     User admin = new User();
     admin.setRole(new Role("ROLE_ADMIN"));
@@ -201,14 +220,9 @@ class ActivityLogControllerTest {
     verify(activityLogService)
         .getLogs(
             any(),
-            Mockito.eq(
-                org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction
-                    .CREATED),
-            Mockito.eq(
-                org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType.COURSE),
-            Mockito.eq(
-                org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus
-                    .SUCCESS),
+            Mockito.eq(ActivityAction.CREATED),
+            Mockito.eq(EntityType.COURSE),
+            Mockito.eq(ActivityStatus.SUCCESS),
             any(),
             any(),
             any());

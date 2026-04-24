@@ -32,7 +32,7 @@ public interface ClassEnrollmentRepository extends JpaRepository<ClassEnrollment
 
   void deleteBySchoolClassAndUser(SchoolClass schoolClass, User user);
 
-  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Modifying(flushAutomatically = true)
   @org.springframework.transaction.annotation.Transactional
   void deleteByUserId(UUID userId);
 }

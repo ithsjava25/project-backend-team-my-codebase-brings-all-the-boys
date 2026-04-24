@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -50,7 +51,9 @@ class SchoolClassControllerTest {
     admin.setRole(new Role("ROLE_ADMIN"));
 
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
-    Mockito.when(schoolClassService.getAccessibleSchoolClassesDto(admin))
+    Mockito.when(
+            schoolClassService.getAccessibleSchoolClassesDto(
+                Mockito.eq(admin), any(org.springframework.data.domain.Pageable.class)))
         .thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
@@ -66,7 +69,9 @@ class SchoolClassControllerTest {
     teacher.setRole(new Role("ROLE_TEACHER"));
 
     Mockito.when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(teacher));
-    Mockito.when(schoolClassService.getAccessibleSchoolClassesDto(teacher))
+    Mockito.when(
+            schoolClassService.getAccessibleSchoolClassesDto(
+                Mockito.eq(teacher), any(org.springframework.data.domain.Pageable.class)))
         .thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
@@ -82,7 +87,9 @@ class SchoolClassControllerTest {
     student.setRole(new Role("ROLE_STUDENT"));
 
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
-    Mockito.when(schoolClassService.getAccessibleSchoolClassesDto(student))
+    Mockito.when(
+            schoolClassService.getAccessibleSchoolClassesDto(
+                Mockito.eq(student), any(org.springframework.data.domain.Pageable.class)))
         .thenReturn(Collections.emptyList());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());

@@ -16,8 +16,8 @@ export const userAssignmentApi = {
         return response.data;
     },
 
-    getEvaluatedAssignments: async () => {
-        const response = await client.get('/user-assignments/evaluated');
+    getEvaluatedAssignments: async (page = 0, size = 10, signal = undefined) => {
+        const response = await client.get(`/user-assignments/evaluated?page=${page}&size=${size}`, { signal });
         return response.data;
     },
 

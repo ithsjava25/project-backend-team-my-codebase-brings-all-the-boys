@@ -90,10 +90,6 @@ public class ActivityLogService {
       spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("timestamp"), end));
     }
 
-    if (spec == null) {
-      return activityLogRepository.findAll(pageable);
-    }
-
     return activityLogRepository.findAll(spec, pageable);
   }
 

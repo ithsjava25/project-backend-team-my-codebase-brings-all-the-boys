@@ -139,9 +139,9 @@ public class DataSeeder implements CommandLineRunner {
             teacher5);
 
     // Add some assistants
-    backend.getAssistants().add(teacher2);
-    frontend.getAssistants().add(teacher1);
-    databases.getAssistants().add(teacher5);
+    addAssistantIfMissing(backend, teacher2);
+    addAssistantIfMissing(frontend, teacher1);
+    addAssistantIfMissing(databases, teacher5);
     courseRepository.saveAll(java.util.List.of(backend, frontend, databases));
 
     // 8. Assignments
@@ -313,10 +313,18 @@ public class DataSeeder implements CommandLineRunner {
               a.setCourse(course);
               a.setCreator(creator);
               a.setStatus(AssignmentStatus.OPEN);
-              // Add a deadline 1-2 weeks from now
-              a.setDeadline(java.time.LocalDateTime.now().plusDays(7 + (long) (Math.random() * 7)));
+              // Use a deterministic seed for demo deadlines based on title hash
+              java.util.Random deterministicRandom = new java.util.Random(title.hashCode());
+              a.setDeadline(
+                  java.time.LocalDateTime.now().plusDays(7 + deterministicRandom.nextInt(7)));
               return assignmentRepository.save(a);
             });
+  }
+
+  private void addAssistantIfMissing(Course course, User assistant) {
+    if (!course.getAssistants().contains(assistant)) {
+      course.getAssistants().add(assistant);
+    }
   }
 
   private void getOrCreateUserAssignment(

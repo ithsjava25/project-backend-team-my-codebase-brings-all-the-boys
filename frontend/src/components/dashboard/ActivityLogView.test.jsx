@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ActivityLogView } from './ActivityLogView';
 import { activityLogApi } from '@/api/activityLogs';
 import { userApi } from '@/api/users';
@@ -57,6 +58,7 @@ describe('ActivityLogView', () => {
         actorUsername: 'alice',
         action: 'CREATED',
         entityType: 'COURSE',
+        details: { name: 'Math 101' },
         timestamp: '2026-04-24T10:00:00Z',
       },
     ];
@@ -66,9 +68,34 @@ describe('ActivityLogView', () => {
 
     await waitFor(() => {
       expect(screen.getByText('alice')).toBeInTheDocument();
-      // Action/Type are formatted in the component
-      expect(screen.getByText(/Skapad/i)).toBeInTheDocument();
-      expect(screen.getByText(/Kurs/i)).toBeInTheDocument();
+      expect(screen.getByText(/skapade kursen "Math 101"/i)).toBeInTheDocument();
+    });
+  });
+
+  it('forwards filters correctly to the API', async () => {
+    activityLogApi.getAllLogs.mockResolvedValue({ content: [] });
+    const user = userEvent.setup();
+    
+    render(<ActivityLogView />);
+    
+    // Initial call
+    await waitFor(() => {
+      expect(activityLogApi.getAllLogs).toHaveBeenCalled();
+    });
+
+    // Open "Åtgärd" select and choose "Skapad"
+    // Using a more specific query to find the trigger
+    const actionSelect = screen.getByText(/Alla åtgärder/i);
+    await user.click(actionSelect);
+    
+    // Radix Select renders options in a Portal, find by text
+    const createdOption = await screen.findByText(/Skapad/i, { selector: 'span' });
+    await user.click(createdOption);
+
+    await waitFor(() => {
+      expect(activityLogApi.getAllLogs).toHaveBeenCalledWith(
+        0, 10, expect.objectContaining({ action: 'CREATED' }), expect.any(AbortSignal)
+      );
     });
   });
 

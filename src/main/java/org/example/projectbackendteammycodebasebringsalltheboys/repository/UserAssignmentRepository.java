@@ -51,11 +51,16 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
           + "JOIN ua.assignment a "
           + "JOIN a.course c "
           + "LEFT JOIN c.assistants ast "
-          + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId)")
-  List<UserAssignment> findByStatusAndTeacherConnection(
-      @Param("status") StudentAssignmentStatus status, @Param("teacherId") UUID teacherId);
+          + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId) "
+          + "ORDER BY ua.updatedAt DESC")
+  Page<UserAssignment> findByStatusAndTeacherConnection(
+      @Param("status") StudentAssignmentStatus status,
+      @Param("teacherId") UUID teacherId,
+      Pageable pageable);
 
-  Page<UserAssignment> findByStatus(StudentAssignmentStatus status, Pageable pageable);
+  @Query("SELECT ua FROM UserAssignment ua WHERE ua.status = :status ORDER BY ua.updatedAt DESC")
+  Page<UserAssignment> findByStatus(
+      @Param("status") StudentAssignmentStatus status, Pageable pageable);
 
   List<UserAssignment> findByStudentAndAssignmentIn(
       User student, Collection<Assignment> assignments);

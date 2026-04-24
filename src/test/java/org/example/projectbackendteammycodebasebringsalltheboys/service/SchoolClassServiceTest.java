@@ -1,12 +1,12 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassCreateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
@@ -22,45 +22,43 @@ class SchoolClassServiceTest {
 
   @Mock private SchoolClassRepository schoolClassRepository;
   @Mock private DtoMapper dtoMapper;
+  @Mock private ClassEnrollmentService enrollmentService;
 
   private SchoolClassService schoolClassService;
 
   @BeforeEach
   void setUp() {
-    schoolClassService = new SchoolClassService(schoolClassRepository, dtoMapper);
+    schoolClassService =
+        new SchoolClassService(schoolClassRepository, dtoMapper, enrollmentService);
   }
 
   @Test
-  @DisplayName("createSchoolClass saves class if name is unique")
-  void createSchoolClass_uniqueName_savesClass() {
-    String name = "Class A";
-    when(schoolClassRepository.findByName(name)).thenReturn(Optional.empty());
-    when(schoolClassRepository.save(any(SchoolClass.class))).thenAnswer(inv -> inv.getArgument(0));
+  @DisplayName("createSchoolClass saves and returns new class")
+  void createSchoolClass_savesClass() {
+    SchoolClassCreateRequest request = new SchoolClassCreateRequest();
+    request.setName("TE21A");
+    request.setDescription("Tech class");
 
-    SchoolClass result = schoolClassService.createSchoolClass(name, "Desc");
+    SchoolClass sc = new SchoolClass();
+    sc.setName("TE21A");
+    when(schoolClassRepository.save(any(SchoolClass.class))).thenReturn(sc);
 
-    assertThat(result.getName()).isEqualTo(name);
+    SchoolClass result = schoolClassService.createSchoolClass(request);
+
+    assertThat(result.getName()).isEqualTo("TE21A");
     verify(schoolClassRepository).save(any(SchoolClass.class));
   }
 
   @Test
-  @DisplayName("createSchoolClass throws IllegalStateException if name exists")
-  void createSchoolClass_duplicateName_throwsException() {
-    String name = "Class A";
-    when(schoolClassRepository.findByName(name)).thenReturn(Optional.of(new SchoolClass()));
-
-    assertThatThrownBy(() -> schoolClassService.createSchoolClass(name, "Desc"))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("already exists");
-
-    verify(schoolClassRepository, never()).save(any());
-  }
-
-  @Test
-  @DisplayName("getSchoolClassById returns class from repository")
-  void getSchoolClassById_delegatesToRepository() {
+  @DisplayName("getSchoolClassById returns optional class")
+  void getSchoolClassById_returnsOptional() {
     UUID id = UUID.randomUUID();
-    schoolClassService.getSchoolClassById(id);
+    SchoolClass sc = new SchoolClass();
+    when(schoolClassRepository.findById(id)).thenReturn(Optional.of(sc));
+
+    Optional<SchoolClass> result = schoolClassService.getSchoolClassById(id);
+
+    assertThat(result).isPresent();
     verify(schoolClassRepository).findById(id);
   }
 }

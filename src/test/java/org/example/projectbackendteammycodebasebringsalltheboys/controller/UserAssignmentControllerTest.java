@@ -72,6 +72,9 @@ class UserAssignmentControllerTest {
   void getEvaluatedAssignments_Success() throws Exception {
     User teacher = new User();
     when(userService.getCurrentUser()).thenReturn(teacher);
+    when(userAssignmentService.getEvaluatedAssignmentsForTeacher(any(), any()))
+        .thenReturn(
+            new org.springframework.data.domain.PageImpl<>(java.util.Collections.emptyList()));
 
     mockMvc.perform(get("/api/user-assignments/evaluated")).andExpect(status().isOk());
   }
