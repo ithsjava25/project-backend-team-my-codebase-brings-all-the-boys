@@ -5,24 +5,61 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.example.projectbackendteammycodebasebringsalltheboys.controller.AuthController;
+import org.example.projectbackendteammycodebasebringsalltheboys.controller.CourseController;
+import org.example.projectbackendteammycodebasebringsalltheboys.controller.PageController;
+import org.example.projectbackendteammycodebasebringsalltheboys.controller.UserController;
+import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.config.OAuth2LoginSuccessHandler;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.config.SecurityConfig;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.ActivityLogService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.CourseService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
+import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
+import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(
+    excludeAutoConfiguration = OAuth2ClientAutoConfiguration.class,
+    controllers = {
+      PageController.class,
+      AuthController.class,
+      UserController.class,
+      CourseController.class
+    })
+@Import({SecurityConfig.class, TestViewConfig.class})
+@ActiveProfiles("test")
 class CsrfTest {
 
   @Autowired private MockMvc mockMvc;
 
-  // -------------------------------------------------------------------------
-  // POST
-  // -------------------------------------------------------------------------
+  @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
+
+  @MockitoBean private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+  @MockitoBean private ClientRegistrationRepository clientRegistrationRepository;
+
+  @MockitoBean private UserService userService;
+
+  @MockitoBean private CourseService courseService;
+
+  @MockitoBean private SchoolClassService schoolClassService;
+
+  @MockitoBean private ActivityLogService activityLogService;
+
+  @MockitoBean private DtoMapper dtoMapper;
 
   @Test
   @WithMockUser(roles = "ADMIN")
@@ -34,13 +71,13 @@ class CsrfTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                        {
-                            "username": "testuser",
-                            "email": "test@example.com",
-                            "password": "password123",
-                            "roleName": "ROLE_STUDENT"
-                        }
-                        """))
+                                        {
+                                            "username": "testuser",
+                                            "email": "test@example.com",
+                                            "password": "password123",
+                                            "roleName": "ROLE_STUDENT"
+                                        }
+                                        """))
         .andExpect(status().isForbidden());
   }
 
@@ -56,19 +93,15 @@ class CsrfTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                        {
-                            "username": "testuser",
-                            "email": "test@example.com",
-                            "password": "password123",
-                            "roleName": "ROLE_STUDENT"
-                        }
-                        """))
+                                        {
+                                            "username": "testuser",
+                                            "email": "test@example.com",
+                                            "password": "password123",
+                                            "roleName": "ROLE_STUDENT"
+                                        }
+                                        """))
         .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
   }
-
-  // -------------------------------------------------------------------------
-  // PUT
-  // -------------------------------------------------------------------------
 
   @Test
   @WithMockUser(roles = "ADMIN")
@@ -80,18 +113,14 @@ class CsrfTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                        {
-                            "username": "updateduser",
-                            "email": "updated@example.com",
-                            "roleName": "ROLE_STUDENT"
-                        }
-                        """))
+                                        {
+                                            "username": "updateduser",
+                                            "email": "updated@example.com",
+                                            "roleName": "ROLE_STUDENT"
+                                        }
+                                        """))
         .andExpect(status().isForbidden());
   }
-
-  // -------------------------------------------------------------------------
-  // DELETE
-  // -------------------------------------------------------------------------
 
   @Test
   @WithMockUser(roles = "ADMIN")
@@ -102,10 +131,6 @@ class CsrfTest {
         .andExpect(status().isForbidden());
   }
 
-  // -------------------------------------------------------------------------
-  // GET – ska aldrig kräva CSRF
-  // -------------------------------------------------------------------------
-
   @Test
   @WithMockUser
   @DisplayName("GET /api/courses without CSRF token is not blocked (CSRF does not apply to GET)")
@@ -114,10 +139,6 @@ class CsrfTest {
         .perform(get("/api/courses"))
         .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
   }
-
-  // -------------------------------------------------------------------------
-  // Public endpoints – ignoringRequestMatchers ska gälla
-  // -------------------------------------------------------------------------
 
   @Test
   @DisplayName("POST /api/auth/register without CSRF token is not blocked by CSRF")
@@ -128,12 +149,12 @@ class CsrfTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                        {
-                            "username": "newuser",
-                            "email": "new@example.com",
-                            "password": "password123"
-                        }
-                        """))
+                                        {
+                                            "username": "newuser",
+                                            "email": "new@example.com",
+                                            "password": "newpassword"
+                                        }
+                                        """))
         .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
   }
 
@@ -146,11 +167,11 @@ class CsrfTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                        {
-                            "username": "someuser",
-                            "password": "somepassword"
-                        }
-                        """))
+                                        {
+                                            "username": "someuser",
+                                            "password": "somepassword"
+                                        }
+                                        """))
         .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
   }
 }
