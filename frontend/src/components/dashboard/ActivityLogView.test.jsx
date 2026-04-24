@@ -1,6 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ActivityLogView } from './ActivityLogView';
 import { activityLogApi } from '@/api/activityLogs';
 import { userApi } from '@/api/users';
@@ -31,6 +30,8 @@ describe('ActivityLogView', () => {
     vi.clearAllMocks();
     useAuthContext.mockReturnValue({ user: mockUser });
     userApi.getAllUsers.mockResolvedValue({ content: [] });
+    // Mock scrollIntoView which is not implemented in JSDOM
+    window.Element.prototype.scrollIntoView = vi.fn();
   });
 
   it('renders loading state initially', () => {
@@ -74,7 +75,6 @@ describe('ActivityLogView', () => {
 
   it('forwards filters correctly to the API', async () => {
     activityLogApi.getAllLogs.mockResolvedValue({ content: [] });
-    const user = userEvent.setup();
     
     render(<ActivityLogView />);
     
@@ -84,13 +84,13 @@ describe('ActivityLogView', () => {
     });
 
     // Open "Åtgärd" select and choose "Skapad"
-    // Using a more specific query to find the trigger
+    // Using fireEvent instead of userEvent to bypass pointer-events: none in Radix UI tests
     const actionSelect = screen.getByText(/Alla åtgärder/i);
-    await user.click(actionSelect);
+    fireEvent.click(actionSelect);
     
     // Radix Select renders options in a Portal, find by text
     const createdOption = await screen.findByText(/Skapad/i, { selector: 'span' });
-    await user.click(createdOption);
+    fireEvent.click(createdOption);
 
     await waitFor(() => {
       expect(activityLogApi.getAllLogs).toHaveBeenCalledWith(
