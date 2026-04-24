@@ -35,8 +35,7 @@ public class SecurityConfig {
               handler.setCsrfRequestAttributeName(null); // Deactivates deferred token loading
               csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                   .csrfTokenRequestHandler(handler)
-                  .ignoringRequestMatchers(
-                      "/api/auth/register", "/api/auth/login", "/api/auth/logout", "/oauth2/**");
+                  .ignoringRequestMatchers("/api/auth/register", "/oauth2/**", "/api/csrf-token");
             })
         .cors(Customizer.withDefaults()) // Removed this line to rely solely on CorsConfig bean
         .authorizeHttpRequests(

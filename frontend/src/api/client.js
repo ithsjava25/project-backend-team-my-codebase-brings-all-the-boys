@@ -6,6 +6,19 @@ const getCsrfToken = () => {
     return match ? decodeURIComponent(match[1]) : null;
 };
 
+// Seed the XSRF-TOKEN cookie if not already set
+let csrfBootstrapPromise = null;
+const bootstrapCsrf = () => {
+    if (getCsrfToken()) return Promise.resolve(); // Already seeded
+    if (csrfBootstrapPromise) return csrfBootstrapPromise; // Already in flight
+
+    csrfBootstrapPromise = client.get('/csrf-token')
+      .catch(() => {})
+      .finally(() => { csrfBootstrapPromise = null; });
+
+    return csrfBootstrapPromise;
+};
+
 const client = axios.create({
     baseURL: '/api',
     withCredentials: true,
@@ -15,11 +28,11 @@ const client = axios.create({
 });
 
 // Add CSRF token to all mutation requests
-client.interceptors.request.use(config => {
+client.interceptors.request.use(async config => {
     const method = (config.method || '').toLowerCase();
 
-    // Add CSRF token to POST, PUT, DELETE, PATCH
     if (['post', 'put', 'delete', 'patch'].includes(method)) {
+        await bootstrapCsrf();
         const token = getCsrfToken();
         if (token) {
             config.headers['X-XSRF-TOKEN'] = token;
@@ -27,8 +40,6 @@ client.interceptors.request.use(config => {
     }
 
     return config;
-}, error => {
-    return Promise.reject(error);
 });
 
 export default client;

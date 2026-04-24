@@ -157,21 +157,4 @@ class CsrfTest {
                                         """))
         .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
   }
-
-  @Test
-  @DisplayName("POST /api/auth/login without CSRF token is not blocked by CSRF")
-  void publicEndpoint_login_isNotBlockedByCsrf() throws Exception {
-    mockMvc
-        .perform(
-            post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                                        {
-                                            "username": "someuser",
-                                            "password": "somepassword"
-                                        }
-                                        """))
-        .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(403));
-  }
 }
