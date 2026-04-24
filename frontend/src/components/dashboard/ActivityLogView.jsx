@@ -101,12 +101,20 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
                 if (type === 'COURSE') return `uppdaterade kursen "${details.name || 'okänd'}"`;
                 if (type === 'USER') return `uppdaterade användaren "${details.username || 'okänd'}"`;
                 return `uppdaterade ${type.toLowerCase()}`;
-            case 'DELETED':
-                return `tog bort ${
-                    (
-                        typeMap[type.toUpperCase()] || type
-                    ).toLowerCase()
-                } (${(details.name || details.username || details.title || details.assignmentTitle || details.fileName || details.student || details.class || 'okänd').toLowerCase()})`;
+            case 'DELETED': {
+                const label = (typeMap[type.toUpperCase()] || type).toLowerCase();
+                const candidates = [
+                    details.name,
+                    details.username,
+                    details.title,
+                    details.assignmentTitle,
+                    details.fileName,
+                    details.student,
+                    details.class,
+                ];
+                const resolved = candidates.find((v) => typeof v === 'string' && v.length > 0) ?? 'okänd';
+                return `tog bort ${label} (${resolved.toLowerCase()})`;
+            }
             case 'ADDED':
                 if (type === 'COMMENT') return `kommenterade på "${details.assignmentTitle || 'en uppgift'}"`;
                 if (type === 'FILE') return `laddade upp filen "${details.fileName || 'okänd'}"`;
