@@ -16,6 +16,7 @@ import UserCreatePage from './pages/admin/UserCreatePage';
 import UserEditPage from './pages/admin/UserEditPage';
 import CourseCreatePage from './pages/admin/CourseCreatePage';
 import CourseEditPage from './pages/admin/CourseEditPage';
+import AssignmentEditPage from './pages/admin/AssignmentEditPage';
 
 import UserManagementPage from './pages/admin/UserManagementPage';
 import CourseManagementPage from './pages/admin/CourseManagementPage';
@@ -60,10 +61,11 @@ export default function App() {
                                 <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
 
                                 {/* Admin-prefixed routes */}
-                                <Route path="admin">
+                                <Route path="admin" element={<ProtectedRoute allowedRoles={['ROLE_TEACHER', 'ROLE_ADMIN']}><Outlet/></ProtectedRoute>}>
                                     {/* Shared (Teacher + Admin) */}
                                     <Route path="courses/new" element={<CourseCreatePage/>}/>
                                     <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
+                                    <Route path="assignments/:id/edit" element={<AssignmentEditPage/>}/>
 
                                     {/* Strictly Admin */}
                                     <Route element={<ProtectedRoute requiredRole="ROLE_ADMIN"><Outlet/></ProtectedRoute>}>

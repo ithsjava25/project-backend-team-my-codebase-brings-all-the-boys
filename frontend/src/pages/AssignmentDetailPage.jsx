@@ -128,7 +128,7 @@ export default function AssignmentDetailPage() {
                         <Badge variant={getStatusVariant(assignment.status)}>
                             {getStatusLabel(assignment.status)}
                         </Badge>
-                        {user?.role?.name === 'ROLE_ADMIN' && (
+                        {(user?.role?.name === 'ROLE_ADMIN' || user?.role?.name === 'ROLE_TEACHER') && (
                             <Button variant="outline"
                                     onClick={() => navigate(`/admin/assignments/${assignmentId}/edit`)}
                                     className="gap-2">

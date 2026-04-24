@@ -106,7 +106,7 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
                     (
                         typeMap[type.toUpperCase()] || type
                     ).toLowerCase()
-                } (${details.name || 'okänd'})`;
+                } (${(details.name || details.username || details.title || details.assignmentTitle || details.fileName || details.student || details.class || 'okänd').toLowerCase()})`;
             case 'ADDED':
                 if (type === 'COMMENT') return `kommenterade på "${details.assignmentTitle || 'en uppgift'}"`;
                 if (type === 'FILE') return `laddade upp filen "${details.fileName || 'okänd'}"`;
