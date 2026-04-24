@@ -229,4 +229,26 @@ class UserAssignmentServiceTest {
     assertThat(result.getStatus()).isEqualTo(StudentAssignmentStatus.ASSIGNED);
     verify(userAssignmentRepository).save(any());
   }
+
+  @Test
+  @DisplayName("getOrCreateForStudent throws NotFoundException if unauthorized")
+  void getOrCreateForStudent_unauthorized_throwsException() {
+    Assignment a = new Assignment();
+    User student = new User();
+    org.example.projectbackendteammycodebasebringsalltheboys.entity.Role role =
+        new org.example.projectbackendteammycodebasebringsalltheboys.entity.Role();
+    role.setName("ROLE_STUDENT");
+    student.setRole(role);
+
+    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+        .thenReturn(Optional.empty());
+    when(authorizationService.canViewAssignment(student, a)).thenReturn(false);
+
+    assertThatThrownBy(() -> userAssignmentService.getOrCreateForStudent(a, student))
+        .isInstanceOf(
+            org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException
+                .class);
+
+    verify(userAssignmentRepository, never()).save(any());
+  }
 }

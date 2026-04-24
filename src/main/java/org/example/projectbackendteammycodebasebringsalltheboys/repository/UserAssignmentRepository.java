@@ -8,8 +8,12 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignmen
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -29,7 +33,7 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
 
   long countByStudent_IdAndStatus(UUID studentId, StudentAssignmentStatus status);
 
-  @org.springframework.data.jpa.repository.Query(
+  @Query(
       "SELECT COUNT(DISTINCT ua) FROM UserAssignment ua "
           + "JOIN ua.assignment a "
           + "JOIN a.course c "
@@ -37,23 +41,21 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
           + "JOIN sc.enrollments e "
           + "WHERE e.user.id = :studentId AND ua.student.id = :studentId AND ua.status = :status")
   long countByStudentEnrollmentAndStatus(
-      @org.springframework.data.repository.query.Param("studentId") UUID studentId,
-      @org.springframework.data.repository.query.Param("status") StudentAssignmentStatus status);
+      @Param("studentId") UUID studentId, @Param("status") StudentAssignmentStatus status);
 
   List<UserAssignment> findByStatusAndAssignment_Course_LeadTeacher_Id(
       StudentAssignmentStatus status, UUID teacherId);
 
-  @org.springframework.data.jpa.repository.Query(
+  @Query(
       "SELECT DISTINCT ua FROM UserAssignment ua "
           + "JOIN ua.assignment a "
           + "JOIN a.course c "
           + "LEFT JOIN c.assistants ast "
           + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId)")
   List<UserAssignment> findByStatusAndTeacherConnection(
-      @org.springframework.data.repository.query.Param("status") StudentAssignmentStatus status,
-      @org.springframework.data.repository.query.Param("teacherId") UUID teacherId);
+      @Param("status") StudentAssignmentStatus status, @Param("teacherId") UUID teacherId);
 
-  List<UserAssignment> findByStatus(StudentAssignmentStatus status);
+  Page<UserAssignment> findByStatus(StudentAssignmentStatus status, Pageable pageable);
 
   List<UserAssignment> findByStudentAndAssignmentIn(
       User student, Collection<Assignment> assignments);

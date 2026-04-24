@@ -270,6 +270,11 @@ class UserServiceTest {
     assertThat(captor.getValue().getRole()).isSameAs(role);
   }
 
+  @org.junit.jupiter.api.AfterEach
+  void tearDown() {
+    org.springframework.security.core.context.SecurityContextHolder.clearContext();
+  }
+
   @Test
   @DisplayName("updateUser synchronizes school class enrollments")
   void updateUser_syncsSchoolClasses() {
@@ -307,12 +312,25 @@ class UserServiceTest {
     when(auth.isAuthenticated()).thenReturn(true);
     org.springframework.security.core.context.SecurityContextHolder.getContext()
         .setAuthentication(auth);
-    when(userRepository.findByUsername("admin")).thenReturn(Optional.of(new User()));
+    User adminUser = new User();
+    adminUser.setUsername("admin");
+    when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
 
     userService.updateUser(userId, request);
 
     verify(classEnrollmentRepository).deleteByUserId(userId);
-    verify(classEnrollmentService, times(2)).enrollUser(any(), any(), any(), any());
+    verify(classEnrollmentService)
+        .enrollUser(
+            existing,
+            sc1,
+            org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole.STUDENT,
+            adminUser);
+    verify(classEnrollmentService)
+        .enrollUser(
+            existing,
+            sc2,
+            org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole.STUDENT,
+            adminUser);
   }
 
   @Test

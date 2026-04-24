@@ -21,6 +21,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadReq
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SubmissionRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -136,8 +137,7 @@ public class UserAssignmentService {
     evaluateAssignment(ua, grade, feedback, evaluator, false);
   }
 
-  @Transactional
-  public void evaluateAssignment(
+  private void evaluateAssignment(
       UserAssignment ua,
       String grade,
       String feedback,
@@ -163,9 +163,11 @@ public class UserAssignmentService {
   }
 
   @Transactional(readOnly = true)
-  public List<UserAssignment> getEvaluatedAssignmentsForTeacher(User user) {
-    if (user.getRole().getName().equals("ROLE_ADMIN")) {
-      return userAssignmentRepository.findByStatus(StudentAssignmentStatus.EVALUATED);
+  public List<UserAssignment> getEvaluatedAssignmentsForTeacher(User user, Pageable pageable) {
+    if (user.getRole() != null && user.getRole().getName().equals("ROLE_ADMIN")) {
+      return userAssignmentRepository
+          .findByStatus(StudentAssignmentStatus.EVALUATED, pageable)
+          .getContent();
     }
     return userAssignmentRepository.findByStatusAndTeacherConnection(
         StudentAssignmentStatus.EVALUATED, user.getId());

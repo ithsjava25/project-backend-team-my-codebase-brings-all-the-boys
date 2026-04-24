@@ -15,18 +15,26 @@ import org.springframework.stereotype.Repository;
 public interface SchoolClassRepository extends JpaRepository<SchoolClass, UUID> {
   Optional<SchoolClass> findByName(String name);
 
-  @EntityGraph(attributePaths = {"courses", "enrollments"})
+  @EntityGraph(attributePaths = {"courses"})
   @Query("SELECT sc FROM SchoolClass sc WHERE sc.id = :id")
-  Optional<SchoolClass> findDetailById(UUID id);
+  Optional<SchoolClass> findWithCoursesById(UUID id);
+
+  @EntityGraph(attributePaths = {"enrollments"})
+  @Query("SELECT sc FROM SchoolClass sc WHERE sc.id = :id")
+  Optional<SchoolClass> findWithEnrollmentsById(UUID id);
 
   @EntityGraph(attributePaths = {"courses"})
   @Query("SELECT DISTINCT sc FROM SchoolClass sc")
   List<SchoolClass> findAllWithDetails();
 
+  /**
+   * @deprecated Use {@link #findByUserIdPaged(UUID, Pageable)} for better performance.
+   */
+  @Deprecated
   @EntityGraph(attributePaths = {"courses"})
   @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
-  List<SchoolClass> findByEnrollments_User_Id(UUID userId);
+  List<SchoolClass> findByUserId(UUID userId);
 
   @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
-  Page<SchoolClass> findByEnrollments_UserId(UUID userId, Pageable pageable);
+  Page<SchoolClass> findByUserIdPaged(UUID userId, Pageable pageable);
 }

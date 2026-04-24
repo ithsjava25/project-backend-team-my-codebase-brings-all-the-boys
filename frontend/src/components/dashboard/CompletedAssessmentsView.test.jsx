@@ -88,4 +88,28 @@ describe('CompletedAssessmentsView', () => {
       expect(screen.getByText(/Okänd student/i)).toBeInTheDocument();
     });
   });
+
+  it('renders disabled edit button when assignmentId is missing', async () => {
+    const mockAssessments = [
+      {
+        id: '1',
+        student: { id: 's1', username: 'alice' },
+        assignmentId: null,
+        assignmentTitle: 'Assignment 1',
+        grade: 'A',
+      },
+    ];
+    userAssignmentApi.getEvaluatedAssignments.mockResolvedValue(mockAssessments);
+
+    render(
+      <BrowserRouter>
+        <CompletedAssessmentsView />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      const editButton = screen.getByRole('button', { name: /Ändra/i });
+      expect(editButton).toBeDisabled();
+    });
+  });
 });

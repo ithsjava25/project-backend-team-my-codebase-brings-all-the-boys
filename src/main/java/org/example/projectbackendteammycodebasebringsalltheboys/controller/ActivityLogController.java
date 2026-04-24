@@ -57,6 +57,11 @@ public class ActivityLogController {
       throw new ForbiddenException("You are not authorized to view all activity logs.");
     }
 
+    if (start != null && end != null && start.isAfter(end)) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .BadRequestException("Start date must be before or equal to end date");
+    }
+
     Page<ActivityLog> logs =
         activityLogService.getLogs(userId, action, entityType, status, start, end, pageable);
     Page<ActivityLogResponse> response = logs.map(dtoMapper::toActivityLogResponse);

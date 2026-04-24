@@ -80,6 +80,8 @@ describe('ActivityLogView', () => {
     
     await waitFor(() => {
       expect(screen.queryByText(/Användare/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Åtgärd/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Typ/i)).not.toBeInTheDocument();
     });
   });
 });

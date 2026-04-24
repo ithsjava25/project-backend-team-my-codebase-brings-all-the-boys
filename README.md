@@ -41,7 +41,7 @@ This project is a high-security case management system designed for school envir
 
 ### Prerequisites
 - Docker
-- Java 25+
+- Java 21+
 - Maven
 - Node.js 20+
 

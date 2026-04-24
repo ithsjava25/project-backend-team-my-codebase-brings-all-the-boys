@@ -1,25 +1,25 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
-import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.EvaluationRequest;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.SubmissionRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.UserAssignmentResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
-import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.AuthorizationService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserAssignmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,71 +37,14 @@ public class UserAssignmentController {
   private final AuthorizationService authorizationService;
   private final DtoMapper dtoMapper;
 
-  @GetMapping("/my/{assignmentId}")
-  public ResponseEntity<UserAssignmentResponse> getMyAssignment(
-      @PathVariable UUID assignmentId, Principal principal) {
-    User currentUser = getCurrentUser(principal);
-
-    Assignment assignment =
-        assignmentRepository
-            .findById(assignmentId)
-            .orElseThrow(() -> new NotFoundException("Assignment not found"));
-
-    UserAssignment ua = userAssignmentService.getOrCreateForStudent(assignment, currentUser);
-    return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
-  }
-
-  private User getCurrentUser(Principal principal) {
-    if (principal == null) {
-      throw new UnauthorizedException("Authentication is required");
-    }
-    return userService
-        .getUserByUsername(principal.getName())
-        .orElseThrow(() -> new UnauthorizedException("Current user not found"));
-  }
-
-  @GetMapping("/assignment/{assignmentId}/student/{studentId}")
-  public ResponseEntity<UserAssignmentResponse> getUserAssignment(
-      @PathVariable UUID assignmentId, @PathVariable UUID studentId) {
-    Assignment assignment =
-        assignmentRepository
-            .findById(assignmentId)
-            .orElseThrow(() -> new NotFoundException("Assignment not found"));
-    User student =
-        userService
-            .getUserById(studentId)
-            .orElseThrow(() -> new NotFoundException("Student not found"));
-
-    User currentUser = userService.getCurrentUser();
-    boolean isSelf = currentUser.getId().equals(studentId);
-    boolean canModify = authorizationService.canModifyCourse(currentUser, assignment.getCourse());
-
-    if (!isSelf && !canModify) {
-      throw new ForbiddenException("You are not authorized to view this assignment data");
-    }
-
-    return userAssignmentService
-        .getByAssignmentAndStudent(assignment, student)
-        .map(dtoMapper::toUserAssignmentResponse)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
-  }
-
   @GetMapping("/assignment/{assignmentId}")
   @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<List<UserAssignmentResponse>> getByAssignment(
-      @PathVariable UUID assignmentId, Principal principal) {
-
+      @PathVariable UUID assignmentId) {
     Assignment assignment =
         assignmentRepository
             .findById(assignmentId)
             .orElseThrow(() -> new NotFoundException("Assignment not found"));
-
-    User currentUser = userService.getCurrentUser();
-
-    if (!authorizationService.canModifyCourse(currentUser, assignment.getCourse())) {
-      throw new ForbiddenException("You are not authorized to view submissions for this course");
-    }
 
     return ResponseEntity.ok(
         userAssignmentRepository.findByAssignment(assignment).stream()
@@ -111,13 +54,27 @@ public class UserAssignmentController {
 
   @GetMapping("/evaluated")
   @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
-  public ResponseEntity<List<UserAssignmentResponse>> getEvaluatedAssignments() {
+  public ResponseEntity<List<UserAssignmentResponse>> getEvaluatedAssignments(Pageable pageable) {
     User currentUser = userService.getCurrentUser();
     List<UserAssignment> evaluated =
-        userAssignmentService.getEvaluatedAssignmentsForTeacher(currentUser);
+        userAssignmentService.getEvaluatedAssignmentsForTeacher(currentUser, pageable);
     List<UserAssignmentResponse> response =
         evaluated.stream().map(dtoMapper::toUserAssignmentResponse).collect(Collectors.toList());
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/my/{assignmentId}")
+  @PreAuthorize("hasAuthority('ROLE_STUDENT')")
+  public ResponseEntity<UserAssignmentResponse> getMyAssignment(@PathVariable UUID assignmentId) {
+    User currentUser = userService.getCurrentUser();
+    Assignment assignment =
+        assignmentRepository
+            .findById(assignmentId)
+            .orElseThrow(() -> new NotFoundException("Assignment not found"));
+
+    UserAssignment ua = userAssignmentService.getOrCreateForStudent(assignment, currentUser);
+
+    return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
   }
 
   @PostMapping("/{id}/evaluate")
@@ -144,10 +101,7 @@ public class UserAssignmentController {
   @PostMapping("/{id}/submit")
   @PreAuthorize("hasAuthority('ROLE_STUDENT')")
   public ResponseEntity<UserAssignmentResponse> submitWork(
-      @PathVariable UUID id,
-      @Valid @RequestBody
-          org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.SubmissionRequest
-              request) {
+      @PathVariable UUID id, @Valid @RequestBody SubmissionRequest request) {
     UserAssignment ua =
         userAssignmentRepository
             .findById(id)
@@ -161,7 +115,7 @@ public class UserAssignmentController {
     userAssignmentService.submitWork(
         ua,
         request.getContent(),
-        request.getFileS3Keys() != null ? request.getFileS3Keys() : java.util.List.of());
+        request.getFileS3Keys() != null ? request.getFileS3Keys() : List.of());
 
     return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
   }

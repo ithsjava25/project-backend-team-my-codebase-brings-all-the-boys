@@ -61,7 +61,7 @@ public class UserService {
 
     Pageable limit = PageRequest.of(0, 100);
     List<SchoolClass> classes =
-        schoolClassRepository.findByEnrollments_UserId(target.getId(), limit).getContent();
+        schoolClassRepository.findByUserIdPaged(target.getId(), limit).getContent();
 
     // For courses, we need to check lead teacher AND assistants
     // Use a bounded set to deduplicate and prevent unbounded memory usage
@@ -236,7 +236,7 @@ public class UserService {
     User savedUser = userRepository.save(user);
 
     // Sync school classes if provided
-    if (request.getSchoolClassIds() != null) {
+    if (request.getSchoolClassIds() != null && !request.getSchoolClassIds().isEmpty()) {
       // 1. Deduplicate and bulk load
       List<UUID> uniqueIds = request.getSchoolClassIds().stream().distinct().toList();
       List<SchoolClass> classes = schoolClassRepository.findAllById(uniqueIds);

@@ -29,10 +29,16 @@ public class SchoolClassService {
   @Transactional(readOnly = true)
   public SchoolClassDetailResponse getSchoolClassDetailDto(
       UUID id, org.example.projectbackendteammycodebasebringsalltheboys.entity.User currentUser) {
+    // Sequential calls within the same transaction populate the same entity in the persistence
+    // context
+    // This avoids a Cartesian product of two @OneToMany collections.
     SchoolClass schoolClass =
         schoolClassRepository
-            .findDetailById(id)
+            .findWithCoursesById(id)
             .orElseThrow(() -> new NotFoundException("School class not found with id: " + id));
+
+    // Initialize the second collection
+    schoolClassRepository.findWithEnrollmentsById(id);
 
     // Authorization check: Allow Admins, Teachers, Mentors, and enrolled Students to view details
     String roleName =
@@ -79,7 +85,11 @@ public class SchoolClassService {
     if (roleName.equals("ROLE_ADMIN") || roleName.equals("ROLE_TEACHER")) {
       classes = schoolClassRepository.findAllWithDetails();
     } else {
-      classes = schoolClassRepository.findByEnrollments_User_Id(user.getId());
+      classes =
+          schoolClassRepository
+              .findByUserIdPaged(
+                  user.getId(), org.springframework.data.domain.PageRequest.of(0, 100))
+              .getContent();
     }
 
     return classes.stream()

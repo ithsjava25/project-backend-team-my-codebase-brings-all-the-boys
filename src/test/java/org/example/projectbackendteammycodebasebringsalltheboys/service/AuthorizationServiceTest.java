@@ -158,18 +158,31 @@ class AuthorizationServiceTest {
   }
 
   @Test
-  @DisplayName("canViewUserProfile returns true for teacher viewing student")
-  void canViewUserProfile_teacherViewingStudent_returnsTrue() {
-    User teacher = createUser("ROLE_TEACHER");
-    User student = createUser("ROLE_STUDENT");
-    teacher.setId(UUID.randomUUID());
-    student.setId(UUID.randomUUID());
+  @DisplayName("canViewUserProfile returns true if users share a class")
+  void canViewUserProfile_sharedClass_returnsTrue() {
+    User actor = createUser("ROLE_STUDENT");
+    User target = createUser("ROLE_STUDENT");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
 
-    // Blanket allowance for teachers removed in refactoring, now they need shared class/course
-    // I should test that they CAN view if shared class exists
-    when(classEnrollmentRepository.hasSharedSchoolClass(teacher.getId(), student.getId()))
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
         .thenReturn(true);
 
-    assertThat(authorizationService.canViewUserProfile(teacher, student)).isTrue();
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns true if both users are assistants on same course")
+  void canViewUserProfile_bothAssistants_returnsTrue() {
+    User actor = createUser("ROLE_TEACHER");
+    User target = createUser("ROLE_TEACHER");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
   }
 }

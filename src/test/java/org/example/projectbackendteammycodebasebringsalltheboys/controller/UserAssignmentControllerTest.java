@@ -1,13 +1,16 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.UserAssignmentResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
@@ -87,13 +90,17 @@ class UserAssignmentControllerTest {
     when(userAssignmentRepository.findById(uaId)).thenReturn(Optional.of(ua));
     when(userService.getCurrentUser()).thenReturn(student);
 
+    UserAssignmentResponse response = new UserAssignmentResponse();
+    response.setId(uaId);
+    when(dtoMapper.toUserAssignmentResponse(any())).thenReturn(response);
+
     String body =
         """
-                        {
-                          "content": "My work",
-                          "fileS3Keys": []
-                        }
-                        """;
+        {
+          "content": "My work",
+          "fileS3Keys": []
+        }
+        """;
 
     mockMvc
         .perform(
@@ -101,6 +108,7 @@ class UserAssignmentControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(uaId.toString()));
   }
 }

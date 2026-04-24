@@ -53,10 +53,12 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
       "SELECT CASE WHEN EXISTS ("
           + "SELECT 1 FROM Course c "
           + "LEFT JOIN c.schoolClass sc "
-          + "LEFT JOIN sc.enrollments e "
-          + "LEFT JOIN c.assistants a "
-          + "WHERE (e.user.id = :userId1 OR c.leadTeacher.id = :userId1 OR a.id = :userId1) "
-          + "AND (e.user.id = :userId2 OR c.leadTeacher.id = :userId2 OR a.id = :userId2)"
+          + "LEFT JOIN sc.enrollments e1 "
+          + "LEFT JOIN sc.enrollments e2 "
+          + "LEFT JOIN c.assistants a1 "
+          + "LEFT JOIN c.assistants a2 "
+          + "WHERE (e1.user.id = :userId1 OR c.leadTeacher.id = :userId1 OR a1.id = :userId1) "
+          + "AND (e2.user.id = :userId2 OR c.leadTeacher.id = :userId2 OR a2.id = :userId2)"
           + ") THEN true ELSE false END")
   boolean hasSharedCourse(@Param("userId1") UUID userId1, @Param("userId2") UUID userId2);
 }

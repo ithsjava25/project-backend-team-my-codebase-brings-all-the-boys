@@ -27,36 +27,60 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
 
     useEffect(() => {
         if (isAdmin) {
-            userApi.getAllUsers({size: 100}).then(data => setAllUsers(data.content || []));
+            userApi.getAllUsers({size: 100})
+                .then(data => setAllUsers(data.content || []))
+                .catch(err => console.error('Failed to fetch users for filtering:', err));
         }
     }, [isAdmin]);
 
-    const fetchLogs = async () => {
+    const fetchLogs = async (signal) => {
         try {
             setLoading(true);
             let data;
+            
             if (isAdmin && !initialUserId && !entityId) {
-                data = await activityLogApi.getAllLogs(0, limit, filters);
+                // Admin global view - supports all filters
+                data = await activityLogApi.getAllLogs(0, limit, filters, signal);
             } else if (filters.userId || initialUserId) {
-                data = await activityLogApi.getUserLogs(filters.userId || initialUserId, 0, limit);
+                // User-scoped view - route through getAllLogs to preserve action/type filters
+                const combinedFilters = { 
+                    ...filters, 
+                    userId: filters.userId || initialUserId 
+                };
+                data = await activityLogApi.getAllLogs(0, limit, combinedFilters, signal);
             } else if (filters.entityType || initialEntityType) {
-                data = await activityLogApi.getEntityLogs(filters.entityType || initialEntityType, entityId, 0, limit);
+                // Entity-scoped view
+                const combinedFilters = {
+                    ...filters,
+                    entityType: filters.entityType || initialEntityType,
+                    entityId
+                };
+                data = await activityLogApi.getAllLogs(0, limit, combinedFilters, signal);
             } else {
-                data = await activityLogApi.getUserLogs(currentUser.id, 0, limit);
+                // Default: current user's logs
+                data = await activityLogApi.getUserLogs(currentUser.id, 0, limit, signal);
             }
-            setLogs(data.content || []);
+            
+            if (!signal?.aborted) {
+                setLogs(data.content || []);
+            }
         } catch (error) {
+            if (error.name === 'CanceledError' || error.name === 'AbortError') return;
             console.error('Failed to fetch activity logs:', error);
             setLogs([]);
         } finally {
-            setLoading(false);
+            if (!signal?.aborted) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
+        const controller = new AbortController();
         if (currentUser) {
-            fetchLogs();
+            fetchLogs(controller.signal);
         }
+        return () => controller.abort();
     }, [currentUser, filters, limit, initialUserId, initialEntityType, entityId]);
 
     const resetFilters = () => {
