@@ -8,6 +8,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
+import UserProfilePage from './pages/UserProfilePage';
 import SchoolClassDetailPage from './pages/SchoolClassDetailPage';
 import AssignmentDetailPage from './pages/AssignmentDetailPage';
 import AssignmentCreatePage from './pages/AssignmentCreatePage';
@@ -48,6 +49,7 @@ export default function App() {
                             >
                                 <Route path="/dashboard" element={<Dashboard/>}/>
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
+                                <Route path="/profile/:id" element={<UserProfilePage/>}/>
                                 <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreatePage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
                                 <Route

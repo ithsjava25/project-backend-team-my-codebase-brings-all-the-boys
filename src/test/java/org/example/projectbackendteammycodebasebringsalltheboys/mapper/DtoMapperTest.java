@@ -2,7 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
@@ -55,8 +55,8 @@ class DtoMapperTest {
   void toSchoolClassDetailResponse_filtersRoles() {
     SchoolClass sc = new SchoolClass();
     sc.setName("Class 1");
-    sc.setEnrollments(new ArrayList<>());
-    sc.setCourses(new ArrayList<>());
+    sc.setEnrollments(new LinkedHashSet<>());
+    sc.setCourses(new LinkedHashSet<>());
 
     User studentUser = new User();
     studentUser.setUsername("student1");

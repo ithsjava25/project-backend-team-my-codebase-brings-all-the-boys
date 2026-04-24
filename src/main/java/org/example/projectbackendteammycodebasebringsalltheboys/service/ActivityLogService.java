@@ -15,6 +15,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.repository.Activ
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,45 @@ public class ActivityLogService {
     ActivityLog log =
         new ActivityLog(user, caseID, action, entityType, entityId, details, status, clock);
     activityLogRepository.save(log);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<ActivityLog> getLogs(
+      UUID userId,
+      ActivityAction action,
+      EntityType entityType,
+      ActivityStatus status,
+      java.time.LocalDateTime start,
+      java.time.LocalDateTime end,
+      Pageable pageable) {
+
+    Specification<ActivityLog> spec = Specification.allOf();
+
+    if (userId != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("user").get("id"), userId));
+    }
+
+    if (action != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("action"), action));
+    }
+
+    if (entityType != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("entityType"), entityType));
+    }
+
+    if (status != null) {
+      spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+    }
+
+    if (start != null) {
+      spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("timestamp"), start));
+    }
+
+    if (end != null) {
+      spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("timestamp"), end));
+    }
+
+    return activityLogRepository.findAll(spec, pageable);
   }
 
   @Transactional(readOnly = true)

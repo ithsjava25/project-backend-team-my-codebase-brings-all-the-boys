@@ -1,55 +1,79 @@
 import {useState, useEffect} from 'react';
 import {activityLogApi} from '@/api/activityLogs';
+import {userApi} from '@/api/users';
 import {useAuthContext} from '@/context/AuthContext';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {Button} from '@/components/ui/button';
 import {formatDistanceToNow} from 'date-fns';
 import {sv} from 'date-fns/locale';
-import {Activity, User, FileText, MessageSquare, Briefcase, BookIcon, BookOpenIcon} from 'lucide-react';
+import {Activity, User, FileText, MessageSquare, Briefcase, BookIcon, BookOpenIcon, Filter, X} from 'lucide-react';
 
-export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
+export function ActivityLogView({limit = 10, userId: initialUserId, entityType: initialEntityType, entityId}) {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [allUsers, setAllUsers] = useState([]);
     const {user: currentUser} = useAuthContext();
+    
+    // Filters
+    const [filters, setFilters] = useState({
+        userId: initialUserId || '',
+        action: '',
+        entityType: initialEntityType || '',
+        status: ''
+    });
+
+    const isAdmin = currentUser?.role?.name === 'ROLE_ADMIN';
 
     useEffect(() => {
-        let isCurrent = true;
+        if (isAdmin) {
+            userApi.getAllUsers({size: 100}).then(data => setAllUsers(data.content || []));
+        }
+    }, [isAdmin]);
 
-        const fetchLogs = async () => {
-            try {
-                setLoading(true);
-                let data;
-                if (userId) {
-                    data = await activityLogApi.getUserLogs(userId, 0, limit);
-                } else if (entityType && entityId) {
-                    data = await activityLogApi.getEntityLogs(entityType, entityId, 0, limit);
-                } else if (currentUser?.role?.name === 'ROLE_ADMIN') {
-                    data = await activityLogApi.getAllLogs(0, limit);
+    const fetchLogs = async () => {
+        try {
+            setLoading(true);
+            let data;
+            if (isAdmin && !initialUserId && !entityId) {
+                const activeFilters = { ...filters };
+                if (activeFilters.userId === 'ALL') delete activeFilters.userId;
+                data = await activityLogApi.getAllLogs(0, limit, activeFilters);
+            } else if (filters.userId || initialUserId) {
+                const targetId = (filters.userId === 'ALL' || !filters.userId) ? initialUserId : filters.userId;
+                if (targetId) {
+                    data = await activityLogApi.getUserLogs(targetId, 0, limit);
                 } else {
-                    data = await activityLogApi.getUserLogs(currentUser.id, 0, limit);
+                    data = await activityLogApi.getAllLogs(0, limit);
                 }
-                if (isCurrent) {
-                    setLogs(data.content || []);
-                }
-            } catch (error) {
-                if (isCurrent) {
-                    console.error('Failed to fetch activity logs:', error);
-                    setLogs([]);
-                }
-            } finally {
-                if (isCurrent) {
-                    setLoading(false);
-                }
-
+            } else if (filters.entityType || initialEntityType) {
+                data = await activityLogApi.getEntityLogs(filters.entityType || initialEntityType, entityId, 0, limit);
+            } else {
+                data = await activityLogApi.getUserLogs(currentUser.id, 0, limit);
             }
-        };
+            setLogs(data.content || []);
+        } catch (error) {
+            console.error('Failed to fetch activity logs:', error);
+            setLogs([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         if (currentUser) {
             fetchLogs();
         }
-        return () => {
-            isCurrent = false;
-        };
-    }, [currentUser, userId, entityType, entityId, limit]);
+    }, [currentUser, filters, limit, initialUserId, initialEntityType, entityId]);
+
+    const resetFilters = () => {
+        setFilters({
+            userId: initialUserId || '',
+            action: '',
+            entityType: initialEntityType || '',
+            status: ''
+        });
+    };
 
     const getActionIcon = (type) => {
         switch (type) {
@@ -133,14 +157,90 @@ export function ActivityLogView({limit = 10, userId, entityType, entityId}) {
 
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                 <CardTitle className="text-lg flex items-center gap-2">
                     <Activity className="h-5 w-5"/>
                     Senaste aktivitet
                 </CardTitle>
+                {isAdmin && (
+                    <Button variant="outline" size="sm" onClick={resetFilters} className="h-8 gap-2">
+                        <X className="h-3 w-3"/> Återställ filter
+                    </Button>
+                )}
             </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
+            <CardContent className="space-y-6">
+                {isAdmin && !initialUserId && !entityId && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-4 border-b">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                <User className="h-3 w-3"/> Användare
+                            </label>
+                            <Select 
+                                value={filters.userId} 
+                                onValueChange={(v) => setFilters(f => ({...f, userId: v}))}
+                            >
+                                <SelectTrigger className="h-9">
+                                    <SelectValue placeholder="Alla användare"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ALL">Alla användare</SelectItem>
+                                    {allUsers.map(u => (
+                                        <SelectItem key={u.id} value={u.id}>{u.username}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                <Filter className="h-3 w-3"/> Åtgärd
+                            </label>
+                            <Select 
+                                value={filters.action} 
+                                onValueChange={(v) => setFilters(f => ({...f, action: v === 'ALL' ? '' : v}))}
+                            >
+                                <SelectTrigger className="h-9">
+                                    <SelectValue placeholder="Alla åtgärder"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ALL">Alla åtgärder</SelectItem>
+                                    <SelectItem value="CREATED">Skapad</SelectItem>
+                                    <SelectItem value="UPDATED">Uppdaterad</SelectItem>
+                                    <SelectItem value="DELETED">Borttagen</SelectItem>
+                                    <SelectItem value="ADDED">Tillagd</SelectItem>
+                                    <SelectItem value="ASSIGNED">Tilldelad</SelectItem>
+                                    <SelectItem value="EVALUATED">Bedömd</SelectItem>
+                                    <SelectItem value="LOGIN">Inloggning</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                                <Activity className="h-3 w-3"/> Typ
+                            </label>
+                            <Select 
+                                value={filters.entityType} 
+                                onValueChange={(v) => setFilters(f => ({...f, entityType: v === 'ALL' ? '' : v}))}
+                            >
+                                <SelectTrigger className="h-9">
+                                    <SelectValue placeholder="Alla typer"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="ALL">Alla typer</SelectItem>
+                                    <SelectItem value="USER">Användare</SelectItem>
+                                    <SelectItem value="COURSE">Kurs</SelectItem>
+                                    <SelectItem value="SCHOOL_CLASS">Klass</SelectItem>
+                                    <SelectItem value="ASSIGNMENT">Uppgift</SelectItem>
+                                    <SelectItem value="SUBMISSION">Inlämning</SelectItem>
+                                    <SelectItem value="COMMENT">Kommentar</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                )}
+
+                <div className="space-y-4 pt-2">
                     {logs.length === 0 ? (
                         <p className="text-sm text-muted-foreground">Ingen aktivitet hittades.</p>
                     ) : (

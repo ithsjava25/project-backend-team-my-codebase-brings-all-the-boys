@@ -112,6 +112,17 @@ public class UserAssignmentController {
             .collect(Collectors.toList()));
   }
 
+  @GetMapping("/evaluated")
+  @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
+  public ResponseEntity<List<UserAssignmentResponse>> getEvaluatedAssignments() {
+    User currentUser = userService.getCurrentUser();
+    List<UserAssignment> evaluated =
+        userAssignmentService.getEvaluatedAssignmentsForTeacher(currentUser);
+    List<UserAssignmentResponse> response =
+        evaluated.stream().map(dtoMapper::toUserAssignmentResponse).collect(Collectors.toList());
+    return ResponseEntity.ok(response);
+  }
+
   @PostMapping("/{id}/evaluate")
   @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<UserAssignmentResponse> evaluateAssignment(
@@ -129,6 +140,31 @@ public class UserAssignmentController {
 
     userAssignmentService.evaluateAssignment(
         ua, request.getGrade(), request.getFeedback(), evaluator);
+
+    return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
+  }
+
+  @PostMapping("/{id}/submit")
+  @PreAuthorize("hasAuthority('ROLE_STUDENT')")
+  public ResponseEntity<UserAssignmentResponse> submitWork(
+      @PathVariable UUID id,
+      @RequestBody
+          org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.SubmissionRequest
+              request) {
+    UserAssignment ua =
+        userAssignmentRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("UserAssignment not found"));
+
+    User currentUser = userService.getCurrentUser();
+    if (!ua.getStudent().getId().equals(currentUser.getId())) {
+      throw new ForbiddenException("You can only submit your own assignments");
+    }
+
+    userAssignmentService.submitWork(
+        ua,
+        request.getContent(),
+        request.getFileS3Keys() != null ? request.getFileS3Keys() : java.util.List.of());
 
     return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
   }

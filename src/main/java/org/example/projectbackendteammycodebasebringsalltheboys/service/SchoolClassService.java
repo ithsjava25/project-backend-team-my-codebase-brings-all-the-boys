@@ -30,7 +30,7 @@ public class SchoolClassService {
       UUID id, org.example.projectbackendteammycodebasebringsalltheboys.entity.User currentUser) {
     SchoolClass schoolClass =
         schoolClassRepository
-            .findById(id)
+            .findDetailById(id)
             .orElseThrow(() -> new NotFoundException("School class not found with id: " + id));
 
     // Authorization check: Allow Admins, Teachers, Mentors, and enrolled Students to view details
@@ -73,7 +73,7 @@ public class SchoolClassService {
     List<SchoolClass> classes;
 
     if (roleName.equals("ROLE_ADMIN") || roleName.equals("ROLE_TEACHER")) {
-      classes = schoolClassRepository.findAll();
+      classes = schoolClassRepository.findAllWithDetails();
     } else {
       classes = schoolClassRepository.findByEnrollments_User_Id(user.getId());
     }

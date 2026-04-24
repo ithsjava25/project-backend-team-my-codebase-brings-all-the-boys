@@ -16,8 +16,18 @@ export const userAssignmentApi = {
         return response.data;
     },
 
+    getEvaluatedAssignments: async () => {
+        const response = await client.get('/user-assignments/evaluated');
+        return response.data;
+    },
+
     evaluate: async (id, evaluationData) => {
         const response = await client.post(`/user-assignments/${id}/evaluate`, evaluationData);
+        return response.data;
+    },
+
+    submit: async (id, submissionData) => {
+        const response = await client.post(`/user-assignments/${id}/submit`, submissionData);
         return response.data;
     },
 };

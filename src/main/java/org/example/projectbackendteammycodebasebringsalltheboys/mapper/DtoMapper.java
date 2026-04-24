@@ -234,6 +234,7 @@ public class DtoMapper {
     response.setId(ua.getId());
     if (ua.getAssignment() != null) {
       response.setAssignmentId(ua.getAssignment().getId());
+      response.setAssignmentTitle(ua.getAssignment().getTitle());
     }
     if (ua.getStudent() != null) {
       response.setStudent(toUserResponse(ua.getStudent()));
@@ -251,6 +252,10 @@ public class DtoMapper {
     response.setComments(
         ua.getComments() != null
             ? ua.getComments().stream().map(this::toCommentResponse).collect(Collectors.toList())
+            : Collections.emptyList());
+    response.setFiles(
+        ua.getFiles() != null
+            ? ua.getFiles().stream().map(this::toFileResponse).collect(Collectors.toList())
             : Collections.emptyList());
     return response;
   }

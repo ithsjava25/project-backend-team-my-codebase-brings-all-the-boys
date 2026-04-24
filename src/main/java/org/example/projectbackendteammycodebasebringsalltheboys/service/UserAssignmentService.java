@@ -32,6 +32,7 @@ public class UserAssignmentService {
   private final SubmissionRepository submissionRepository;
   private final FileMetadataRepository fileMetadataRepository;
   private final ActivityLogService activityLogService;
+  private final AuthorizationService authorizationService;
 
   @LogActivity(
       action = ActivityAction.ASSIGNED,
@@ -132,9 +133,6 @@ public class UserAssignmentService {
       actorParamIndex = 3)
   @Transactional
   public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
-    if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN) {
-      throw new BadRequestException("Cannot evaluate assignment in status: " + ua.getStatus());
-    }
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
     ua.setGrade(grade);
     ua.setFeedback(feedback);
@@ -147,8 +145,31 @@ public class UserAssignmentService {
   }
 
   @Transactional(readOnly = true)
+  public List<UserAssignment> getEvaluatedAssignmentsForTeacher(User teacher) {
+    return userAssignmentRepository.findByStatusAndAssignment_Course_LeadTeacher_Id(
+        StudentAssignmentStatus.EVALUATED, teacher.getId());
+  }
+
+  @Transactional
   public Optional<UserAssignment> getByAssignmentAndStudent(Assignment assignment, User student) {
-    return userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
+    Optional<UserAssignment> existing =
+        userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
+
+    if (existing.isPresent()) {
+      return existing;
+    }
+
+    // Lazy create if authorized
+    if (authorizationService.canViewAssignment(student, assignment)
+        && student.getRole().getName().equals("ROLE_STUDENT")) {
+      UserAssignment ua = new UserAssignment();
+      ua.setAssignment(assignment);
+      ua.setStudent(student);
+      ua.setStatus(StudentAssignmentStatus.ASSIGNED);
+      return Optional.of(userAssignmentRepository.save(ua));
+    }
+
+    return Optional.empty();
   }
 
   @Transactional(readOnly = true)

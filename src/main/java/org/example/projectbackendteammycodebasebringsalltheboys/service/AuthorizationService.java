@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class AuthorizationService {
 
   private final UserAssignmentRepository userAssignmentRepository;
   private final ClassEnrollmentRepository classEnrollmentRepository;
+  private final CourseRepository courseRepository;
 
   @Transactional(readOnly = true)
   public boolean isMemberOfClass(User user, SchoolClass schoolClass) {
@@ -57,8 +59,14 @@ public class AuthorizationService {
     if (isAdmin(actor)) return true;
     if (actor.getId().equals(target.getId())) return true;
 
-    // Check if they share any classes
-    return classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId());
+    // Teachers can always see student profiles
+    if (isTeacher(actor) && target.getRole().getName().equals("ROLE_STUDENT")) {
+      return true;
+    }
+
+    // Check if they share any classes or courses
+    return classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId())
+        || courseRepository.hasSharedCourse(actor.getId(), target.getId());
   }
 
   @Transactional(readOnly = true)

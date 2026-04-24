@@ -37,6 +37,7 @@ class UserServiceTest {
   @Mock private ActivityLogRepository activityLogRepository;
   @Mock private AssignmentRepository assignmentRepository;
   @Mock private CommentRepository commentRepository;
+  @Mock private ClassEnrollmentService classEnrollmentService;
 
   private UserService userService;
 
@@ -57,7 +58,8 @@ class UserServiceTest {
             commentRepository,
             activityLogRepository,
             authorizationService,
-            assignmentRepository);
+            assignmentRepository,
+            classEnrollmentService);
   }
 
   // --- helpers ---

@@ -11,6 +11,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,13 +25,15 @@ class AuthorizationServiceTest {
 
   @Mock private UserAssignmentRepository userAssignmentRepository;
   @Mock private ClassEnrollmentRepository classEnrollmentRepository;
+  @Mock private CourseRepository courseRepository;
 
   private AuthorizationService authorizationService;
 
   @BeforeEach
   void setUp() {
     authorizationService =
-        new AuthorizationService(userAssignmentRepository, classEnrollmentRepository);
+        new AuthorizationService(
+            userAssignmentRepository, classEnrollmentRepository, courseRepository);
   }
 
   private User createUser(String roleName) {

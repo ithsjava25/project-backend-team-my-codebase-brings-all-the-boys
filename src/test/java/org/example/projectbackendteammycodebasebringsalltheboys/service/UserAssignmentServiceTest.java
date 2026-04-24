@@ -33,6 +33,7 @@ class UserAssignmentServiceTest {
   @Mock private SubmissionRepository submissionRepository;
   @Mock private FileMetadataRepository fileMetadataRepository;
   @Mock private ActivityLogService activityLogService;
+  @Mock private AuthorizationService authorizationService;
 
   private UserAssignmentService userAssignmentService;
 
@@ -43,7 +44,8 @@ class UserAssignmentServiceTest {
             userAssignmentRepository,
             submissionRepository,
             fileMetadataRepository,
-            activityLogService);
+            activityLogService,
+            authorizationService);
   }
 
   @Test

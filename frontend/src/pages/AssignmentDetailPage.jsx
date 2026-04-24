@@ -6,11 +6,12 @@ import {CommentSection} from '@/components/dashboard/CommentSection';
 import {FileSection} from '@/components/dashboard/FileSection';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
-import {ArrowLeft, Calendar, User, Edit, ClipboardCheck} from 'lucide-react';
+import {ArrowLeft, Calendar, User, Edit, ClipboardCheck, Send} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useAuthContext} from '@/context/AuthContext';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Textarea} from '@/components/ui/textarea';
 
 export default function AssignmentDetailPage() {
     const {assignmentId} = useParams();
@@ -24,6 +25,8 @@ export default function AssignmentDetailPage() {
     const [myAssignmentError, setMyAssignmentError] = useState(null);
     const [loadingSubmissions, setLoadingSubmissions] = useState(false);
     const [submissionError, setSubmissionError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionContent, setSubmissionContent] = useState('');
 
     const isAdmin = user?.role?.name === 'ROLE_ADMIN';
     const isTeacher = user?.role?.name === 'ROLE_TEACHER';
@@ -57,6 +60,9 @@ export default function AssignmentDetailPage() {
                     setMyAssignmentError(null);
                     const data = await userAssignmentApi.getMyAssignment(assignment.id);
                     setMyUserAssignment(data);
+                    if (data?.submissions?.length > 0) {
+                        setSubmissionContent(data.submissions[data.submissions.length - 1].content || '');
+                    }
                 } catch (err) {
                     console.error('Failed to fetch my assignment:', err);
                     setMyAssignmentError('Kunde inte hämta din inlämning.');
@@ -67,6 +73,25 @@ export default function AssignmentDetailPage() {
             fetchMyAssignment();
         }
     }, [assignment?.id, isStudent]);
+
+    const handleSubmission = async () => {
+        if (!myUserAssignment || isSubmitting) return;
+
+        try {
+            setIsSubmitting(true);
+            const updated = await userAssignmentApi.submit(myUserAssignment.id, {
+                content: submissionContent,
+                fileS3Keys: [] // Files are already attached via FileSection in the current implementation
+            });
+            setMyUserAssignment(updated);
+            alert('Din inlämning har skickats!');
+        } catch (err) {
+            console.error('Submission failed:', err);
+            alert(err.response?.data?.message || 'Inlämningen misslyckades.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -106,6 +131,15 @@ export default function AssignmentDetailPage() {
         }
     };
 
+    const getUserAssignmentStatusLabel = (status) => {
+        switch (status) {
+            case 'ASSIGNED': return 'Tilldelad';
+            case 'TURNED_IN': return 'Inlämnad';
+            case 'EVALUATED': return 'Bedömd';
+            default: return status;
+        }
+    };
+
     if (loading) return <div className="p-8">Laddar uppgift...</div>;
     if (error) return <div className="p-8 text-destructive">Fel: {error}</div>;
     if (!assignment) return <div className="p-8">Uppgiften hittades inte.</div>;
@@ -128,6 +162,11 @@ export default function AssignmentDetailPage() {
                         <Badge variant={getStatusVariant(assignment.status)}>
                             {getStatusLabel(assignment.status)}
                         </Badge>
+                        {isStudent && myUserAssignment && (
+                            <Badge variant={myUserAssignment.status === 'EVALUATED' ? 'default' : 'secondary'} className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200">
+                                Din status: {getUserAssignmentStatusLabel(myUserAssignment.status)}
+                            </Badge>
+                        )}
                         {canManageSubmissions && (
                             <Button variant="outline"
                                     onClick={() => navigate(`/admin/assignments/${assignmentId}/edit`)}
@@ -174,6 +213,64 @@ export default function AssignmentDetailPage() {
                             </CardContent>
                         </Card>
                     )}
+                    
+                    {isStudent && myUserAssignment && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>Din inlämning</span>
+                                    <Badge variant={myUserAssignment.status === 'EVALUATED' ? 'default' : 'secondary'}>
+                                        {getUserAssignmentStatusLabel(myUserAssignment.status)}
+                                    </Badge>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {myUserAssignment.status === 'EVALUATED' ? (
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-muted rounded-lg">
+                                            <h4 className="font-bold mb-1">Resultat</h4>
+                                            <p className="text-2xl font-bold text-primary">{myUserAssignment.grade}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold mb-1">Feedback</h4>
+                                            <p className="whitespace-pre-wrap text-muted-foreground">
+                                                {myUserAssignment.feedback || 'Ingen feedback lämnad.'}
+                                            </p>
+                                        </div>
+                                        <div className="pt-4 border-t">
+                                            <h4 className="font-bold mb-1">Ditt svar</h4>
+                                            <p className="whitespace-pre-wrap">{submissionContent}</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <Textarea 
+                                            placeholder="Skriv ditt svar här..."
+                                            className="min-h-[200px]"
+                                            value={submissionContent}
+                                            onChange={e => setSubmissionContent(e.target.value)}
+                                            disabled={isSubmitting}
+                                        />
+                                        <div className="flex justify-end">
+                                            <Button 
+                                                onClick={handleSubmission} 
+                                                disabled={isSubmitting || !submissionContent.trim()}
+                                                className="gap-2"
+                                            >
+                                                {isSubmitting ? 'Lämnar in...' : (
+                                                    <>
+                                                        <Send className="h-4 w-4"/>
+                                                        Lämna in
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {(!isStudent || myUserAssignment) && (
                         <CommentSection
                             assignmentId={isStudent ? undefined : assignmentId}
@@ -214,7 +311,13 @@ export default function AssignmentDetailPage() {
                                                     onClick={() => navigate(`/assignments/${assignmentId}/grade/${ua.student.id}`)}
                                                 >
                                                     <TableCell className="font-medium text-xs truncate max-w-[100px]">
-                                                        {ua.student.username}
+                                                        <Link 
+                                                            to={`/profile/${ua.student.id}`} 
+                                                            className="hover:underline text-primary"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {ua.student.username}
+                                                        </Link>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Badge
@@ -248,7 +351,11 @@ export default function AssignmentDetailPage() {
                             <div className="flex items-center gap-2 text-sm">
                                 <User className="h-4 w-4 text-muted-foreground"/>
                                 <span className="font-semibold">Skapad av:</span>
-                                <span>{assignment.creator?.username}</span>
+                                <span>
+                                    <Link to={`/profile/${assignment.creator?.id}`} className="hover:underline text-primary">
+                                        {assignment.creator?.username}
+                                    </Link>
+                                </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                                 <Calendar className="h-4 w-4 text-muted-foreground"/>
@@ -260,7 +367,7 @@ export default function AssignmentDetailPage() {
 
                     {(!isStudent || myUserAssignment) && (
                         <FileSection
-                            files={isStudent ? [] : (assignment.files ?? [])}
+                            files={isStudent ? (myUserAssignment?.files ?? []) : (assignment.files ?? [])}
                             assignmentId={isStudent ? undefined : assignmentId}
                             userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
                         />

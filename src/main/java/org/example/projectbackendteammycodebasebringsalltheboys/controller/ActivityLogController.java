@@ -15,10 +15,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.service.UserServ
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/activity-logs")
@@ -31,7 +28,23 @@ public class ActivityLogController {
 
   @GetMapping
   public ResponseEntity<Page<ActivityLogResponse>> getAllActivityLogs(
-      java.security.Principal principal, Pageable pageable) {
+      @RequestParam(required = false) UUID userId,
+      @RequestParam(required = false)
+          org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction action,
+      @RequestParam(required = false)
+          org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType entityType,
+      @RequestParam(required = false)
+          org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus status,
+      @RequestParam(required = false)
+          @org.springframework.format.annotation.DateTimeFormat(
+              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
+          java.time.LocalDateTime start,
+      @RequestParam(required = false)
+          @org.springframework.format.annotation.DateTimeFormat(
+              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
+          java.time.LocalDateTime end,
+      java.security.Principal principal,
+      Pageable pageable) {
 
     if (principal == null) {
       throw new UnauthorizedException("Authentication is required");
@@ -46,7 +59,8 @@ public class ActivityLogController {
       throw new ForbiddenException("You are not authorized to view all activity logs.");
     }
 
-    Page<ActivityLog> logs = activityLogService.getAllLogs(pageable);
+    Page<ActivityLog> logs =
+        activityLogService.getLogs(userId, action, entityType, status, start, end, pageable);
     Page<ActivityLogResponse> response = logs.map(dtoMapper::toActivityLogResponse);
 
     return ResponseEntity.ok(response);

@@ -29,6 +29,11 @@ export const userApi = {
         await client.delete(`/admin/users/${id}`);
     },
 
+    getUserProfile: async (id) => {
+        const response = await client.get(`/users/profile/${id}`);
+        return response.data;
+    },
+
     getTeachers: async () => {
         const response = await client.get('/users/teachers');
         return response.data;

@@ -11,7 +11,19 @@ import org.springframework.stereotype.Repository;
 public interface SchoolClassRepository extends JpaRepository<SchoolClass, UUID> {
   Optional<SchoolClass> findByName(String name);
 
-  @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
+  @Query(
+      "SELECT sc FROM SchoolClass sc "
+          + "LEFT JOIN FETCH sc.courses "
+          + "LEFT JOIN FETCH sc.enrollments "
+          + "WHERE sc.id = :id")
+  Optional<SchoolClass> findDetailById(UUID id);
+
+  @Query(
+      "SELECT DISTINCT sc FROM SchoolClass sc LEFT JOIN FETCH sc.courses LEFT JOIN FETCH sc.enrollments")
+  java.util.List<SchoolClass> findAllWithDetails();
+
+  @Query(
+      "SELECT DISTINCT sc FROM SchoolClass sc LEFT JOIN FETCH sc.courses LEFT JOIN FETCH sc.enrollments e WHERE e.user.id = :userId")
   java.util.List<SchoolClass> findByEnrollments_User_Id(UUID userId);
 
   @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")

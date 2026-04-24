@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
@@ -44,6 +45,7 @@ public class UserService {
   private final ActivityLogRepository activityLogRepository;
   private final AuthorizationService authorizationService;
   private final AssignmentRepository assignmentRepository;
+  private final ClassEnrollmentService classEnrollmentService;
 
   @Transactional(readOnly = true)
   public UserProfileResponse getUserProfile(UUID id) {
@@ -213,6 +215,8 @@ public class UserService {
             .findById(id)
             .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
+    User actor = getCurrentUser();
+
     // Update user details
     user.setUsername(request.getUsername());
     user.setEmail(request.getEmail());
@@ -229,7 +233,33 @@ public class UserService {
                 () -> new IllegalStateException("Role not found: " + request.getRoleName()));
     user.setRole(role);
 
-    return userRepository.save(user);
+    User savedUser = userRepository.save(user);
+
+    // Sync school classes if provided
+    if (request.getSchoolClassIds() != null) {
+      // 1. Remove existing enrollments
+      classEnrollmentRepository.deleteByUserId(id);
+
+      // 2. Add new enrollments
+      for (UUID classId : request.getSchoolClassIds()) {
+        SchoolClass sc =
+            schoolClassRepository
+                .findById(classId)
+                .orElseThrow(() -> new NotFoundException("School class not found: " + classId));
+
+        ClassRole classRole = ClassRole.STUDENT;
+        if (role.getName().equals("ROLE_TEACHER")) {
+          classRole = ClassRole.TEACHER;
+        } else if (role.getName().equals("ROLE_ADMIN")) {
+          classRole = ClassRole.MENTOR;
+        }
+
+        // Use the injected classEnrollmentService
+        this.classEnrollmentService.enrollUser(savedUser, sc, classRole, actor);
+      }
+    }
+
+    return savedUser;
   }
 
   @Transactional
