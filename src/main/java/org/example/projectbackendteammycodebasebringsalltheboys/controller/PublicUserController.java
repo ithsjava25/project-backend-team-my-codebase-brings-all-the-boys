@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class PublicUserController {
   }
 
   @PutMapping("/profile")
-  public ResponseEntity<UserResponse> updateProfile(@RequestBody UserRequest request) {
+  public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody UserRequest request) {
     return ResponseEntity.ok(dtoMapper.toUserResponse(userService.updateProfile(request)));
   }
 }

@@ -242,9 +242,14 @@ public class UserService {
       List<SchoolClass> classes = schoolClassRepository.findAllById(uniqueIds);
 
       if (classes.size() != uniqueIds.size()) {
-        List<UUID> foundIds = classes.stream().map(SchoolClass::getId).toList();
+        Set<UUID> foundIdSet =
+            classes.stream()
+                .map(
+                    org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass
+                        ::getId)
+                .collect(java.util.stream.Collectors.toSet());
         List<UUID> missingIds =
-            uniqueIds.stream().filter(idReq -> !foundIds.contains(idReq)).toList();
+            uniqueIds.stream().filter(idReq -> !foundIdSet.contains(idReq)).toList();
         throw new NotFoundException("School classes not found: " + missingIds);
       }
 
@@ -267,13 +272,37 @@ public class UserService {
   public User updateProfile(UserRequest request) {
     User currentUser = getCurrentUser();
 
-    // Update allowed profile fields
-    currentUser.setUsername(request.getUsername());
-    currentUser.setEmail(request.getEmail());
+    // 1. Basic validation (DTO level already has @NotBlank, but ensure logic is solid)
+    String newUsername = request.getUsername().trim();
+    String newEmail = request.getEmail().trim();
 
+    // 2. Uniqueness checks excluding current user
+    if (!newUsername.equals(currentUser.getUsername())
+        && userRepository.existsByUsername(newUsername)) {
+      throw new IllegalStateException("Username already taken");
+    }
+
+    if (!newEmail.equals(currentUser.getEmail()) && userRepository.existsByEmail(newEmail)) {
+      throw new IllegalStateException("Email already registered");
+    }
+
+    // 3. Password change requires current password verification
     if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+      if (request.getCurrentPassword() == null || request.getCurrentPassword().isEmpty()) {
+        throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+            .ForbiddenException("Current password is required to set a new password");
+      }
+
+      if (!passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword())) {
+        throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+            .ForbiddenException("Incorrect current password");
+      }
+
       currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
     }
+
+    currentUser.setUsername(newUsername);
+    currentUser.setEmail(newEmail);
 
     return userRepository.save(currentUser);
   }
@@ -282,7 +311,10 @@ public class UserService {
     return switch (roleName) {
       case "ROLE_TEACHER" -> ClassRole.TEACHER;
       case "ROLE_ADMIN" -> ClassRole.MENTOR;
-      default -> ClassRole.STUDENT;
+      case "ROLE_STUDENT" -> ClassRole.STUDENT;
+      default ->
+          throw new IllegalArgumentException(
+              "Unknown role name for class role mapping: " + roleName);
     };
   }
 
