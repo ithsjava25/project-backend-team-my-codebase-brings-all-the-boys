@@ -7,8 +7,8 @@ This project is a high-security case management system designed for school envir
 - **Strict Scoped RBAC**: Contextual permissions (Mentor vs Teacher vs Student) with enrollment-based access control.
 - **Bi-directional Management**: Admins can manage student enrollments from both the User Edit and School Class Edit views.
 - **Activity Logging**: Automated tracking of system events with advanced filtering (User, Action, Entity Type, Status).
-- **File Management**: S3-compatible storage integration with student-specific file persistence in assignments.
-- **User Profiles**: Detailed profiles for all users, accessible via clickable names throughout the application.
+- **File Management**: S3-compatible storage integration with student-specific file persistence in assignments. 
+- **User Profiles**: Detailed profiles for all users with self-editing capabilities for personal credentials.
 - **Evaluation System**: Teachers can review and revise grades for completed assessments.
 
 ## Technology Stack
@@ -26,6 +26,7 @@ This project is a high-security case management system designed for school envir
 - Implemented comprehensive Edit/Delete features for Courses, Assignments, and School Classes.
 - Optimized performance with eager fetching (EntityGraph) and EXISTS subqueries to prevent N+1 issues and Cartesian products.
 - Hardened User Profiles with scoped authorization and shared course/class visibility.
+- Developed self-edit functionality for user profiles with current password verification.
 - Resolved Hibernate 6 soft-delete incompatibilities and DataIntegrityViolation issues in seeding.
 - Added advanced Activity Log filtering and fixed deterministic paging.
 - Implemented students' "Turn In" workflow and improved status visibility.
