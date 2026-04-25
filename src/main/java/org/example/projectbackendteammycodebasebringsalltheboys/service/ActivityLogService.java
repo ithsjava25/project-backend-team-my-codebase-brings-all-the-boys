@@ -65,7 +65,7 @@ public class ActivityLogService {
               Sort.by("timestamp").descending().and(Sort.by("id").descending()));
     }
 
-    Specification<ActivityLog> spec = Specification.where((Specification<ActivityLog>) null);
+    Specification<ActivityLog> spec = (root, query, cb) -> null;
 
     if (userId != null) {
       spec = spec.and((root, query, cb) -> cb.equal(root.get("user").get("id"), userId));
