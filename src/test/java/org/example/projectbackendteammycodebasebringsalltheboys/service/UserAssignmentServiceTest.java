@@ -155,7 +155,10 @@ class UserAssignmentServiceTest {
   @Test
   @DisplayName("evaluateAssignment updates grade and feedback for TURNED_IN")
   void evaluateAssignment_valid_updatesUa() {
+    Assignment assignment = new Assignment();
+    assignment.setId(UUID.randomUUID());
     UserAssignment ua = new UserAssignment();
+    ua.setAssignment(assignment);
     ua.setStatus(StudentAssignmentStatus.TURNED_IN);
 
     userAssignmentService.evaluateAssignment(ua, "A", "Great job", new User());
@@ -169,7 +172,10 @@ class UserAssignmentServiceTest {
   @Test
   @DisplayName("evaluateAssignment allows re-grading for EVALUATED status")
   void evaluateAssignment_regrading_updatesUa() {
+    Assignment assignment = new Assignment();
+    assignment.setId(UUID.randomUUID());
     UserAssignment ua = new UserAssignment();
+    ua.setAssignment(assignment);
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
     ua.setGrade("C");
 
