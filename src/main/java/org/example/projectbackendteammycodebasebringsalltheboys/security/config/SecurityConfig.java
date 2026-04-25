@@ -46,6 +46,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/auth/login")
                     .permitAll()
+                    .requestMatchers("/api/csrf-token")
+                    .permitAll()
                     .requestMatchers("/error")
                     .permitAll()
                     .requestMatchers("/oauth2/**")
