@@ -64,14 +64,16 @@ export default function App() {
                                 <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
 
                                 {/* Admin-prefixed routes */}
-                                <Route path="admin" element={<ProtectedRoute allowedRoles={['ROLE_TEACHER', 'ROLE_ADMIN']}><Outlet/></ProtectedRoute>}>
+                                <Route path="admin"
+                                       element={<ProtectedRoute allowedRoles={['ROLE_TEACHER', 'ROLE_ADMIN']}><Outlet/></ProtectedRoute>}>
                                     {/* Shared (Teacher + Admin) */}
                                     <Route path="courses/new" element={<CourseCreatePage/>}/>
                                     <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
                                     <Route path="assignments/:id/edit" element={<AssignmentEditPage/>}/>
 
                                     {/* Strictly Admin */}
-                                    <Route element={<ProtectedRoute requiredRole="ROLE_ADMIN"><Outlet/></ProtectedRoute>}>
+                                    <Route
+                                        element={<ProtectedRoute requiredRole="ROLE_ADMIN"><Outlet/></ProtectedRoute>}>
                                         <Route path="users" element={<UserManagementPage/>}/>
                                         <Route path="users/new" element={<UserCreatePage/>}/>
                                         <Route path="users/:id/edit" element={<UserEditPage/>}/>
@@ -91,7 +93,5 @@ export default function App() {
                 </BrowserRouter>
             </ThemeProvider>
         </TooltipProvider>
-    );
-}       </TooltipProvider>
     );
 }
