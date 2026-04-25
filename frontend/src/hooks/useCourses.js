@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {courseApi} from '../api/courses';
 
 export function useCourses({page = 0, size = 10} = {}) {
@@ -8,13 +8,12 @@ export function useCourses({page = 0, size = 10} = {}) {
     const [error, setError] = useState(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const refresh = () => setRefreshTrigger(prev => prev + 1);
+    const refresh = useCallback(() => setRefreshTrigger(prev => prev + 1), []);
 
     useEffect(() => {
-        const handler = () => setRefreshTrigger(prev => prev + 1);
-        window.addEventListener('courses-changed', handler);
-        return () => window.removeEventListener('courses-changed', handler);
-    }, []);
+        window.addEventListener('courses-changed', refresh);
+        return () => window.removeEventListener('courses-changed', refresh);
+    }, [refresh]);
 
     useEffect(() => {
         let cancelled = false;

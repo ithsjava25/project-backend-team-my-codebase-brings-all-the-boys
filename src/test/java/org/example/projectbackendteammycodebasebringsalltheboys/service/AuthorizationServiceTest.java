@@ -172,6 +172,19 @@ class AuthorizationServiceTest {
   }
 
   @Test
+  @DisplayName("canViewUserProfile returns true if teacher and student share a course")
+  void canViewUserProfile_teacherStudentSharedCourse_returnsTrue() {
+    User actor = createUser("ROLE_TEACHER");
+    User target = createUser("ROLE_STUDENT");
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
+  }
+
+  @Test
   @DisplayName("canViewUserProfile returns true if both users are assistants on same course")
   void canViewUserProfile_bothAssistants_returnsTrue() {
     User actor = createUser("ROLE_TEACHER");

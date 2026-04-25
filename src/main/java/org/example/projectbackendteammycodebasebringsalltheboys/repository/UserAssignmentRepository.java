@@ -52,7 +52,8 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
               + "JOIN ua.assignment a "
               + "JOIN a.course c "
               + "LEFT JOIN c.assistants ast "
-              + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId)",
+              + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId) "
+              + "ORDER BY ua.updatedAt DESC, ua.id ASC",
       countQuery =
           "SELECT COUNT(DISTINCT ua) FROM UserAssignment ua "
               + "JOIN ua.assignment a "
@@ -64,7 +65,8 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
       @Param("teacherId") UUID teacherId,
       Pageable pageable);
 
-  @Query("SELECT ua FROM UserAssignment ua WHERE ua.status = :status")
+  @Query(
+      "SELECT ua FROM UserAssignment ua WHERE ua.status = :status ORDER BY ua.updatedAt DESC, ua.id ASC")
   Page<UserAssignment> findByStatus(
       @Param("status") StudentAssignmentStatus status, Pageable pageable);
 

@@ -1,8 +1,8 @@
 import client from './client';
 
 export const assignmentApi = {
-  getAllAssignments: async (params = {}) => {
-    const response = await client.get('/assignments', { params });
+  getAllAssignments: async (params = {}, signal) => {
+    const response = await client.get('/assignments', { params, signal });
     return response.data;
   },
 

@@ -3,12 +3,22 @@ import client from './client';
 export const schoolClassApi = {
     // ALL USERS
     getAllSchoolClasses: async (params = {}, signal) => {
-        const response = await client.get('/school-classes', { params, signal });
+        // Compatibility: handle if first arg is an AbortSignal
+        let effectiveParams = params;
+        let effectiveSignal = signal;
+        if (params instanceof AbortSignal) {
+            effectiveSignal = params;
+            effectiveParams = {};
+        }
+        const response = await client.get('/school-classes', { 
+            params: effectiveParams, 
+            signal: effectiveSignal 
+        });
         return response.data;
     },
 
-    getSchoolClassById: async (id) => {
-        const response = await client.get(`/school-classes/${id}`);
+    getSchoolClassById: async (id, signal) => {
+        const response = await client.get(`/school-classes/${id}`, { signal });
         return response.data;
     },
 
@@ -28,7 +38,9 @@ export const schoolClassApi = {
     },
 
     enrollUser: async (classId, userId, role) => {
-        await client.post(`/school-classes/admin/${classId}/enroll?userId=${userId}&role=${role}`);
+        await client.post(`/school-classes/admin/${classId}/enroll`, null, {
+            params: { userId, role }
+        });
     },
 
     removeEnrollment: async (classId, userId) => {

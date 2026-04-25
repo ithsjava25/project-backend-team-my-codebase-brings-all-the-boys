@@ -14,6 +14,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.Unauth
 import org.example.projectbackendteammycodebasebringsalltheboys.service.ClassEnrollmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class SchoolClassController {
 
+  private static final int MAX_PAGE_SIZE = 100;
   private final SchoolClassService schoolClassService;
   private final UserService userService;
   private final ClassEnrollmentService enrollmentService;
@@ -40,8 +42,14 @@ public class SchoolClassController {
             .getUserByUsername(principal.getName())
             .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
+    Pageable effectivePageable = pageable;
+    if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+      effectivePageable =
+          PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
+    }
+
     return ResponseEntity.ok(
-        schoolClassService.getAccessibleSchoolClassesDto(currentUser, pageable));
+        schoolClassService.getAccessibleSchoolClassesDto(currentUser, effectivePageable));
   }
 
   @GetMapping("/{id}")

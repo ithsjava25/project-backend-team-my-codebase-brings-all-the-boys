@@ -13,7 +13,7 @@ export function useAssignments({page = 0, size = 10} = {}) {
             try {
                 setLoading(true);
                 setError(null);
-                const data = await assignmentApi.getAllAssignments({page, size, signal: controller.signal});
+                const data = await assignmentApi.getAllAssignments({page, size}, controller.signal);
                 if (!controller.signal.aborted) {
                     // Spring Data Page object has the list in 'content'
                     setAssignments(data.content || []);

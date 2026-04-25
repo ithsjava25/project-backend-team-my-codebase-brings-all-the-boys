@@ -69,7 +69,7 @@ public class SchoolClassService {
     org.springframework.data.domain.Page<SchoolClass> classes;
 
     if (roleName.equals("ROLE_ADMIN") || roleName.equals("ROLE_TEACHER")) {
-      // Use detailed fetch for privileged users to avoid N+1 when listing
+      // Return simple paged list for privileged users
       classes = schoolClassRepository.findAll(pageable);
     } else {
       classes = schoolClassRepository.findByUserIdPaged(user.getId(), pageable);
@@ -109,8 +109,12 @@ public class SchoolClassService {
           .BadRequestException("Class with name '" + request.getName() + "' already exists");
     }
 
-    sc.setName(request.getName());
-    sc.setDescription(request.getDescription());
+    if (request.getName() != null) {
+      sc.setName(request.getName());
+    }
+    if (request.getDescription() != null) {
+      sc.setDescription(request.getDescription());
+    }
     return schoolClassRepository.save(sc);
   }
 

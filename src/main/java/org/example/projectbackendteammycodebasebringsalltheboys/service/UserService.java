@@ -251,21 +251,31 @@ public class UserService {
       // 2. Remove existing enrollments
       classEnrollmentRepository.deleteByUserId(id);
 
-      // Reload user to ensure it's attached to the context after bulk delete
-      User managedUser =
-          userRepository
-              .findById(id)
-              .orElseThrow(() -> new NotFoundException("User not found: " + id));
-
       // 3. Add new enrollments
       ClassRole classRole = resolveClassRole(role.getName());
 
       for (SchoolClass sc : classes) {
-        this.classEnrollmentService.enrollUser(managedUser, sc, classRole, actor);
+        this.classEnrollmentService.enrollUser(savedUser, sc, classRole, actor);
       }
     }
 
     return savedUser;
+  }
+
+  @Transactional
+  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.USER)
+  public User updateProfile(UserRequest request) {
+    User currentUser = getCurrentUser();
+
+    // Update allowed profile fields
+    currentUser.setUsername(request.getUsername());
+    currentUser.setEmail(request.getEmail());
+
+    if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+      currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
+    }
+
+    return userRepository.save(currentUser);
   }
 
   private ClassRole resolveClassRole(String roleName) {

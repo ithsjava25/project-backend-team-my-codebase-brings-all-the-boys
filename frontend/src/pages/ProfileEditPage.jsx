@@ -31,8 +31,12 @@ export default function ProfileEditPage() {
                 password: ''
             });
             setIsLoading(false);
+        } else if (currentUser === null) {
+            // If explicit null, we know auth finished and no user exists
+            setIsLoading(false);
+            navigate('/login');
         }
-    }, [currentUser]);
+    }, [currentUser, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -41,15 +45,10 @@ export default function ProfileEditPage() {
         setSuccess(null);
 
         try {
-            // In a real app, we might have a dedicated /api/users/profile endpoint
-            // For now, we'll assume admins use the admin update, and users might need a specific one
-            // If there's no dedicated profile update, we might need to use the admin one but that requires ROLE_ADMIN
-            // Let's check if there's a more appropriate endpoint or if we need to add one.
-            
-            // Assuming for now we use the general updateUser if permitted or a future profile endpoint
             await userApi.updateUserProfile(formData);
             
             setSuccess('Din profil har uppdaterats!');
+            setFormData(prev => ({...prev, password: ''}));
             if (refreshUser) await refreshUser();
         } catch (err) {
             console.error('Failed to update profile:', err);

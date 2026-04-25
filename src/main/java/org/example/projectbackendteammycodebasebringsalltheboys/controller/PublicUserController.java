@@ -5,15 +5,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserProfileResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -49,5 +47,10 @@ public class PublicUserController {
   @GetMapping("/me")
   public ResponseEntity<UserProfileResponse> getMyProfile() {
     return ResponseEntity.ok(userService.getUserProfile(userService.getCurrentUser().getId()));
+  }
+
+  @PutMapping("/profile")
+  public ResponseEntity<UserResponse> updateProfile(@RequestBody UserRequest request) {
+    return ResponseEntity.ok(dtoMapper.toUserResponse(userService.updateProfile(request)));
   }
 }

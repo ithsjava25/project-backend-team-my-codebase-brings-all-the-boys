@@ -51,6 +51,7 @@ export default function App() {
                                 <Route path="/dashboard" element={<Dashboard/>}/>
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
                                 <Route path="/profile/:id" element={<UserProfilePage/>}/>
+                                <Route path="/profile/edit" element={<ProfileEditPage/>}/>
                                 <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreatePage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
                                 <Route
