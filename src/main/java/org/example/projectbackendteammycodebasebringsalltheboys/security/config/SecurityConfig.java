@@ -10,10 +10,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableMethodSecurity
@@ -28,7 +29,14 @@ public class SecurityConfig {
       CustomOAuth2UserService customOAuth2UserService,
       OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
 
-    http.csrf(AbstractHttpConfigurer::disable)
+    http.csrf(
+            csrf -> {
+              CsrfTokenRequestAttributeHandler handler = new CsrfTokenRequestAttributeHandler();
+              handler.setCsrfRequestAttributeName(null); // Deactivates deferred token loading
+              csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                  .csrfTokenRequestHandler(handler)
+                  .ignoringRequestMatchers("/api/auth/register", "/oauth2/**", "/api/csrf-token");
+            })
         .cors(Customizer.withDefaults()) // Removed this line to rely solely on CorsConfig bean
         .authorizeHttpRequests(
             auth ->
@@ -37,6 +45,8 @@ public class SecurityConfig {
                     .requestMatchers("/api/auth/register")
                     .permitAll()
                     .requestMatchers("/api/auth/login")
+                    .permitAll()
+                    .requestMatchers("/api/csrf-token")
                     .permitAll()
                     .requestMatchers("/error")
                     .permitAll()
