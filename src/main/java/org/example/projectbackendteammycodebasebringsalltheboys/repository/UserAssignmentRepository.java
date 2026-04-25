@@ -47,18 +47,24 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
       StudentAssignmentStatus status, UUID teacherId);
 
   @Query(
-      "SELECT DISTINCT ua FROM UserAssignment ua "
-          + "JOIN ua.assignment a "
-          + "JOIN a.course c "
-          + "LEFT JOIN c.assistants ast "
-          + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId) "
-          + "ORDER BY ua.updatedAt DESC")
+      value =
+          "SELECT DISTINCT ua FROM UserAssignment ua "
+              + "JOIN ua.assignment a "
+              + "JOIN a.course c "
+              + "LEFT JOIN c.assistants ast "
+              + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId)",
+      countQuery =
+          "SELECT COUNT(DISTINCT ua) FROM UserAssignment ua "
+              + "JOIN ua.assignment a "
+              + "JOIN a.course c "
+              + "LEFT JOIN c.assistants ast "
+              + "WHERE ua.status = :status AND (c.leadTeacher.id = :teacherId OR ast.id = :teacherId)")
   Page<UserAssignment> findByStatusAndTeacherConnection(
       @Param("status") StudentAssignmentStatus status,
       @Param("teacherId") UUID teacherId,
       Pageable pageable);
 
-  @Query("SELECT ua FROM UserAssignment ua WHERE ua.status = :status ORDER BY ua.updatedAt DESC")
+  @Query("SELECT ua FROM UserAssignment ua WHERE ua.status = :status")
   Page<UserAssignment> findByStatus(
       @Param("status") StudentAssignmentStatus status, Pageable pageable);
 

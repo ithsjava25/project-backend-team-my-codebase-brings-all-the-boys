@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
+import ProfileEditPage from './pages/ProfileEditPage';
 import SchoolClassDetailPage from './pages/SchoolClassDetailPage';
 import AssignmentDetailPage from './pages/AssignmentDetailPage';
 import AssignmentCreatePage from './pages/AssignmentCreatePage';
@@ -90,5 +91,7 @@ export default function App() {
                 </BrowserRouter>
             </ThemeProvider>
         </TooltipProvider>
+    );
+}       </TooltipProvider>
     );
 }

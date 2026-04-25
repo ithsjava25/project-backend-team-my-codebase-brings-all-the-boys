@@ -234,11 +234,12 @@ public class DataSeeder implements CommandLineRunner {
   private void getOrCreateComment(
       String text, Assignment assignment, User author, UserAssignment ua) {
     try {
+      String identity = text.trim() + "|" + assignment.getId() + "|" + author.getId();
       String seedKey =
           java.util.Base64.getEncoder()
               .encodeToString(
                   java.security.MessageDigest.getInstance("MD5")
-                      .digest(text.trim().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+                      .digest(identity.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
 
       if (!commentRepository.existsBySeedKey(seedKey)) {
         Comment comment = new Comment();

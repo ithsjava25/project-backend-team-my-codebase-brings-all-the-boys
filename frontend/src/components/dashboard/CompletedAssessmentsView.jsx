@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {userAssignmentApi} from '@/api/userAssignments';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
@@ -17,7 +17,7 @@ export function CompletedAssessmentsView() {
     const [totalPages, setTotalPages] = useState(0);
     const size = 10;
 
-    const fetchAssessments = async (signal) => {
+    const fetchAssessments = useCallback(async (signal) => {
         try {
             setLoading(true);
             setError(null);
@@ -41,13 +41,13 @@ export function CompletedAssessmentsView() {
                 setLoading(false);
             }
         }
-    };
+    }, [page, size]);
 
     useEffect(() => {
         const controller = new AbortController();
         fetchAssessments(controller.signal);
         return () => controller.abort();
-    }, [page]);
+    }, [fetchAssessments]);
 
     if (loading && assessments.length === 0) return <p className="text-sm text-muted-foreground p-4">Laddar bedömningar...</p>;
 

@@ -8,23 +8,23 @@ export function useAssignments({page = 0, size = 10} = {}) {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        let cancelled = false;
+        const controller = new AbortController();
         const fetchAssignments = async () => {
             try {
                 setLoading(true);
                 setError(null);
-                const data = await assignmentApi.getAllAssignments({page, size});
-                if (!cancelled) {
+                const data = await assignmentApi.getAllAssignments({page, size, signal: controller.signal});
+                if (!controller.signal.aborted) {
                     // Spring Data Page object has the list in 'content'
                     setAssignments(data.content || []);
                     setTotalPages(data.totalPages ?? 0);
                 }
             } catch (err) {
-                if (!cancelled) {
+                if (err.name !== 'AbortError' && err.name !== 'CanceledError') {
                     setError(err.response?.data?.message || 'Failed to fetch assignments');
                 }
             } finally {
-                if (!cancelled) {
+                if (!controller.signal.aborted) {
                     setLoading(false);
                 }
             }
@@ -32,7 +32,7 @@ export function useAssignments({page = 0, size = 10} = {}) {
 
         fetchAssignments();
         return () => {
-            cancelled = true;
+            controller.abort();
         };
     }, [page, size]);
 

@@ -39,14 +39,14 @@ export default function CourseEditPage() {
                 setError(null);
                 
                 const [courseData, classesData, teachersData] = await Promise.all([
-                    courseApi.getCourseByIdAdmin(id),
+                    courseApi.getCourseById(id),
                     schoolClassApi.getAllSchoolClasses(),
                     userApi.getTeachers()
                 ]);
 
                 if (isMounted) {
-                    // Handle Spring Data Page object or array
-                    const classesContent = classesData.content !== undefined ? classesData.content : classesData;
+                    // Handle Spring Data Page object or array with null safety
+                    const classesContent = classesData?.content ?? classesData;
                     setClasses(Array.isArray(classesContent) ? classesContent : []);
                     
                     setAllTeachers(teachersData || []);

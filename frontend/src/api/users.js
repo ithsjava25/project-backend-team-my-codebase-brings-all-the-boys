@@ -39,8 +39,13 @@ export const userApi = {
         return response.data;
     },
 
-    getStudents: async () => {
-        const response = await client.get('/users/students');
+    getStudents: async (signal) => {
+        const response = await client.get('/users/students', { signal });
+        return response.data;
+    },
+
+    updateUserProfile: async (userData) => {
+        const response = await client.put('/users/profile', userData);
         return response.data;
     },
 };

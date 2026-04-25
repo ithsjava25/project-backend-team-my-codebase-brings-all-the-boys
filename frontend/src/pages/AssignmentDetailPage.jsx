@@ -225,6 +225,16 @@ export default function AssignmentDetailPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
+                                {submitSuccess && (
+                                    <div className="p-3 bg-green-100 text-green-800 border border-green-200 rounded-md text-sm">
+                                        {submitSuccess}
+                                    </div>
+                                )}
+                                {submitError && (
+                                    <div className="p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-sm">
+                                        {submitError}
+                                    </div>
+                                )}
                                 {myUserAssignment.status === 'EVALUATED' ? (
                                     <div className="space-y-4">
                                         <div className="p-4 bg-muted rounded-lg">

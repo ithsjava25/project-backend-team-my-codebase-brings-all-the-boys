@@ -58,29 +58,38 @@ public class SchoolClassController {
 
     return ResponseEntity.ok(schoolClassService.getSchoolClassDetailDto(id, currentUser));
   }
+}
 
-  @PostMapping("/admin")
+@RestController
+@RequestMapping("/api/admin/school-classes")
+@RequiredArgsConstructor
+class AdminSchoolClassController {
+  private final SchoolClassService schoolClassService;
+  private final UserService userService;
+  private final ClassEnrollmentService enrollmentService;
+
+  @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<SchoolClassDetailResponse> createSchoolClass(
       @Valid @RequestBody SchoolClassCreateRequest request) {
     return ResponseEntity.ok(schoolClassService.createSchoolClassDto(request));
   }
 
-  @PutMapping("/admin/{id}")
+  @PutMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<SchoolClassDetailResponse> updateSchoolClass(
       @PathVariable UUID id, @Valid @RequestBody SchoolClassUpdateRequest request) {
     return ResponseEntity.ok(schoolClassService.updateSchoolClassDto(id, request));
   }
 
-  @DeleteMapping("/admin/{id}")
+  @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteSchoolClass(@PathVariable UUID id) {
     schoolClassService.deleteSchoolClass(id);
     return ResponseEntity.noContent().build();
   }
 
-  @PostMapping("/admin/{classId}/enroll")
+  @PostMapping("/{classId}/enroll")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> enrollUser(
       @PathVariable UUID classId,
@@ -107,7 +116,7 @@ public class SchoolClassController {
     return ResponseEntity.ok().build();
   }
 
-  @DeleteMapping("/admin/{classId}/enroll/{userId}")
+  @DeleteMapping("/{classId}/enroll/{userId}")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> removeEnrollment(
       @PathVariable UUID classId, @PathVariable UUID userId, Principal principal) {

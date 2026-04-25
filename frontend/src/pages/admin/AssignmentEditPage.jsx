@@ -20,21 +20,20 @@ export default function AssignmentEditPage() {
     const [form, setForm] = useState({
         title: '',
         description: '',
-        deadline: '',
-        status: ''
+        deadline: ''
     });
 
     useEffect(() => {
         let cancelled = false;
         const fetchAssignment = async () => {
             try {
+                setLoading(true);
                 const data = await assignmentApi.getAssignmentById(id);
                 if (!cancelled) {
                     setForm({
                         title: data.title || '',
                         description: data.description || '',
-                        deadline: data.deadline ? data.deadline.substring(0, 16) : '',
-                        status: data.status || 'CREATED'
+                        deadline: data.deadline ? data.deadline.substring(0, 16) : ''
                     });
                 }
             } catch (err) {
@@ -49,7 +48,11 @@ export default function AssignmentEditPage() {
             }
         };
 
-        if (id) fetchAssignment();
+        if (id) {
+            fetchAssignment();
+        } else {
+            setLoading(false);
+        }
         
         return () => {
             cancelled = true;
@@ -63,7 +66,9 @@ export default function AssignmentEditPage() {
         setIsSubmitting(true);
         setSubmitError(null);
         try {
-            await assignmentApi.updateAssignment(id, form);
+            // Only send fields that should be updated via this form
+            const { title, description, deadline } = form;
+            await assignmentApi.updateAssignment(id, { title, description, deadline });
             navigate(`/assignments/${id}`);
         } catch (err) {
             console.error('Failed to update assignment:', err);

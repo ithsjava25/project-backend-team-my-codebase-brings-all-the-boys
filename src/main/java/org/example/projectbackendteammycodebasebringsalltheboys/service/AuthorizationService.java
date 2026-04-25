@@ -60,6 +60,7 @@ public class AuthorizationService {
     if (actor.getId().equals(target.getId())) return true;
 
     // Check if they share any classes or courses
+    // Short-circuit: check shared classes (usually fewer) before courses
     return classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId())
         || courseRepository.hasSharedCourse(actor.getId(), target.getId());
   }

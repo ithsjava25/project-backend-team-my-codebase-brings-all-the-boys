@@ -69,6 +69,7 @@ public class SchoolClassService {
     org.springframework.data.domain.Page<SchoolClass> classes;
 
     if (roleName.equals("ROLE_ADMIN") || roleName.equals("ROLE_TEACHER")) {
+      // Use detailed fetch for privileged users to avoid N+1 when listing
       classes = schoolClassRepository.findAll(pageable);
     } else {
       classes = schoolClassRepository.findByUserIdPaged(user.getId(), pageable);
@@ -79,6 +80,10 @@ public class SchoolClassService {
 
   @Transactional
   public SchoolClass createSchoolClass(SchoolClassCreateRequest request) {
+    if (schoolClassRepository.findByName(request.getName()).isPresent()) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .BadRequestException("Class with name '" + request.getName() + "' already exists");
+    }
     SchoolClass sc = new SchoolClass();
     sc.setName(request.getName());
     sc.setDescription(request.getDescription());
@@ -96,6 +101,14 @@ public class SchoolClassService {
         schoolClassRepository
             .findById(id)
             .orElseThrow(() -> new NotFoundException("School class not found"));
+
+    if (request.getName() != null
+        && !request.getName().equals(sc.getName())
+        && schoolClassRepository.findByName(request.getName()).isPresent()) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .BadRequestException("Class with name '" + request.getName() + "' already exists");
+    }
+
     sc.setName(request.getName());
     sc.setDescription(request.getDescription());
     return schoolClassRepository.save(sc);

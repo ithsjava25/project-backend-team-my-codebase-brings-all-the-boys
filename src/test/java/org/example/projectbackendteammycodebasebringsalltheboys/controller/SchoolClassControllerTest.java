@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -54,7 +55,7 @@ class SchoolClassControllerTest {
     Mockito.when(
             schoolClassService.getAccessibleSchoolClassesDto(
                 Mockito.eq(admin), any(Pageable.class)))
-        .thenReturn(org.springframework.data.domain.Page.empty());
+        .thenReturn(Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -72,7 +73,7 @@ class SchoolClassControllerTest {
     Mockito.when(
             schoolClassService.getAccessibleSchoolClassesDto(
                 Mockito.eq(teacher), any(Pageable.class)))
-        .thenReturn(org.springframework.data.domain.Page.empty());
+        .thenReturn(Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -90,7 +91,7 @@ class SchoolClassControllerTest {
     Mockito.when(
             schoolClassService.getAccessibleSchoolClassesDto(
                 Mockito.eq(student), any(Pageable.class)))
-        .thenReturn(org.springframework.data.domain.Page.empty());
+        .thenReturn(Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }

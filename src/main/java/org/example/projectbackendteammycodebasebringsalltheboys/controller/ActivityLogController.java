@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
@@ -58,8 +59,7 @@ public class ActivityLogController {
     }
 
     if (start != null && end != null && start.isAfter(end)) {
-      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
-          .BadRequestException("Start date must be before or equal to end date");
+      throw new BadRequestException("Start date must be before or equal to end date");
     }
 
     Page<ActivityLog> logs =

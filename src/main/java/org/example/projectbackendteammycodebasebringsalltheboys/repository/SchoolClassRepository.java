@@ -27,14 +27,6 @@ public interface SchoolClassRepository extends JpaRepository<SchoolClass, UUID> 
   @Query("SELECT DISTINCT sc FROM SchoolClass sc")
   List<SchoolClass> findAllWithDetails();
 
-  /**
-   * @deprecated Use {@link #findByUserIdPaged(UUID, Pageable)} for better performance.
-   */
-  @Deprecated
-  @EntityGraph(attributePaths = {"courses"})
-  @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
-  List<SchoolClass> findByUserId(UUID userId);
-
   @Query(
       value =
           "SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId",

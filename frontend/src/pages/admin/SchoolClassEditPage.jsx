@@ -28,12 +28,12 @@ export default function SchoolClassEditPage() {
         enrollments.filter(e => e.classRole === 'STUDENT'), 
     [enrollments]);
 
-    const fetchData = useCallback(async (signal) => {
+    const fetchData = useCallback(async (signal, options = {}) => {
         try {
-            setLoading(true);
+            if (!options.silent) setLoading(true);
             const [classData, students] = await Promise.all([
-                schoolClassApi.getSchoolClassById(id),
-                userApi.getStudents()
+                schoolClassApi.getSchoolClassById(id, signal),
+                userApi.getStudents(signal)
             ]);
             
             if (signal?.aborted) return;
@@ -49,7 +49,7 @@ export default function SchoolClassEditPage() {
             console.error('Failed to fetch class:', err);
             setError('Kunde inte hämta data.');
         } finally {
-            setLoading(false);
+            if (!options.silent) setLoading(false);
         }
     }, [id]);
 
@@ -67,7 +67,6 @@ export default function SchoolClassEditPage() {
         try {
             await schoolClassApi.updateSchoolClass(id, form);
             window.dispatchEvent(new CustomEvent('courses-changed'));
-            // Use toast or similar if available, but for now stick to alert if no toast API found
             alert('Klassen har uppdaterats!');
             navigate('/admin/school-classes');
         } catch (err) {
@@ -83,7 +82,7 @@ export default function SchoolClassEditPage() {
         setIsMutating(true);
         try {
             await schoolClassApi.enrollUser(id, studentId, 'STUDENT');
-            await fetchData();
+            await fetchData(undefined, { silent: true });
         } catch (err) {
             alert('Kunde inte lägga till student: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -97,7 +96,7 @@ export default function SchoolClassEditPage() {
         setIsMutating(true);
         try {
             await schoolClassApi.removeEnrollment(id, studentId);
-            await fetchData();
+            await fetchData(undefined, { silent: true });
         } catch (err) {
             alert('Kunde inte ta bort student: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -105,16 +104,16 @@ export default function SchoolClassEditPage() {
         }
     };
 
-    const enrolledStudentIds = enrollments.map(e => e.user?.id);
-    const availableStudents = allStudents.filter(s => {
-        if (enrolledStudentIds.includes(s.id)) return false;
+    const enrolledStudentIds = useMemo(() => new Set(enrollments.map(e => e.user?.id)), [enrollments]);
+    const availableStudents = useMemo(() => allStudents.filter(s => {
+        if (enrolledStudentIds.has(s.id)) return false;
         
         const username = (s.username ?? '').toString().toLowerCase();
         const email = (s.email ?? '').toString().toLowerCase();
         const search = (studentSearch ?? '').toString().toLowerCase();
         
         return username.includes(search) || email.includes(search);
-    });
+    }), [allStudents, enrolledStudentIds, studentSearch]);
 
     if (loading) return <div className="p-8">Laddar...</div>;
     if (error && !form) return <div className="p-8 text-destructive">Fel: {error}</div>;

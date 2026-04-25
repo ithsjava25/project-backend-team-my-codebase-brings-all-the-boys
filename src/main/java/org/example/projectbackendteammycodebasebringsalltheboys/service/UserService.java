@@ -258,19 +258,22 @@ public class UserService {
               .orElseThrow(() -> new NotFoundException("User not found: " + id));
 
       // 3. Add new enrollments
-      ClassRole classRole = ClassRole.STUDENT;
-      if (role.getName().equals("ROLE_TEACHER")) {
-        classRole = ClassRole.TEACHER;
-      } else if (role.getName().equals("ROLE_ADMIN")) {
-        classRole = ClassRole.MENTOR;
-      }
+      ClassRole classRole = resolveClassRole(role.getName());
 
       for (SchoolClass sc : classes) {
         this.classEnrollmentService.enrollUser(managedUser, sc, classRole, actor);
       }
     }
 
-    return userRepository.findById(id).orElse(savedUser);
+    return savedUser;
+  }
+
+  private ClassRole resolveClassRole(String roleName) {
+    return switch (roleName) {
+      case "ROLE_TEACHER" -> ClassRole.TEACHER;
+      case "ROLE_ADMIN" -> ClassRole.MENTOR;
+      default -> ClassRole.STUDENT;
+    };
   }
 
   @Transactional

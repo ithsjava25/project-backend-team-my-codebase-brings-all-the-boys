@@ -47,8 +47,8 @@ export default function CourseCreatePage() {
                 ]);
 
                 if (isMounted) {
-                    // Handle Spring Data Page object or array
-                    const classesContent = classesData.content !== undefined ? classesData.content : classesData;
+                    // Handle Spring Data Page object or array with null safety
+                    const classesContent = classesData?.content ?? classesData;
                     setClasses(Array.isArray(classesContent) ? classesContent : []);
                     
                     setAllTeachers(teachersData || []);

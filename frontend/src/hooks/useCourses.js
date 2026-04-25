@@ -11,9 +11,9 @@ export function useCourses({page = 0, size = 10} = {}) {
     const refresh = () => setRefreshTrigger(prev => prev + 1);
 
     useEffect(() => {
-        const handleCoursesChanged = () => refresh();
-        window.addEventListener('courses-changed', handleCoursesChanged);
-        return () => window.removeEventListener('courses-changed', handleCoursesChanged);
+        const handler = () => setRefreshTrigger(prev => prev + 1);
+        window.addEventListener('courses-changed', handler);
+        return () => window.removeEventListener('courses-changed', handler);
     }, []);
 
     useEffect(() => {

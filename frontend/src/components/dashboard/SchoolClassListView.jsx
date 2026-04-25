@@ -11,20 +11,26 @@ export default function SchoolClassListView() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const controller = new AbortController();
         const fetchClasses = async () => {
             try {
                 setLoading(true);
-                const data = await schoolClassApi.getAllSchoolClasses();
+                const data = await schoolClassApi.getAllSchoolClasses({}, controller.signal);
+                if (controller.signal.aborted) return;
                 // Handle Spring Data Page object or array
                 const content = data.content !== undefined ? data.content : data;
                 setClasses(Array.isArray(content) ? content : []);
             } catch (err) {
+                if (err.name === 'AbortError' || err.name === 'CanceledError') return;
                 setError('Kunde inte hämta klasser.');
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         };
         fetchClasses();
+        return () => controller.abort();
     }, []);
 
     if (loading) return <p>Laddar klasser...</p>;
