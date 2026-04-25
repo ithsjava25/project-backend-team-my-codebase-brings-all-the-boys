@@ -127,11 +127,6 @@ public class UserAssignmentService {
         ActivityStatus.SUCCESS);
   }
 
-  @LogActivity(
-      action = ActivityAction.EVALUATED,
-      entityType = EntityType.USER_ASSIGNMENT,
-      parentIdParamIndex = 0,
-      actorParamIndex = 3)
   @Transactional
   public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
     if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN
@@ -141,10 +136,24 @@ public class UserAssignmentService {
               + ua.getStatus()
               + ". Must be TURNED_IN or EVALUATED (for re-grading).");
     }
+
+    StudentAssignmentStatus priorStatus = ua.getStatus();
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
     ua.setGrade(grade);
     ua.setFeedback(feedback);
     userAssignmentRepository.save(ua);
+
+    // Explicitly log the action to distinguish re-evaluation
+    activityLogService.log(
+        evaluator,
+        ua.getAssignment().getId(),
+        priorStatus == StudentAssignmentStatus.EVALUATED
+            ? ActivityAction.RE_EVALUATED
+            : ActivityAction.EVALUATED,
+        EntityType.USER_ASSIGNMENT,
+        ua.getId(),
+        Map.of("grade", grade),
+        ActivityStatus.SUCCESS);
   }
 
   @Transactional(readOnly = true)
@@ -155,7 +164,7 @@ public class UserAssignmentService {
   @Transactional(readOnly = true)
   public org.springframework.data.domain.Page<UserAssignment> getEvaluatedAssignmentsForTeacher(
       User user, Pageable pageable) {
-    if (user.getRole() != null && user.getRole().getName().equals("ROLE_ADMIN")) {
+    if (user.getRole() != null && "ROLE_ADMIN".equals(user.getRole().getName())) {
       return userAssignmentRepository.findByStatus(StudentAssignmentStatus.EVALUATED, pageable);
     }
     return userAssignmentRepository.findByStatusAndTeacherConnection(

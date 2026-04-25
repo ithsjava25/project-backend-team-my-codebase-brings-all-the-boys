@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,12 +42,19 @@ class SchoolClassServiceTest {
 
     SchoolClass sc = new SchoolClass();
     sc.setName("TE21A");
+    sc.setDescription("Tech class");
+
     when(schoolClassRepository.save(any(SchoolClass.class))).thenReturn(sc);
 
     SchoolClass result = schoolClassService.createSchoolClass(request);
 
+    ArgumentCaptor<SchoolClass> captor = ArgumentCaptor.forClass(SchoolClass.class);
+    verify(schoolClassRepository).save(captor.capture());
+
+    SchoolClass captured = captor.getValue();
+    assertThat(captured.getName()).isEqualTo("TE21A");
+    assertThat(captured.getDescription()).isEqualTo("Tech class");
     assertThat(result.getName()).isEqualTo("TE21A");
-    verify(schoolClassRepository).save(any(SchoolClass.class));
   }
 
   @Test

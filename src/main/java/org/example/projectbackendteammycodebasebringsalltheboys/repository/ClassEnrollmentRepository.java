@@ -34,5 +34,7 @@ public interface ClassEnrollmentRepository extends JpaRepository<ClassEnrollment
 
   @Modifying(flushAutomatically = true)
   @org.springframework.transaction.annotation.Transactional
-  void deleteByUserId(UUID userId);
+  @org.springframework.data.jpa.repository.Query(
+      "DELETE FROM ClassEnrollment ce WHERE ce.user.id = :userId")
+  void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }

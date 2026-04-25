@@ -2,7 +2,6 @@ package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
 import jakarta.validation.Valid;
 import java.security.Principal;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassCreateRequest;
@@ -30,8 +29,8 @@ public class SchoolClassController {
   private final ClassEnrollmentService enrollmentService;
 
   @GetMapping
-  public ResponseEntity<List<SchoolClassSurfaceResponse>> getAccessibleSchoolClasses(
-      Principal principal, Pageable pageable) {
+  public ResponseEntity<org.springframework.data.domain.Page<SchoolClassSurfaceResponse>>
+      getAccessibleSchoolClasses(Principal principal, Pageable pageable) {
     if (principal == null) {
       throw new UnauthorizedException("Authentication is required");
     }
@@ -61,29 +60,28 @@ public class SchoolClassController {
   }
 
   @PostMapping("/admin")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public ResponseEntity<org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass>
-      createSchoolClass(@Valid @RequestBody SchoolClassCreateRequest request) {
-    return ResponseEntity.ok(schoolClassService.createSchoolClass(request));
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<SchoolClassDetailResponse> createSchoolClass(
+      @Valid @RequestBody SchoolClassCreateRequest request) {
+    return ResponseEntity.ok(schoolClassService.createSchoolClassDto(request));
   }
 
   @PutMapping("/admin/{id}")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
-  public ResponseEntity<org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass>
-      updateSchoolClass(
-          @PathVariable UUID id, @Valid @RequestBody SchoolClassUpdateRequest request) {
-    return ResponseEntity.ok(schoolClassService.updateSchoolClass(id, request));
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<SchoolClassDetailResponse> updateSchoolClass(
+      @PathVariable UUID id, @Valid @RequestBody SchoolClassUpdateRequest request) {
+    return ResponseEntity.ok(schoolClassService.updateSchoolClassDto(id, request));
   }
 
   @DeleteMapping("/admin/{id}")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteSchoolClass(@PathVariable UUID id) {
     schoolClassService.deleteSchoolClass(id);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/admin/{classId}/enroll")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> enrollUser(
       @PathVariable UUID classId,
       @RequestParam UUID userId,
@@ -110,7 +108,7 @@ public class SchoolClassController {
   }
 
   @DeleteMapping("/admin/{classId}/enroll/{userId}")
-  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> removeEnrollment(
       @PathVariable UUID classId, @PathVariable UUID userId, Principal principal) {
     if (principal == null) {

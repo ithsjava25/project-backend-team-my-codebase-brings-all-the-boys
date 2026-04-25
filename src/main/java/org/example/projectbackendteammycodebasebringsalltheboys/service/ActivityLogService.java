@@ -56,8 +56,9 @@ public class ActivityLogService {
       Pageable pageable) {
 
     // Ensure deterministic paging if unsorted
+    Pageable effectivePageable = pageable;
     if (pageable.getSort().isUnsorted()) {
-      pageable =
+      effectivePageable =
           PageRequest.of(
               pageable.getPageNumber(),
               pageable.getPageSize(),
@@ -90,7 +91,7 @@ public class ActivityLogService {
       spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("timestamp"), end));
     }
 
-    return activityLogRepository.findAll(spec, pageable);
+    return activityLogRepository.findAll(spec, effectivePageable);
   }
 
   @Transactional(readOnly = true)

@@ -35,6 +35,10 @@ public interface SchoolClassRepository extends JpaRepository<SchoolClass, UUID> 
   @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
   List<SchoolClass> findByUserId(UUID userId);
 
-  @Query("SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
+  @Query(
+      value =
+          "SELECT DISTINCT sc FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId",
+      countQuery =
+          "SELECT COUNT(DISTINCT sc.id) FROM SchoolClass sc JOIN sc.enrollments e WHERE e.user.id = :userId")
   Page<SchoolClass> findByUserIdPaged(UUID userId, Pageable pageable);
 }

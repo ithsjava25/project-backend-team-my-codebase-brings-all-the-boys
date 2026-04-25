@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
@@ -24,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -53,8 +53,8 @@ class SchoolClassControllerTest {
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
     Mockito.when(
             schoolClassService.getAccessibleSchoolClassesDto(
-                Mockito.eq(admin), any(org.springframework.data.domain.Pageable.class)))
-        .thenReturn(Collections.emptyList());
+                Mockito.eq(admin), any(Pageable.class)))
+        .thenReturn(org.springframework.data.domain.Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -71,8 +71,8 @@ class SchoolClassControllerTest {
     Mockito.when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(teacher));
     Mockito.when(
             schoolClassService.getAccessibleSchoolClassesDto(
-                Mockito.eq(teacher), any(org.springframework.data.domain.Pageable.class)))
-        .thenReturn(Collections.emptyList());
+                Mockito.eq(teacher), any(Pageable.class)))
+        .thenReturn(org.springframework.data.domain.Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -89,8 +89,8 @@ class SchoolClassControllerTest {
     Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
     Mockito.when(
             schoolClassService.getAccessibleSchoolClassesDto(
-                Mockito.eq(student), any(org.springframework.data.domain.Pageable.class)))
-        .thenReturn(Collections.emptyList());
+                Mockito.eq(student), any(Pageable.class)))
+        .thenReturn(org.springframework.data.domain.Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }

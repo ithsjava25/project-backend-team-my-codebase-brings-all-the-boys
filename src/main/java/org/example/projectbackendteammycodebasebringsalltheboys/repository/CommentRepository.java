@@ -34,4 +34,6 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   void deleteByUserAssignment_Student_Id(UUID studentId);
 
   boolean existsByTextAndAssignmentAndAuthor(String text, Assignment assignment, User author);
+
+  boolean existsBySeedKey(String seedKey);
 }

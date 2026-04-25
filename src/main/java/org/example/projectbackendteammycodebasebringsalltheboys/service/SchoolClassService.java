@@ -1,10 +1,8 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassCreateRequest;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
@@ -39,11 +37,17 @@ public class SchoolClassService {
     // Explicitly initialize the second collection to guarantee loading
     Hibernate.initialize(schoolClass.getEnrollments());
 
+    // Guard for null currentUser or null role
+    String roleName =
+        (currentUser == null || currentUser.getRole() == null)
+            ? null
+            : currentUser.getRole().getName();
+
     // Authorization check: Allow Admins, Teachers, Mentors, and enrolled Students to view details
     boolean isAuthorized =
-        currentUser.getRole().getName().equals("ROLE_ADMIN")
-            || currentUser.getRole().getName().equals("ROLE_TEACHER")
-            || enrollmentService.isUserInClass(currentUser, schoolClass);
+        "ROLE_ADMIN".equals(roleName)
+            || "ROLE_TEACHER".equals(roleName)
+            || (currentUser != null && enrollmentService.isUserInClass(currentUser, schoolClass));
 
     if (!isAuthorized) {
       throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
@@ -54,24 +58,23 @@ public class SchoolClassService {
   }
 
   @Transactional(readOnly = true)
-  public List<SchoolClassSurfaceResponse> getAccessibleSchoolClassesDto(
-      org.example.projectbackendteammycodebasebringsalltheboys.entity.User user,
-      Pageable pageable) {
+  public org.springframework.data.domain.Page<SchoolClassSurfaceResponse>
+      getAccessibleSchoolClassesDto(
+          org.example.projectbackendteammycodebasebringsalltheboys.entity.User user,
+          Pageable pageable) {
     if (user == null || user.getRole() == null) {
-      return Collections.emptyList();
+      return org.springframework.data.domain.Page.empty(pageable);
     }
     String roleName = user.getRole().getName();
-    List<SchoolClass> classes;
+    org.springframework.data.domain.Page<SchoolClass> classes;
 
     if (roleName.equals("ROLE_ADMIN") || roleName.equals("ROLE_TEACHER")) {
-      classes = schoolClassRepository.findAllWithDetails();
+      classes = schoolClassRepository.findAll(pageable);
     } else {
-      classes = schoolClassRepository.findByUserIdPaged(user.getId(), pageable).getContent();
+      classes = schoolClassRepository.findByUserIdPaged(user.getId(), pageable);
     }
 
-    return classes.stream()
-        .map(dtoMapper::toSchoolClassSurfaceResponse)
-        .collect(Collectors.toList());
+    return classes.map(dtoMapper::toSchoolClassSurfaceResponse);
   }
 
   @Transactional
@@ -83,6 +86,11 @@ public class SchoolClassService {
   }
 
   @Transactional
+  public SchoolClassDetailResponse createSchoolClassDto(SchoolClassCreateRequest request) {
+    return dtoMapper.toSchoolClassDetailResponse(createSchoolClass(request));
+  }
+
+  @Transactional
   public SchoolClass updateSchoolClass(UUID id, SchoolClassUpdateRequest request) {
     SchoolClass sc =
         schoolClassRepository
@@ -91,6 +99,11 @@ public class SchoolClassService {
     sc.setName(request.getName());
     sc.setDescription(request.getDescription());
     return schoolClassRepository.save(sc);
+  }
+
+  @Transactional
+  public SchoolClassDetailResponse updateSchoolClassDto(UUID id, SchoolClassUpdateRequest request) {
+    return dtoMapper.toSchoolClassDetailResponse(updateSchoolClass(id, request));
   }
 
   @Transactional(readOnly = true)

@@ -233,13 +233,24 @@ public class DataSeeder implements CommandLineRunner {
 
   private void getOrCreateComment(
       String text, Assignment assignment, User author, UserAssignment ua) {
-    if (!commentRepository.existsByTextAndAssignmentAndAuthor(text, assignment, author)) {
-      Comment comment = new Comment();
-      comment.setText(text);
-      comment.setAuthor(author);
-      comment.setAssignment(assignment);
-      comment.setUserAssignment(ua);
-      commentRepository.save(comment);
+    try {
+      String seedKey =
+          java.util.Base64.getEncoder()
+              .encodeToString(
+                  java.security.MessageDigest.getInstance("MD5")
+                      .digest(text.trim().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+
+      if (!commentRepository.existsBySeedKey(seedKey)) {
+        Comment comment = new Comment();
+        comment.setText(text);
+        comment.setAuthor(author);
+        comment.setAssignment(assignment);
+        comment.setUserAssignment(ua);
+        comment.setSeedKey(seedKey);
+        commentRepository.save(comment);
+      }
+    } catch (java.security.NoSuchAlgorithmException e) {
+      log.error("Failed to compute seedKey for comment", e);
     }
   }
 

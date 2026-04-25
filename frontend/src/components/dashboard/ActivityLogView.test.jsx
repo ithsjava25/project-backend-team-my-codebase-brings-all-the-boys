@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ActivityLogView } from './ActivityLogView';
 import { activityLogApi } from '@/api/activityLogs';
 import { userApi } from '@/api/users';
@@ -30,8 +31,11 @@ describe('ActivityLogView', () => {
     vi.clearAllMocks();
     useAuthContext.mockReturnValue({ user: mockUser });
     userApi.getAllUsers.mockResolvedValue({ content: [] });
-    // Mock scrollIntoView which is not implemented in JSDOM
+    // Mock browser APIs not implemented in JSDOM
     window.Element.prototype.scrollIntoView = vi.fn();
+    window.Element.prototype.hasPointerCapture = vi.fn();
+    window.Element.prototype.setPointerCapture = vi.fn();
+    window.Element.prototype.releasePointerCapture = vi.fn();
   });
 
   it('renders loading state initially', () => {
@@ -74,6 +78,7 @@ describe('ActivityLogView', () => {
   });
 
   it('forwards filters correctly to the API', async () => {
+    const user = userEvent.setup();
     activityLogApi.getAllLogs.mockResolvedValue({ content: [] });
     
     render(<ActivityLogView />);
@@ -84,13 +89,12 @@ describe('ActivityLogView', () => {
     });
 
     // Open "Åtgärd" select and choose "Skapad"
-    // Using fireEvent instead of userEvent to bypass pointer-events: none in Radix UI tests
-    const actionSelect = screen.getByText(/Alla åtgärder/i);
-    fireEvent.click(actionSelect);
+    const trigger = screen.getByText(/Alla åtgärder/i).closest('button');
+    await user.click(trigger);
     
-    // Radix Select renders options in a Portal, find by text
-    const createdOption = await screen.findByText(/Skapad/i, { selector: 'span' });
-    fireEvent.click(createdOption);
+    // Radix Select renders options in a Portal, find by role option
+    const option = await screen.findByRole('option', { name: /Skapad/i });
+    await user.click(option);
 
     await waitFor(() => {
       expect(activityLogApi.getAllLogs).toHaveBeenCalledWith(

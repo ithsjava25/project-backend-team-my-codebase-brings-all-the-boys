@@ -45,7 +45,15 @@ export default function UserProfilePage() {
   }, [id]);
 
   const isAdmin = currentUser?.role?.name === 'ROLE_ADMIN';
-  const isOwnProfile = currentUser?.id === id;
+  const isOwnProfile = String(currentUser?.id) === String(id);
+
+  const handleEditClick = () => {
+    if (isAdmin) {
+      navigate(`/admin/users/${id}/edit`);
+    } else {
+      navigate(`/profile/edit`);
+    }
+  };
 
   const getRoleLabel = (roleName) => {
     switch (roleName) {
@@ -77,7 +85,7 @@ export default function UserProfilePage() {
           Tillbaka
         </Button>
         {(isAdmin || isOwnProfile) && (
-          <Button onClick={() => navigate(`/admin/users/${id}/edit`)} className="gap-2">
+          <Button onClick={handleEditClick} className="gap-2">
             <Edit className="h-4 w-4" />
             Redigera {isOwnProfile ? 'din profil' : 'användare'}
           </Button>

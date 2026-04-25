@@ -15,7 +15,7 @@ This project is a high-security case management system designed for school envir
 - **Backend**: Java 21, Spring Boot 4.0.5
 - **Database**: PostgreSQL (Dockerized)
 - **Frontend**: React 19.2.4, Vite 8.0.1, Tailwind CSS, Shadcn UI
-- **Testing**: JUnit 5, Mockito (128 tests passing), Vitest for frontend
+- **Testing**: JUnit 5, Mockito, Vitest for frontend
 
 ## Roadmap
 

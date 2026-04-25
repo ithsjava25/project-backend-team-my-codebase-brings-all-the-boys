@@ -26,6 +26,7 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
     const isAdmin = currentUser?.role?.name === 'ROLE_ADMIN';
 
     useEffect(() => {
+        const controller = new AbortController();
         if (isAdmin) {
             const fetchAllUsers = async () => {
                 try {
@@ -33,19 +34,26 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                     let page = 0;
                     let totalPages = 1;
                     
-                    while (page < totalPages) {
-                        const data = await userApi.getAllUsers({ page, size: 100 });
-                        allFetchedUsers = [...allFetchedUsers, ...(data.content || [])];
-                        totalPages = data.totalPages || 0;
-                        page++;
+                    while (page < totalPages && !controller.signal.aborted) {
+                        const data = await userApi.getAllUsers({ page, size: 100 }, controller.signal);
+                        if (!controller.signal.aborted) {
+                            allFetchedUsers = [...allFetchedUsers, ...(data.content || [])];
+                            totalPages = data.totalPages || 0;
+                            page++;
+                        }
                     }
-                    setAllUsers(allFetchedUsers);
+                    if (!controller.signal.aborted) {
+                        setAllUsers(allFetchedUsers);
+                    }
                 } catch (err) {
-                    console.error('Failed to fetch users for filtering:', err);
+                    if (err.name !== 'AbortError' && err.name !== 'CanceledError') {
+                        console.error('Failed to fetch users for filtering:', err);
+                    }
                 }
             };
             fetchAllUsers();
         }
+        return () => controller.abort();
     }, [isAdmin]);
 
     const fetchLogs = async (signal) => {

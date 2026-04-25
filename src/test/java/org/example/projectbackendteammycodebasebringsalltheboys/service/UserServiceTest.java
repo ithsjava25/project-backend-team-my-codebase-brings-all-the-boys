@@ -280,5 +280,8 @@ class UserServiceTest {
             org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException
                 .class)
         .hasMessageContaining("School classes not found");
+
+    verify(classEnrollmentRepository, never()).deleteByUserId(any());
+    verify(classEnrollmentService, never()).enrollUser(any(), any(), any(), any());
   }
 }

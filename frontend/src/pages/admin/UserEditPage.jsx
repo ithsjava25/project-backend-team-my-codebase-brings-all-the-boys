@@ -25,15 +25,18 @@ export default function UserEditPage() {
     });
 
     useEffect(() => {
+        const controller = new AbortController();
         const fetchData = async () => {
             try {
                 setIsLoading(true);
                 const [user, classes, profile] = await Promise.all([
-                    userApi.getUserById(id),
-                    schoolClassApi.getAllSchoolClasses(),
-                    userApi.getUserProfile(id)
+                    userApi.getUserById(id, controller.signal),
+                    schoolClassApi.getAllSchoolClasses(controller.signal),
+                    userApi.getUserProfile(id, controller.signal)
                 ]);
                 
+                if (controller.signal.aborted) return;
+
                 setAllClasses(classes);
                 const currentClassIds = profile.classes?.map(c => c.id) || [];
 
@@ -45,14 +48,18 @@ export default function UserEditPage() {
                     schoolClassIds: currentClassIds
                 });
             } catch (err) {
+                if (controller.signal.aborted) return;
                 console.error('Failed to fetch data:', err);
                 alert(err.response?.data?.message || 'Kunde inte hämta data.');
                 navigate('/admin/users');
             } finally {
-                setIsLoading(false);
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
             }
         };
         fetchData();
+        return () => controller.abort();
     }, [id, navigate]);
 
     const handleChange = (e) => {
