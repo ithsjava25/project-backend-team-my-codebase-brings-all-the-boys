@@ -37,7 +37,10 @@ export default function UserEditPage() {
                 
                 if (controller.signal.aborted) return;
 
-                setAllClasses(classes);
+                // Handle Spring Data Page object or array
+                const classesContent = classes.content !== undefined ? classes.content : classes;
+                setAllClasses(Array.isArray(classesContent) ? classesContent : []);
+                
                 const currentClassIds = profile.classes?.map(c => c.id) || [];
 
                 setFormData({

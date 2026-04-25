@@ -47,7 +47,10 @@ export default function CourseCreatePage() {
                 ]);
 
                 if (isMounted) {
-                    setClasses(classesData);
+                    // Handle Spring Data Page object or array
+                    const classesContent = classesData.content !== undefined ? classesData.content : classesData;
+                    setClasses(Array.isArray(classesContent) ? classesContent : []);
+                    
                     setAllTeachers(teachersData || []);
                 }
             } catch (err) {

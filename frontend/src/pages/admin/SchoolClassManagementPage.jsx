@@ -20,7 +20,9 @@ export default function SchoolClassManagementPage() {
             setLoading(true);
             setError(null);
             const data = await schoolClassApi.getAllSchoolClasses();
-            setClasses(data || []);
+            // Handle Spring Data Page object or array
+            const content = data.content !== undefined ? data.content : data;
+            setClasses(Array.isArray(content) ? content : []);
         } catch (err) {
             setError(err.response?.data?.message || 'Kunde inte hämta klasser.');
         } finally {

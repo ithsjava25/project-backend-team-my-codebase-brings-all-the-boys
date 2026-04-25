@@ -15,7 +15,9 @@ export default function SchoolClassListView() {
             try {
                 setLoading(true);
                 const data = await schoolClassApi.getAllSchoolClasses();
-                setClasses(data || []);
+                // Handle Spring Data Page object or array
+                const content = data.content !== undefined ? data.content : data;
+                setClasses(Array.isArray(content) ? content : []);
             } catch (err) {
                 setError('Kunde inte hämta klasser.');
             } finally {
