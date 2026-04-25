@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.Data;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.comment.CommentResponse;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.file.FileResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 
@@ -12,6 +13,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAss
 public class UserAssignmentResponse {
   private UUID id;
   private UUID assignmentId;
+  private String assignmentTitle;
   private UserResponse student;
   private StudentAssignmentStatus status;
   private String feedback;
@@ -19,4 +21,5 @@ public class UserAssignmentResponse {
   private LocalDateTime turnedInAt;
   private List<SubmissionResponse> submissions;
   private List<CommentResponse> comments;
+  private List<FileResponse> files;
 }

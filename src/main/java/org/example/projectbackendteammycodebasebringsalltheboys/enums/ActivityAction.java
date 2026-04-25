@@ -9,6 +9,7 @@ public enum ActivityAction {
   ADDED,
   REMOVED,
   EVALUATED,
+  RE_EVALUATED,
   DELETED,
   LOGIN,
   REGISTERED,

@@ -6,6 +6,15 @@ export function useCourses({page = 0, size = 10} = {}) {
     const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const refresh = () => setRefreshTrigger(prev => prev + 1);
+
+    useEffect(() => {
+        const handleCoursesChanged = () => refresh();
+        window.addEventListener('courses-changed', handleCoursesChanged);
+        return () => window.removeEventListener('courses-changed', handleCoursesChanged);
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -34,7 +43,7 @@ export function useCourses({page = 0, size = 10} = {}) {
         return () => {
             cancelled = true;
         };
-    }, [page, size]);
+    }, [page, size, refreshTrigger]);
 
-    return {courses, totalPages, loading, error};
+    return {courses, totalPages, loading, error, refresh};
 }

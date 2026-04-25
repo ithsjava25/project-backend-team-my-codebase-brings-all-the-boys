@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
@@ -44,6 +45,7 @@ public class UserService {
   private final ActivityLogRepository activityLogRepository;
   private final AuthorizationService authorizationService;
   private final AssignmentRepository assignmentRepository;
+  private final ClassEnrollmentService classEnrollmentService;
 
   @Transactional(readOnly = true)
   public UserProfileResponse getUserProfile(UUID id) {
@@ -59,7 +61,7 @@ public class UserService {
 
     Pageable limit = PageRequest.of(0, 100);
     List<SchoolClass> classes =
-        schoolClassRepository.findByEnrollments_UserId(target.getId(), limit).getContent();
+        schoolClassRepository.findByUserIdPaged(target.getId(), limit).getContent();
 
     // For courses, we need to check lead teacher AND assistants
     // Use a bounded set to deduplicate and prevent unbounded memory usage
@@ -213,6 +215,8 @@ public class UserService {
             .findById(id)
             .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
+    User actor = getCurrentUser();
+
     // Update user details
     user.setUsername(request.getUsername());
     user.setEmail(request.getEmail());
@@ -229,7 +233,44 @@ public class UserService {
                 () -> new IllegalStateException("Role not found: " + request.getRoleName()));
     user.setRole(role);
 
-    return userRepository.save(user);
+    User savedUser = userRepository.save(user);
+
+    // Sync school classes if provided
+    if (request.getSchoolClassIds() != null && !request.getSchoolClassIds().isEmpty()) {
+      // 1. Deduplicate and bulk load
+      List<UUID> uniqueIds = request.getSchoolClassIds().stream().distinct().toList();
+      List<SchoolClass> classes = schoolClassRepository.findAllById(uniqueIds);
+
+      if (classes.size() != uniqueIds.size()) {
+        List<UUID> foundIds = classes.stream().map(SchoolClass::getId).toList();
+        List<UUID> missingIds =
+            uniqueIds.stream().filter(idReq -> !foundIds.contains(idReq)).toList();
+        throw new NotFoundException("School classes not found: " + missingIds);
+      }
+
+      // 2. Remove existing enrollments
+      classEnrollmentRepository.deleteByUserId(id);
+
+      // Reload user to ensure it's attached to the context after bulk delete
+      User managedUser =
+          userRepository
+              .findById(id)
+              .orElseThrow(() -> new NotFoundException("User not found: " + id));
+
+      // 3. Add new enrollments
+      ClassRole classRole = ClassRole.STUDENT;
+      if (role.getName().equals("ROLE_TEACHER")) {
+        classRole = ClassRole.TEACHER;
+      } else if (role.getName().equals("ROLE_ADMIN")) {
+        classRole = ClassRole.MENTOR;
+      }
+
+      for (SchoolClass sc : classes) {
+        this.classEnrollmentService.enrollUser(managedUser, sc, classRole, actor);
+      }
+    }
+
+    return userRepository.findById(id).orElse(savedUser);
   }
 
   @Transactional

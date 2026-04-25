@@ -1,5 +1,5 @@
 import {useState, useEffect, useMemo, useCallback} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, Link} from 'react-router-dom';
 import {userApi} from '@/api/users';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -76,6 +76,11 @@ export default function UserManagementPage() {
         {
             accessorKey: "username",
             header: "Användarnamn",
+            cell: ({row}) => (
+                <Link to={`/profile/${row.original.id}`} className="font-medium text-primary hover:underline">
+                    {row.original.username}
+                </Link>
+            )
         },
         {
             accessorKey: "email",

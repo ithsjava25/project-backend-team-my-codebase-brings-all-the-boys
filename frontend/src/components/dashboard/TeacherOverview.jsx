@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ActivityLogView } from './ActivityLogView';
 import { PendingSubmissionsView } from './PendingSubmissionsView';
 import { UpcomingDeadlinesView } from './UpcomingDeadlinesView';
+import { CompletedAssessmentsView } from './CompletedAssessmentsView';
 
 export default function TeacherOverview() {
 
@@ -11,6 +12,8 @@ export default function TeacherOverview() {
         <PendingSubmissionsView />
         <UpcomingDeadlinesView />
       </div>
+
+      <CompletedAssessmentsView />
 
       <ActivityLogView limit={10} />
     </div>

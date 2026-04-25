@@ -45,7 +45,10 @@ export default function CourseEditPage() {
                 ]);
 
                 if (isMounted) {
-                    setClasses(classesData);
+                    // Handle Spring Data Page object or array
+                    const classesContent = classesData.content !== undefined ? classesData.content : classesData;
+                    setClasses(Array.isArray(classesContent) ? classesContent : []);
+                    
                     setAllTeachers(teachersData || []);
                     setForm({
                         name: courseData.name || '',
@@ -115,6 +118,7 @@ export default function CourseEditPage() {
                 endDate: form.endDate === '' ? null : form.endDate
             };
             await courseApi.updateCourse(id, submissionData);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Kursen har uppdaterats!');
             navigate('/admin/courses');
         } catch (err) {

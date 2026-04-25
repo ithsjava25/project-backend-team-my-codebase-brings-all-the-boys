@@ -1,10 +1,14 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.ActivityLogResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.ActivityLog;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
@@ -14,11 +18,9 @@ import org.example.projectbackendteammycodebasebringsalltheboys.service.Activity
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/activity-logs")
@@ -31,7 +33,16 @@ public class ActivityLogController {
 
   @GetMapping
   public ResponseEntity<Page<ActivityLogResponse>> getAllActivityLogs(
-      java.security.Principal principal, Pageable pageable) {
+      @RequestParam(required = false) UUID userId,
+      @RequestParam(required = false) ActivityAction action,
+      @RequestParam(required = false) EntityType entityType,
+      @RequestParam(required = false) ActivityStatus status,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime start,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime end,
+      Principal principal,
+      Pageable pageable) {
 
     if (principal == null) {
       throw new UnauthorizedException("Authentication is required");
@@ -46,7 +57,13 @@ public class ActivityLogController {
       throw new ForbiddenException("You are not authorized to view all activity logs.");
     }
 
-    Page<ActivityLog> logs = activityLogService.getAllLogs(pageable);
+    if (start != null && end != null && start.isAfter(end)) {
+      throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+          .BadRequestException("Start date must be before or equal to end date");
+    }
+
+    Page<ActivityLog> logs =
+        activityLogService.getLogs(userId, action, entityType, status, start, end, pageable);
     Page<ActivityLogResponse> response = logs.map(dtoMapper::toActivityLogResponse);
 
     return ResponseEntity.ok(response);
@@ -54,7 +71,7 @@ public class ActivityLogController {
 
   @GetMapping("/user/{userId}")
   public ResponseEntity<Page<ActivityLogResponse>> getUserActivityLogs(
-      @PathVariable UUID userId, java.security.Principal principal, Pageable pageable) {
+      @PathVariable UUID userId, Principal principal, Pageable pageable) {
 
     if (principal == null) {
       throw new UnauthorizedException("Authentication is required");
@@ -85,7 +102,7 @@ public class ActivityLogController {
   public ResponseEntity<Page<ActivityLogResponse>> getEntityActivityLogs(
       @PathVariable EntityType entityType,
       @PathVariable UUID entityId,
-      java.security.Principal principal,
+      Principal principal,
       Pageable pageable) {
 
     if (principal == null) {

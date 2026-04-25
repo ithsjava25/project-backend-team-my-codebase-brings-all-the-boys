@@ -13,4 +13,7 @@ public class UserRequest {
   private String password; // Optional for updates, required for creation
 
   @NotBlank private String roleName; // Name of the role, e.g., "ROLE_ADMIN", "ROLE_TEACHER"
+
+  private java.util.List<java.util.UUID> schoolClassIds;
+  private java.util.List<java.util.UUID> courseIds;
 }

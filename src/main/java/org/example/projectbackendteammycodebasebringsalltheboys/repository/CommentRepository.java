@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Comment;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -31,4 +32,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   @Modifying
   @Transactional
   void deleteByUserAssignment_Student_Id(UUID studentId);
+
+  boolean existsByTextAndAssignmentAndAuthor(String text, Assignment assignment, User author);
+
+  boolean existsBySeedKey(String seedKey);
 }

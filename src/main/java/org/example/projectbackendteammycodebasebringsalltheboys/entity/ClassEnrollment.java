@@ -23,7 +23,7 @@ public class ClassEnrollment extends BaseEntity {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "school_class_id", nullable = false)
   private SchoolClass schoolClass;
 

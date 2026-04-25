@@ -8,6 +8,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolCla
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -31,5 +32,9 @@ public interface ClassEnrollmentRepository extends JpaRepository<ClassEnrollment
 
   void deleteBySchoolClassAndUser(SchoolClass schoolClass, User user);
 
-  void deleteByUserId(UUID userId);
+  @Modifying(flushAutomatically = true)
+  @org.springframework.transaction.annotation.Transactional
+  @org.springframework.data.jpa.repository.Query(
+      "DELETE FROM ClassEnrollment ce WHERE ce.user.id = :userId")
+  void deleteByUserId(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }

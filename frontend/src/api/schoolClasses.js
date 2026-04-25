@@ -2,8 +2,8 @@ import client from './client';
 
 export const schoolClassApi = {
     // ALL USERS
-    getAllSchoolClasses: async () => {
-        const response = await client.get('/school-classes');
+    getAllSchoolClasses: async (params = {}, signal) => {
+        const response = await client.get('/school-classes', { params, signal });
         return response.data;
     },
 

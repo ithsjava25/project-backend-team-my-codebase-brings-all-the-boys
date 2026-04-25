@@ -33,6 +33,7 @@ class UserAssignmentServiceTest {
   @Mock private SubmissionRepository submissionRepository;
   @Mock private FileMetadataRepository fileMetadataRepository;
   @Mock private ActivityLogService activityLogService;
+  @Mock private AuthorizationService authorizationService;
 
   private UserAssignmentService userAssignmentService;
 
@@ -43,7 +44,8 @@ class UserAssignmentServiceTest {
             userAssignmentRepository,
             submissionRepository,
             fileMetadataRepository,
-            activityLogService);
+            activityLogService,
+            authorizationService);
   }
 
   @Test
@@ -151,9 +153,12 @@ class UserAssignmentServiceTest {
   }
 
   @Test
-  @DisplayName("evaluateAssignment updates grade and feedback")
+  @DisplayName("evaluateAssignment updates grade and feedback for TURNED_IN")
   void evaluateAssignment_valid_updatesUa() {
+    Assignment assignment = new Assignment();
+    assignment.setId(UUID.randomUUID());
     UserAssignment ua = new UserAssignment();
+    ua.setAssignment(assignment);
     ua.setStatus(StudentAssignmentStatus.TURNED_IN);
 
     userAssignmentService.evaluateAssignment(ua, "A", "Great job", new User());
@@ -162,5 +167,94 @@ class UserAssignmentServiceTest {
     assertThat(ua.getGrade()).isEqualTo("A");
     assertThat(ua.getFeedback()).isEqualTo("Great job");
     verify(userAssignmentRepository).save(ua);
+  }
+
+  @Test
+  @DisplayName("evaluateAssignment allows re-grading for EVALUATED status")
+  void evaluateAssignment_regrading_updatesUa() {
+    Assignment assignment = new Assignment();
+    assignment.setId(UUID.randomUUID());
+    UserAssignment ua = new UserAssignment();
+    ua.setAssignment(assignment);
+    ua.setStatus(StudentAssignmentStatus.EVALUATED);
+    ua.setGrade("C");
+
+    userAssignmentService.evaluateAssignment(ua, "A", "Improved", new User());
+
+    assertThat(ua.getStatus()).isEqualTo(StudentAssignmentStatus.EVALUATED);
+    assertThat(ua.getGrade()).isEqualTo("A");
+    verify(userAssignmentRepository).save(ua);
+  }
+
+  @Test
+  @DisplayName("evaluateAssignment throws IllegalStateException for invalid status")
+  void evaluateAssignment_invalidStatus_throwsException() {
+    UserAssignment ua = new UserAssignment();
+    ua.setStatus(StudentAssignmentStatus.ASSIGNED);
+
+    assertThatThrownBy(
+            () -> userAssignmentService.evaluateAssignment(ua, "A", "Feedback", new User()))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Cannot evaluate assignment in status");
+  }
+
+  @Test
+  @DisplayName("getOrCreateForStudent returns existing if present")
+  void getOrCreateForStudent_existing_returnsExisting() {
+    Assignment a = new Assignment();
+    User student = new User();
+    UserAssignment existing = new UserAssignment();
+    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+        .thenReturn(Optional.of(existing));
+
+    UserAssignment result = userAssignmentService.getOrCreateForStudent(a, student);
+
+    assertThat(result).isSameAs(existing);
+    verify(userAssignmentRepository, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("getOrCreateForStudent creates new if absent and authorized")
+  void getOrCreateForStudent_absent_createsNew() {
+    Assignment a = new Assignment();
+    User student = new User();
+    org.example.projectbackendteammycodebasebringsalltheboys.entity.Role role =
+        new org.example.projectbackendteammycodebasebringsalltheboys.entity.Role();
+    role.setName("ROLE_STUDENT");
+    student.setRole(role);
+    student.setUsername("alice");
+
+    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+        .thenReturn(Optional.empty());
+    when(authorizationService.canViewAssignment(student, a)).thenReturn(true);
+    when(userAssignmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+    UserAssignment result = userAssignmentService.getOrCreateForStudent(a, student);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getStatus()).isEqualTo(StudentAssignmentStatus.ASSIGNED);
+    verify(userAssignmentRepository).save(any());
+  }
+
+  @Test
+  @DisplayName("getOrCreateForStudent throws NotFoundException if unauthorized")
+  void getOrCreateForStudent_unauthorized_throwsException() {
+    Assignment a = new Assignment();
+    User student = new User();
+    org.example.projectbackendteammycodebasebringsalltheboys.entity.Role role =
+        new org.example.projectbackendteammycodebasebringsalltheboys.entity.Role();
+    role.setName("ROLE_STUDENT");
+    student.setRole(role);
+
+    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+        .thenReturn(Optional.empty());
+    when(authorizationService.canViewAssignment(student, a)).thenReturn(false);
+
+    assertThatThrownBy(() -> userAssignmentService.getOrCreateForStudent(a, student))
+        .isInstanceOf(
+            org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException
+                .class);
+
+    verify(userAssignmentRepository, never()).save(any());
   }
 }

@@ -40,6 +40,10 @@ public interface AssignmentRepository extends JpaRepository<Assignment, UUID> {
   Page<Assignment> findAccessibleByTeacher(UUID teacherId, Pageable pageable);
 
   @Query(
+      "SELECT COUNT(DISTINCT a) FROM Assignment a JOIN a.course c JOIN c.schoolClass sc JOIN sc.enrollments e WHERE e.user.id = :studentId")
+  long countByStudentEnrollment(@Param("studentId") UUID studentId);
+
+  @Query(
       "SELECT DISTINCT a FROM Assignment a JOIN a.course c JOIN c.schoolClass sc JOIN sc.enrollments e WHERE e.user.id = :studentId")
   Page<Assignment> findByStudentEnrollment(UUID studentId, Pageable pageable);
 
