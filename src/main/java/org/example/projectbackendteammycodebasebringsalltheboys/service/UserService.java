@@ -189,8 +189,12 @@ public class UserService {
   @Transactional
   @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.USER)
   public User createUser(UserRequest request) {
-    String username = request.getUsername();
-    String email = request.getEmail().toLowerCase(Locale.ROOT);
+    String username = normalize(request.getUsername());
+    String email = normalize(request.getEmail());
+    if (username == null || email == null) {
+      throw new IllegalArgumentException("Username and email are required");
+    }
+    email = email.toLowerCase(Locale.ROOT);
 
     if (userRepository.existsByUsernameIgnoreCase(username)
         || userRepository.existsByEmailIgnoreCase(email)) {
@@ -220,8 +224,12 @@ public class UserService {
 
     User actor = getCurrentUser();
 
-    String newUsername = request.getUsername();
-    String newEmail = request.getEmail().toLowerCase(Locale.ROOT);
+    String newUsername = normalize(request.getUsername());
+    String newEmailRaw = normalize(request.getEmail());
+    if (newUsername == null || newEmailRaw == null) {
+      throw new IllegalArgumentException("Username and email are required");
+    }
+    String newEmail = newEmailRaw.toLowerCase(Locale.ROOT);
 
     // Uniqueness checks
     if (!newUsername.equalsIgnoreCase(user.getUsername())
