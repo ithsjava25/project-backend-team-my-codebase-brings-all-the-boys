@@ -25,6 +25,9 @@ public class ClassEnrollmentService {
   @Transactional
   public ClassEnrollment enrollUser(
       User user, SchoolClass schoolClass, ClassRole role, User actor) {
+    if (role == null) {
+      throw new IllegalArgumentException("Class role cannot be null");
+    }
     Optional<ClassEnrollment> existing =
         enrollmentRepository.findByUserAndSchoolClass(user, schoolClass);
 

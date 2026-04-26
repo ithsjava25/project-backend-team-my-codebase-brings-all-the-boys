@@ -189,8 +189,11 @@ public class UserService {
   @Transactional
   @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.USER)
   public User createUser(UserRequest request) {
-    if (userRepository.existsByUsername(request.getUsername())
-        || userRepository.existsByEmail(request.getEmail())) {
+    String username = request.getUsername();
+    String email = request.getEmail().toLowerCase(Locale.ROOT);
+
+    if (userRepository.existsByUsernameIgnoreCase(username)
+        || userRepository.existsByEmailIgnoreCase(email)) {
       throw new IllegalStateException("Username or email already exists");
     }
     Role role =
@@ -200,8 +203,8 @@ public class UserService {
                 () -> new IllegalStateException("Role not found: " + request.getRoleName()));
 
     User user = new User();
-    user.setUsername(request.getUsername());
-    user.setEmail(request.getEmail());
+    user.setUsername(username);
+    user.setEmail(email);
     user.setPassword(passwordEncoder.encode(request.getPassword())); // Encode password
     user.setRole(role);
     return userRepository.save(user);
@@ -217,9 +220,22 @@ public class UserService {
 
     User actor = getCurrentUser();
 
+    String newUsername = request.getUsername();
+    String newEmail = request.getEmail().toLowerCase(Locale.ROOT);
+
+    // Uniqueness checks
+    if (!newUsername.equalsIgnoreCase(user.getUsername())
+        && userRepository.existsByUsernameIgnoreCase(newUsername)) {
+      throw new IllegalStateException("Username already taken");
+    }
+    if (!newEmail.equalsIgnoreCase(user.getEmail())
+        && userRepository.existsByEmailIgnoreCase(newEmail)) {
+      throw new IllegalStateException("Email already taken");
+    }
+
     // Update user details
-    user.setUsername(request.getUsername());
-    user.setEmail(request.getEmail());
+    user.setUsername(newUsername);
+    user.setEmail(newEmail);
     // Only update password if provided and not empty
     if (request.getPassword() != null && !request.getPassword().isEmpty()) {
       user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -274,15 +290,16 @@ public class UserService {
 
     // 1. Basic validation (DTO level already has @NotBlank, but ensure logic is solid)
     String newUsername = request.getUsername().trim();
-    String newEmail = request.getEmail().trim();
+    String newEmail = request.getEmail().trim().toLowerCase(Locale.ROOT);
 
     // 2. Uniqueness checks excluding current user
-    if (!newUsername.equals(currentUser.getUsername())
-        && userRepository.existsByUsername(newUsername)) {
+    if (!newUsername.equalsIgnoreCase(currentUser.getUsername())
+        && userRepository.existsByUsernameIgnoreCase(newUsername)) {
       throw new IllegalStateException("Username already taken");
     }
 
-    if (!newEmail.equals(currentUser.getEmail()) && userRepository.existsByEmail(newEmail)) {
+    if (!newEmail.equalsIgnoreCase(currentUser.getEmail())
+        && userRepository.existsByEmailIgnoreCase(newEmail)) {
       throw new IllegalStateException("Email already registered");
     }
 

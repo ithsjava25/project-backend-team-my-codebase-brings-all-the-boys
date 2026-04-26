@@ -26,14 +26,7 @@ public class SchoolClassController {
   @GetMapping
   public ResponseEntity<Page<SchoolClassSurfaceResponse>> getAccessibleSchoolClasses(
       Principal principal, @PageableDefault(size = 20) Pageable pageable) {
-    if (principal == null) {
-      throw new UnauthorizedException("Authentication is required");
-    }
-
-    User currentUser =
-        userService
-            .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+    User currentUser = requireCurrentUser(principal);
 
     return ResponseEntity.ok(
         schoolClassService.getAccessibleSchoolClassesDto(currentUser, pageable));
@@ -42,15 +35,18 @@ public class SchoolClassController {
   @GetMapping("/{id}")
   public ResponseEntity<SchoolClassDetailResponse> getSchoolClassById(
       @PathVariable UUID id, Principal principal) {
+    User currentUser = requireCurrentUser(principal);
+
+    return ResponseEntity.ok(schoolClassService.getSchoolClassDetailDto(id, currentUser));
+  }
+
+  private User requireCurrentUser(Principal principal) {
     if (principal == null) {
       throw new UnauthorizedException("Authentication is required");
     }
 
-    User currentUser =
-        userService
-            .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
-
-    return ResponseEntity.ok(schoolClassService.getSchoolClassDetailDto(id, currentUser));
+    return userService
+        .getUserByUsername(principal.getName())
+        .orElseThrow(() -> new UnauthorizedException("Current user not found"));
   }
 }

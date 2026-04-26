@@ -53,19 +53,13 @@ public class AdminSchoolClassController {
       @RequestParam ClassRole role,
       Principal principal) {
 
-    User actor =
-        userService
-            .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+    if (role == null) {
+      throw new org.springframework.web.server.ResponseStatusException(
+          org.springframework.http.HttpStatus.BAD_REQUEST, "Role is required");
+    }
 
-    SchoolClass sc =
-        schoolClassService
-            .getSchoolClassById(classId)
-            .orElseThrow(() -> new NotFoundException("School class not found"));
-    User user =
-        userService.getUserById(userId).orElseThrow(() -> new NotFoundException("User not found"));
-
-    enrollmentService.enrollUser(user, sc, role, actor);
+    LookupResult lookup = resolveActorClassUser(principal, classId, userId);
+    enrollmentService.enrollUser(lookup.user(), lookup.schoolClass(), role, lookup.actor());
     return ResponseEntity.ok().build();
   }
 
@@ -73,6 +67,14 @@ public class AdminSchoolClassController {
   public ResponseEntity<Void> removeEnrollment(
       @PathVariable UUID classId, @PathVariable UUID userId, Principal principal) {
 
+    LookupResult lookup = resolveActorClassUser(principal, classId, userId);
+    enrollmentService.removeEnrollment(lookup.schoolClass(), lookup.user(), lookup.actor());
+    return ResponseEntity.noContent().build();
+  }
+
+  private record LookupResult(User actor, SchoolClass schoolClass, User user) {}
+
+  private LookupResult resolveActorClassUser(Principal principal, UUID classId, UUID userId) {
     User actor =
         userService
             .getUserByUsername(principal.getName())
@@ -82,10 +84,10 @@ public class AdminSchoolClassController {
         schoolClassService
             .getSchoolClassById(classId)
             .orElseThrow(() -> new NotFoundException("School class not found"));
+
     User user =
         userService.getUserById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
-    enrollmentService.removeEnrollment(sc, user, actor);
-    return ResponseEntity.ok().build();
+    return new LookupResult(actor, sc, user);
   }
 }
