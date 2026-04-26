@@ -10,7 +10,6 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.Unauth
 import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +24,19 @@ public class SchoolClassController {
 
   @GetMapping
   public ResponseEntity<Page<SchoolClassSurfaceResponse>> getAccessibleSchoolClasses(
-      Principal principal, @PageableDefault(size = 20) Pageable pageable) {
+      Principal principal,
+      @PageableDefault(page = 0, size = 20) org.springframework.data.domain.Pageable pageable) {
     User currentUser = requireCurrentUser(principal);
 
+    org.springframework.data.domain.Pageable effectivePageable = pageable;
+    if (pageable.getPageSize() > 100) {
+      effectivePageable =
+          org.springframework.data.domain.PageRequest.of(
+              pageable.getPageNumber(), 100, pageable.getSort());
+    }
+
     return ResponseEntity.ok(
-        schoolClassService.getAccessibleSchoolClassesDto(currentUser, pageable));
+        schoolClassService.getAccessibleSchoolClassesDto(currentUser, effectivePageable));
   }
 
   @GetMapping("/{id}")

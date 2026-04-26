@@ -31,7 +31,15 @@ public class AdminSchoolClassController {
   @PostMapping
   public ResponseEntity<SchoolClassDetailResponse> createSchoolClass(
       @Valid @RequestBody SchoolClassCreateRequest request) {
-    return ResponseEntity.ok(schoolClassService.createSchoolClassDto(request));
+    SchoolClassDetailResponse response = schoolClassService.createSchoolClassDto(request);
+
+    java.net.URI location =
+        org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest()
+            .path("/{id}")
+            .buildAndExpand(response.getId())
+            .toUri();
+
+    return ResponseEntity.created(location).body(response);
   }
 
   @PutMapping("/{id}")
@@ -50,7 +58,7 @@ public class AdminSchoolClassController {
   public ResponseEntity<Void> enrollUser(
       @PathVariable UUID classId,
       @RequestParam UUID userId,
-      @RequestParam ClassRole role,
+      @RequestParam(required = false) ClassRole role,
       Principal principal) {
 
     if (role == null) {
@@ -60,7 +68,7 @@ public class AdminSchoolClassController {
 
     LookupResult lookup = resolveActorClassUser(principal, classId, userId);
     enrollmentService.enrollUser(lookup.user(), lookup.schoolClass(), role, lookup.actor());
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{classId}/enroll/{userId}")

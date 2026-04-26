@@ -7,12 +7,13 @@ import { FileIcon, Upload, Download, Loader2, X, ZoomIn } from 'lucide-react';
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
 
-export function FileSection({ files: initialFiles = [], assignmentId, userAssignmentId, commentId }) {
+export function FileSection({ files: initialFiles = [], assignmentId, userAssignmentId, commentId, onFilesChanged }) {
   const [files, setFiles] = useState(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
+  const [newS3Keys, setNewS3Keys] = useState([]);
 
   useEffect(() => {
     return () => {
@@ -51,6 +52,12 @@ export function FileSection({ files: initialFiles = [], assignmentId, userAssign
       );
 
       setFiles((prev) => [...prev, savedFile]);
+      
+      const updatedKeys = [...newS3Keys, s3Key];
+      setNewS3Keys(updatedKeys);
+      if (onFilesChanged) {
+        onFilesChanged(updatedKeys);
+      }
     } catch (error) {
       console.error('Upload failed:', error);
       setUploadError('Uppladdningen misslyckades. Försök igen.');

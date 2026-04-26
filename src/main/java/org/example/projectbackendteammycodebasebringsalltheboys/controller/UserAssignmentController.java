@@ -49,17 +49,14 @@ public class UserAssignmentController {
             .findById(assignmentId)
             .orElseThrow(() -> new NotFoundException("Assignment not found"));
 
-    if (principal == null) {
-      throw new UnauthorizedException("Authentication is required");
-    }
-
     User currentUser =
         userService
             .getUserByUsername(principal.getName())
             .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
-    if (!authorizationService.canModifyCourse(currentUser, assignment.getCourse())) {
-      throw new ForbiddenException("You are not authorized to view submissions for this course.");
+    if (!authorizationService.canViewAssignment(currentUser, assignment)) {
+      throw new ForbiddenException(
+          "You are not authorized to view submissions for this assignment.");
     }
 
     return ResponseEntity.ok(
@@ -81,7 +78,11 @@ public class UserAssignmentController {
             .getUserById(studentId)
             .orElseThrow(() -> new NotFoundException("User not found"));
 
-    User currentUser = userService.getCurrentUser();
+    User currentUser =
+        userService
+            .getUserByUsername(principal.getName())
+            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
     if (!authorizationService.canViewAssignment(currentUser, assignment)) {
       throw new ForbiddenException("You are not authorized to view this assignment.");
     }

@@ -25,7 +25,7 @@ export function AssignmentListView({
           <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Laddar uppgifter...</p>
+          <p className="text-muted-foreground" role="status" aria-live="polite">Laddar uppgifter...</p>
         </CardContent>
       </Card>
     );

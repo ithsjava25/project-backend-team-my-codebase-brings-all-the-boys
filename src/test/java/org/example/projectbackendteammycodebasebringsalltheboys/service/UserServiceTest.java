@@ -77,6 +77,17 @@ class UserServiceTest {
 
   // --- helpers ---
 
+  private void authenticateAs(String username) {
+    Authentication auth = mock(Authentication.class);
+    when(auth.getName()).thenReturn(username);
+    when(auth.isAuthenticated()).thenReturn(true);
+    SecurityContextHolder.getContext().setAuthentication(auth);
+
+    User user = new User();
+    user.setUsername(username);
+    when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+  }
+
   private ExternalRegistrationRequest validRequest(String username, String password) {
     ExternalRegistrationRequest req = new ExternalRegistrationRequest();
     req.setUsername(username);
@@ -230,21 +241,15 @@ class UserServiceTest {
     when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     when(schoolClassRepository.findAllById(any())).thenReturn(List.of(sc1, sc2));
 
-    // Mock authentication for getCurrentUser()
-    Authentication auth = mock(Authentication.class);
-    when(auth.getName()).thenReturn("admin");
-    when(auth.isAuthenticated()).thenReturn(true);
-    SecurityContextHolder.getContext().setAuthentication(auth);
-
-    User adminUser = new User();
-    adminUser.setUsername("admin");
-    when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+    authenticateAs("admin");
 
     userService.updateUser(userId, request);
 
     verify(classEnrollmentRepository).deleteByUserId(userId);
-    verify(classEnrollmentService).enrollUser(existing, sc1, ClassRole.STUDENT, adminUser);
-    verify(classEnrollmentService).enrollUser(existing, sc2, ClassRole.STUDENT, adminUser);
+    verify(classEnrollmentService)
+        .enrollUser(existing, sc1, ClassRole.STUDENT, userRepository.findByUsername("admin").get());
+    verify(classEnrollmentService)
+        .enrollUser(existing, sc2, ClassRole.STUDENT, userRepository.findByUsername("admin").get());
   }
 
   @Test
@@ -267,15 +272,7 @@ class UserServiceTest {
     when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     when(schoolClassRepository.findAllById(any())).thenReturn(List.of());
 
-    // Mock authentication for getCurrentUser()
-    Authentication auth = mock(Authentication.class);
-    when(auth.getName()).thenReturn("admin");
-    when(auth.isAuthenticated()).thenReturn(true);
-    SecurityContextHolder.getContext().setAuthentication(auth);
-
-    User adminUser = new User();
-    adminUser.setUsername("admin");
-    when(userRepository.findByUsername("admin")).thenReturn(Optional.of(adminUser));
+    authenticateAs("admin");
 
     assertThatThrownBy(() -> userService.updateUser(userId, request))
         .isInstanceOf(

@@ -29,11 +29,27 @@ export default function AssignmentDetailPage() {
     const [submissionContent, setSubmissionContent] = useState('');
     const [submitSuccess, setSubmitSuccess] = useState(null);
     const [submitError, setSubmitError] = useState(null);
+    const [uploadedS3Keys, setUploadedS3Keys] = useState([]);
 
     const isAdmin = user?.role?.name === 'ROLE_ADMIN';
     const isTeacher = user?.role?.name === 'ROLE_TEACHER';
     const isStudent = user?.role?.name === 'ROLE_STUDENT';
     const canManageSubmissions = isAdmin || isTeacher;
+
+    useEffect(() => {
+        let timeout;
+        if (submitSuccess) {
+            timeout = setTimeout(() => {
+                setSubmitSuccess(null);
+            }, 5000);
+        }
+        return () => clearTimeout(timeout);
+    }, [submitSuccess]);
+
+    const handleContentChange = (e) => {
+        setSubmissionContent(e.target.value);
+        if (submitSuccess) setSubmitSuccess(null);
+    };
 
     useEffect(() => {
         if (canManageSubmissions && assignment?.id) {
@@ -86,10 +102,11 @@ export default function AssignmentDetailPage() {
             
             const updated = await userAssignmentApi.submit(myUserAssignment.id, {
                 content: submissionContent,
-                fileS3Keys: [] // Files are already attached via FileSection in the current implementation
+                fileS3Keys: uploadedS3Keys
             });
             setMyUserAssignment(updated);
             setSubmitSuccess('Din inlämning har skickats!');
+            setUploadedS3Keys([]); // Reset after successful submission
         } catch (err) {
             console.error('Submission failed:', err);
             setSubmitError(err.response?.data?.message || 'Inlämningen misslyckades.');
@@ -231,12 +248,19 @@ export default function AssignmentDetailPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {submitSuccess && (
-                                    <div className="p-3 bg-green-100 text-green-800 border border-green-200 rounded-md text-sm">
+                                    <div 
+                                        role="status" 
+                                        aria-live="polite"
+                                        className="p-3 bg-green-100 text-green-800 border border-green-200 rounded-md text-sm"
+                                    >
                                         {submitSuccess}
                                     </div>
                                 )}
                                 {submitError && (
-                                    <div className="p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-sm">
+                                    <div 
+                                        role="alert"
+                                        className="p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-sm"
+                                    >
                                         {submitError}
                                     </div>
                                 )}
@@ -263,7 +287,7 @@ export default function AssignmentDetailPage() {
                                             placeholder="Skriv ditt svar här..."
                                             className="min-h-[200px]"
                                             value={submissionContent}
-                                            onChange={e => setSubmissionContent(e.target.value)}
+                                            onChange={handleContentChange}
                                             disabled={isSubmitting}
                                         />
                                         <div className="flex justify-end">
@@ -385,6 +409,7 @@ export default function AssignmentDetailPage() {
                             files={isStudent ? (myUserAssignment?.files ?? []) : (assignment.files ?? [])}
                             assignmentId={isStudent ? undefined : assignmentId}
                             userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
+                            onFilesChanged={setUploadedS3Keys}
                         />
                     )}
                 </div>

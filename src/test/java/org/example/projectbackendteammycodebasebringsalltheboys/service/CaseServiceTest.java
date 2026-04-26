@@ -15,6 +15,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CaseServiceTest {
 
   @Mock private AssignmentRepository assignmentRepository;
+  @Mock private UserAssignmentRepository userAssignmentRepository;
   @Mock private DtoMapper dtoMapper;
   @Mock private AuthorizationService authorizationService;
   @Mock private CourseRepository courseRepository;
@@ -39,6 +41,7 @@ class CaseServiceTest {
     caseService =
         new CaseService(
             assignmentRepository,
+            userAssignmentRepository,
             dtoMapper,
             authorizationService,
             courseRepository,

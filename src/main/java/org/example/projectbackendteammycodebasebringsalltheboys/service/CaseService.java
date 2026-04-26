@@ -1,5 +1,6 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,10 +15,12 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.Cas
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.AssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
@@ -25,6 +28,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CaseService {
 
   private final AssignmentRepository assignmentRepository;
+  private final UserAssignmentRepository userAssignmentRepository;
   private final DtoMapper dtoMapper;
   private final AuthorizationService authorizationService;
   private final CourseRepository courseRepository;
@@ -141,24 +146,13 @@ public class CaseService {
 
     if (roleName.equals("ROLE_STUDENT")) {
       // Optimization: Fetch UserAssignments for the student for the assignments on this page
-      java.util.List<org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment>
-          userAssignments =
-              dtoMapper
-                  .getUserAssignmentRepository()
-                  .findByStudentAndAssignmentIn(user, assignments.getContent());
+      List<UserAssignment> userAssignments =
+          userAssignmentRepository.findByStudentAndAssignmentIn(user, assignments.getContent());
 
-      java.util.Map<
-              UUID,
-              org.example.projectbackendteammycodebasebringsalltheboys.enums
-                  .StudentAssignmentStatus>
-          statusMap =
-              userAssignments.stream()
-                  .collect(
-                      Collectors.toMap(
-                          ua -> ua.getAssignment().getId(),
-                          org.example.projectbackendteammycodebasebringsalltheboys.entity
-                                  .UserAssignment
-                              ::getStatus));
+      Map<UUID, StudentAssignmentStatus> statusMap = new HashMap<>();
+      for (UserAssignment ua : userAssignments) {
+        statusMap.put(ua.getAssignment().getId(), ua.getStatus());
+      }
 
       return assignments.map(
           a -> {
