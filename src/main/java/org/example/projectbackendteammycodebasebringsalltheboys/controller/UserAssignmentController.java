@@ -68,6 +68,32 @@ public class UserAssignmentController {
             .collect(Collectors.toList()));
   }
 
+  @GetMapping("/assignment/{assignmentId}/student/{studentId}")
+  @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
+  public ResponseEntity<UserAssignmentResponse> getByAssignmentAndStudent(
+      @PathVariable UUID assignmentId, @PathVariable UUID studentId, Principal principal) {
+    Assignment assignment =
+        assignmentRepository
+            .findById(assignmentId)
+            .orElseThrow(() -> new NotFoundException("Assignment not found"));
+    User student =
+        userService
+            .getUserById(studentId)
+            .orElseThrow(() -> new NotFoundException("User not found"));
+
+    User currentUser = userService.getCurrentUser();
+    if (!authorizationService.canViewAssignment(currentUser, assignment)) {
+      throw new ForbiddenException("You are not authorized to view this assignment.");
+    }
+
+    UserAssignment ua =
+        userAssignmentService
+            .getByAssignmentAndStudent(assignment, student)
+            .orElseThrow(() -> new NotFoundException("Submission not found for this student."));
+
+    return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
+  }
+
   @GetMapping("/evaluated")
   @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
   public ResponseEntity<Page<UserAssignmentResponse>> getEvaluatedAssignments(Pageable pageable) {
