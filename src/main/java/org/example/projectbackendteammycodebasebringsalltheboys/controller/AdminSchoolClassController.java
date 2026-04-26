@@ -11,7 +11,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolCla
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
-import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.CurrentUserResolver;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.ClassEnrollmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
@@ -27,6 +27,7 @@ public class AdminSchoolClassController {
   private final SchoolClassService schoolClassService;
   private final UserService userService;
   private final ClassEnrollmentService enrollmentService;
+  private final CurrentUserResolver currentUserResolver;
 
   @PostMapping
   public ResponseEntity<SchoolClassDetailResponse> createSchoolClass(
@@ -58,13 +59,8 @@ public class AdminSchoolClassController {
   public ResponseEntity<Void> enrollUser(
       @PathVariable UUID classId,
       @RequestParam UUID userId,
-      @RequestParam(required = false) ClassRole role,
+      @RequestParam ClassRole role,
       Principal principal) {
-
-    if (role == null) {
-      throw new org.springframework.web.server.ResponseStatusException(
-          org.springframework.http.HttpStatus.BAD_REQUEST, "Role is required");
-    }
 
     LookupResult lookup = resolveActorClassUser(principal, classId, userId);
     enrollmentService.enrollUser(lookup.user(), lookup.schoolClass(), role, lookup.actor());
@@ -83,10 +79,7 @@ public class AdminSchoolClassController {
   private record LookupResult(User actor, SchoolClass schoolClass, User user) {}
 
   private LookupResult resolveActorClassUser(Principal principal, UUID classId, UUID userId) {
-    User actor =
-        userService
-            .getUserByUsername(principal.getName())
-            .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+    User actor = currentUserResolver.resolveCurrentUser(principal);
 
     SchoolClass sc =
         schoolClassService

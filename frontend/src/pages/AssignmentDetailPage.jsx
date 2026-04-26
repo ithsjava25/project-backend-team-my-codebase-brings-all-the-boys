@@ -410,6 +410,7 @@ export default function AssignmentDetailPage() {
                             assignmentId={isStudent ? undefined : assignmentId}
                             userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
                             onFilesChanged={setUploadedS3Keys}
+                            uploadedS3Keys={uploadedS3Keys}
                         />
                     )}
                 </div>

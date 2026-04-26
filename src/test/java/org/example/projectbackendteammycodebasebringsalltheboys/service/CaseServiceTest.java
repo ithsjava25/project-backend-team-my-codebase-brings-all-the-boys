@@ -8,9 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
@@ -22,6 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class CaseServiceTest {
@@ -47,6 +54,48 @@ class CaseServiceTest {
             courseRepository,
             activityLogService,
             commentRepository);
+  }
+
+  @Test
+  @DisplayName("getAccessibleAssignmentsDto returns student status for ROLE_STUDENT")
+  void getAccessibleAssignmentsDto_student_returnsStatus() {
+    User student = new User();
+    student.setId(UUID.randomUUID());
+    Role role = new Role();
+    role.setName("ROLE_STUDENT");
+    student.setRole(role);
+
+    Assignment assignment1 = new Assignment();
+    assignment1.setId(UUID.randomUUID());
+    Assignment assignment2 = new Assignment();
+    assignment2.setId(UUID.randomUUID());
+
+    List<Assignment> assignments = List.of(assignment1, assignment2);
+    Page<Assignment> page = new PageImpl<>(assignments);
+    Pageable pageable = mock(Pageable.class);
+
+    when(assignmentRepository.findByStudentEnrollment(student.getId(), pageable)).thenReturn(page);
+
+    UserAssignment ua1 = new UserAssignment();
+    ua1.setAssignment(assignment1);
+    ua1.setStatus(StudentAssignmentStatus.TURNED_IN);
+    when(userAssignmentRepository.findByStudentAndAssignmentIn(student, assignments))
+        .thenReturn(List.of(ua1));
+
+    AssignmentResponse resp1 = new AssignmentResponse();
+    resp1.setId(assignment1.getId());
+    AssignmentResponse resp2 = new AssignmentResponse();
+    resp2.setId(assignment2.getId());
+
+    when(dtoMapper.toAssignmentResponse(assignment1)).thenReturn(resp1);
+    when(dtoMapper.toAssignmentResponse(assignment2)).thenReturn(resp2);
+
+    Page<AssignmentResponse> result = caseService.getAccessibleAssignmentsDto(student, pageable);
+
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.getContent().get(0).getStudentStatus())
+        .isEqualTo(StudentAssignmentStatus.TURNED_IN);
+    assertThat(result.getContent().get(1).getStudentStatus()).isNull();
   }
 
   @Test

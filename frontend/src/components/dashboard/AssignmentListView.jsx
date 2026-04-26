@@ -112,14 +112,18 @@ export function AssignmentListView({
                   </Badge>
                 </TableCell>
                 <TableCell>
-                    {assignment.studentStatus === 'TURNED_IN' || assignment.studentStatus === 'EVALUATED' ? (
+                    {assignment.studentStatus === undefined || assignment.studentStatus === null ? (
+                        "—"
+                    ) : assignment.studentStatus === 'TURNED_IN' || assignment.studentStatus === 'EVALUATED' ? (
                         <Badge variant="default" className="bg-green-500">Ja</Badge>
                     ) : (
                         <Badge variant="secondary">Nej</Badge>
                     )}
                 </TableCell>
                 <TableCell>
-                    {assignment.studentStatus === 'EVALUATED' ? (
+                    {assignment.studentStatus === undefined || assignment.studentStatus === null ? (
+                        "—"
+                    ) : assignment.studentStatus === 'EVALUATED' ? (
                         <Badge variant="default" className="bg-blue-500">Ja</Badge>
                     ) : (
                         <Badge variant="secondary">Nej</Badge>

@@ -77,7 +77,7 @@ class UserServiceTest {
 
   // --- helpers ---
 
-  private void authenticateAs(String username) {
+  private User authenticateAs(String username) {
     Authentication auth = mock(Authentication.class);
     when(auth.getName()).thenReturn(username);
     when(auth.isAuthenticated()).thenReturn(true);
@@ -86,6 +86,7 @@ class UserServiceTest {
     User user = new User();
     user.setUsername(username);
     when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+    return user;
   }
 
   private ExternalRegistrationRequest validRequest(String username, String password) {
@@ -241,15 +242,13 @@ class UserServiceTest {
     when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     when(schoolClassRepository.findAllById(any())).thenReturn(List.of(sc1, sc2));
 
-    authenticateAs("admin");
+    User adminUser = authenticateAs("admin");
 
     userService.updateUser(userId, request);
 
     verify(classEnrollmentRepository).deleteByUserId(userId);
-    verify(classEnrollmentService)
-        .enrollUser(existing, sc1, ClassRole.STUDENT, userRepository.findByUsername("admin").get());
-    verify(classEnrollmentService)
-        .enrollUser(existing, sc2, ClassRole.STUDENT, userRepository.findByUsername("admin").get());
+    verify(classEnrollmentService).enrollUser(existing, sc1, ClassRole.STUDENT, adminUser);
+    verify(classEnrollmentService).enrollUser(existing, sc2, ClassRole.STUDENT, adminUser);
   }
 
   @Test
@@ -272,7 +271,7 @@ class UserServiceTest {
     when(userRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     when(schoolClassRepository.findAllById(any())).thenReturn(List.of());
 
-    authenticateAs("admin");
+    User adminUser = authenticateAs("admin");
 
     assertThatThrownBy(() -> userService.updateUser(userId, request))
         .isInstanceOf(

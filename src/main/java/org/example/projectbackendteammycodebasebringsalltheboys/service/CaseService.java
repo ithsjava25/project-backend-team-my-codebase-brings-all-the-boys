@@ -1,6 +1,5 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -144,15 +143,14 @@ public class CaseService {
           default -> Page.empty();
         };
 
-    if (roleName.equals("ROLE_STUDENT")) {
+    if ("ROLE_STUDENT".equals(roleName) && assignments.hasContent()) {
       // Optimization: Fetch UserAssignments for the student for the assignments on this page
-      List<UserAssignment> userAssignments =
-          userAssignmentRepository.findByStudentAndAssignmentIn(user, assignments.getContent());
-
-      Map<UUID, StudentAssignmentStatus> statusMap = new HashMap<>();
-      for (UserAssignment ua : userAssignments) {
-        statusMap.put(ua.getAssignment().getId(), ua.getStatus());
-      }
+      Map<UUID, StudentAssignmentStatus> statusMap =
+          userAssignmentRepository
+              .findByStudentAndAssignmentIn(user, assignments.getContent())
+              .stream()
+              .collect(
+                  Collectors.toMap(ua -> ua.getAssignment().getId(), UserAssignment::getStatus));
 
       return assignments.map(
           a -> {

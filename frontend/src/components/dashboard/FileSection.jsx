@@ -7,13 +7,19 @@ import { FileIcon, Upload, Download, Loader2, X, ZoomIn } from 'lucide-react';
 
 const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
 
-export function FileSection({ files: initialFiles = [], assignmentId, userAssignmentId, commentId, onFilesChanged }) {
+export function FileSection({ files: initialFiles = [], assignmentId, userAssignmentId, commentId, onFilesChanged, uploadedS3Keys = [] }) {
   const [files, setFiles] = useState(initialFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
   const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
   const [newS3Keys, setNewS3Keys] = useState([]);
+
+  useEffect(() => {
+    if (uploadedS3Keys.length === 0) {
+      setNewS3Keys([]);
+    }
+  }, [uploadedS3Keys]);
 
   useEffect(() => {
     return () => {
@@ -53,11 +59,13 @@ export function FileSection({ files: initialFiles = [], assignmentId, userAssign
 
       setFiles((prev) => [...prev, savedFile]);
       
-      const updatedKeys = [...newS3Keys, s3Key];
-      setNewS3Keys(updatedKeys);
-      if (onFilesChanged) {
-        onFilesChanged(updatedKeys);
-      }
+      setNewS3Keys(prev => {
+          const next = [...prev, s3Key];
+          if (onFilesChanged) {
+              onFilesChanged(next);
+          }
+          return next;
+      });
     } catch (error) {
       console.error('Upload failed:', error);
       setUploadError('Uppladdningen misslyckades. Försök igen.');
