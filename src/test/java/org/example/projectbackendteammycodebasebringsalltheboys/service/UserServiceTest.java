@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -143,7 +144,7 @@ class UserServiceTest {
   }
 
   // =========================================================
-  // registerUser
+  // externalUserRegistration
   // =========================================================
 
   @Test
@@ -246,9 +247,10 @@ class UserServiceTest {
 
     userService.updateUser(userId, request);
 
-    verify(classEnrollmentRepository).deleteByUserId(userId);
-    verify(classEnrollmentService).enrollUser(existing, sc1, ClassRole.STUDENT, adminUser);
-    verify(classEnrollmentService).enrollUser(existing, sc2, ClassRole.STUDENT, adminUser);
+    InOrder inOrder = inOrder(classEnrollmentRepository, classEnrollmentService);
+    inOrder.verify(classEnrollmentRepository).deleteByUserId(userId);
+    inOrder.verify(classEnrollmentService).enrollUser(existing, sc1, ClassRole.STUDENT, adminUser);
+    inOrder.verify(classEnrollmentService).enrollUser(existing, sc2, ClassRole.STUDENT, adminUser);
   }
 
   @Test

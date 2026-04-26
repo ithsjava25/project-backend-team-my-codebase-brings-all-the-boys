@@ -25,12 +25,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthContext } from "@/context/AuthContext.jsx";
 
-function UserDisplay({ user, wrapperClassName }) {
-  return (
-    <div className={wrapperClassName}>
+function UserDisplay({ user, wrapperClassName, linkToProfile = false }) {
+  const content = (
+    <>
       <Avatar className="h-8 w-8">
         <AvatarFallback>
           <UserRoundIcon className="h-4 w-4"/>
@@ -44,6 +44,20 @@ function UserDisplay({ user, wrapperClassName }) {
           {user.email}
         </span>
       </div>
+    </>
+  );
+
+  if (linkToProfile) {
+    return (
+      <Link to={`/profile/${user.id}`} className={`${wrapperClassName} hover:opacity-80 transition-opacity`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={wrapperClassName}>
+      {content}
     </div>
   )
 }
@@ -82,12 +96,20 @@ export function NavUser({ user }) {
             align="end"
             sideOffset={4}
           >
-              <UserDisplay user={user} wrapperClassName="flex items-center gap-2" />
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)} className="cursor-pointer">
+                <UserDisplay user={user} wrapperClassName="flex items-center gap-2" />
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOutIcon />
-                Logga out
+              <DropdownMenuItem onClick={() => navigate(`/profile/${user.id}`)} className="cursor-pointer">
+                <UserRoundIcon className="mr-2 h-4 w-4" />
+                Min profil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOutIcon className="mr-2 h-4 w-4" />
+                Logga ut
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

@@ -99,6 +99,68 @@ class CaseServiceTest {
   }
 
   @Test
+  @DisplayName("getAccessibleAssignmentsDto returns empty page if user is null")
+  void getAccessibleAssignmentsDto_nullUser_returnsEmpty() {
+    Page<AssignmentResponse> result =
+        caseService.getAccessibleAssignmentsDto(null, mock(Pageable.class));
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName(
+      "getAccessibleAssignmentsDto returns mapped assignments for ROLE_ADMIN without student enrichment")
+  void getAccessibleAssignmentsDto_admin_returnsAssignments() {
+    User admin = new User();
+    Role role = new Role();
+    role.setName("ROLE_ADMIN");
+    admin.setRole(role);
+
+    Assignment assignment = new Assignment();
+    assignment.setId(UUID.randomUUID());
+    Page<Assignment> page = new PageImpl<>(List.of(assignment));
+    Pageable pageable = mock(Pageable.class);
+
+    when(assignmentRepository.findAll(pageable)).thenReturn(page);
+    when(dtoMapper.toAssignmentResponse(assignment)).thenReturn(new AssignmentResponse());
+
+    Page<AssignmentResponse> result = caseService.getAccessibleAssignmentsDto(admin, pageable);
+
+    assertThat(result.getContent()).hasSize(1);
+    verifyNoInteractions(userAssignmentRepository);
+  }
+
+  @Test
+  @DisplayName("getAccessibleAssignmentsDto returns empty page for unknown role")
+  void getAccessibleAssignmentsDto_unknownRole_returnsEmpty() {
+    User user = new User();
+    Role role = new Role();
+    role.setName("ROLE_UNKNOWN");
+    user.setRole(role);
+
+    Page<AssignmentResponse> result =
+        caseService.getAccessibleAssignmentsDto(user, mock(Pageable.class));
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  @DisplayName("getAccessibleAssignmentsDto skips enrichment if ROLE_STUDENT page is empty")
+  void getAccessibleAssignmentsDto_studentEmptyPage_skipsEnrichment() {
+    User student = new User();
+    student.setId(UUID.randomUUID());
+    Role role = new Role();
+    role.setName("ROLE_STUDENT");
+    student.setRole(role);
+
+    Pageable pageable = mock(Pageable.class);
+    when(assignmentRepository.findByStudentEnrollment(student.getId(), pageable))
+        .thenReturn(Page.empty());
+
+    caseService.getAccessibleAssignmentsDto(student, pageable);
+
+    verifyNoInteractions(userAssignmentRepository);
+  }
+
+  @Test
   @DisplayName("createCase saves assignment with correct details")
   void createCase_savesAssignment() {
     LocalDateTime endDate = LocalDateTime.now().plusDays(1);

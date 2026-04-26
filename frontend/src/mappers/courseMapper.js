@@ -18,6 +18,7 @@ export const mapToCourseDetailFormat = (course) => {
       id: a.id,
       title: a.title,
       status: a.status,
+      studentStatus: a.studentStatus,
       deadline: a.deadline,
       createdAt: a.createdAt,
       updatedAt: a.updatedAt

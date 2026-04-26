@@ -15,11 +15,24 @@ export function FileSection({ files: initialFiles = [], assignmentId, userAssign
   const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
   const [newS3Keys, setNewS3Keys] = useState([]);
 
+  // Sync internal files state when prop changes
   useEffect(() => {
-    if (uploadedS3Keys.length === 0) {
+    setFiles(initialFiles);
+  }, [initialFiles]);
+
+  // Handle parent reset signal and notify parent of internal state changes
+  useEffect(() => {
+    if (uploadedS3Keys.length === 0 && newS3Keys.length > 0) {
       setNewS3Keys([]);
+      if (onFilesChanged) onFilesChanged([]);
     }
-  }, [uploadedS3Keys]);
+  }, [uploadedS3Keys, onFilesChanged]);
+
+  useEffect(() => {
+    if (onFilesChanged && newS3Keys.length > 0) {
+        onFilesChanged(newS3Keys);
+    }
+  }, [newS3Keys, onFilesChanged]);
 
   useEffect(() => {
     return () => {
@@ -58,14 +71,7 @@ export function FileSection({ files: initialFiles = [], assignmentId, userAssign
       );
 
       setFiles((prev) => [...prev, savedFile]);
-      
-      setNewS3Keys(prev => {
-          const next = [...prev, s3Key];
-          if (onFilesChanged) {
-              onFilesChanged(next);
-          }
-          return next;
-      });
+      setNewS3Keys(prev => [...prev, s3Key]);
     } catch (error) {
       console.error('Upload failed:', error);
       setUploadError('Uppladdningen misslyckades. Försök igen.');

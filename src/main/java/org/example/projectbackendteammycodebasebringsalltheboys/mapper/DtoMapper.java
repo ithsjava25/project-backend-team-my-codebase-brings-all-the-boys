@@ -2,6 +2,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.mapper;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
@@ -141,6 +142,25 @@ public class DtoMapper {
     return response;
   }
 
+  public CourseDetailResponse toCourseDetailResponse(
+      Course course,
+      java.util.Map<
+              UUID,
+              org.example.projectbackendteammycodebasebringsalltheboys.enums
+                  .StudentAssignmentStatus>
+          statusMap) {
+    if (course == null) return null;
+    CourseDetailResponse response = toCourseDetailResponse(course);
+
+    if (statusMap != null && response.getAssignments() != null) {
+      for (AssignmentResponse ar : response.getAssignments()) {
+        ar.setStudentStatus(statusMap.get(ar.getId()));
+      }
+    }
+
+    return response;
+  }
+
   public CourseDetailResponse toCourseDetailResponse(Course course) {
     if (course == null) return null;
     CourseDetailResponse response = new CourseDetailResponse();
@@ -181,6 +201,16 @@ public class DtoMapper {
                 .collect(Collectors.toList())
             : Collections.emptyList());
     response.setEndDate(course.getEndDate());
+    return response;
+  }
+
+  public AssignmentResponse toAssignmentResponse(
+      Assignment assignment,
+      org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus
+          studentStatus) {
+    if (assignment == null) return null;
+    AssignmentResponse response = toAssignmentResponse(assignment);
+    response.setStudentStatus(studentStatus);
     return response;
   }
 

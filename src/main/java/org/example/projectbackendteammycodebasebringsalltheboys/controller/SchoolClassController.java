@@ -25,7 +25,7 @@ public class SchoolClassController {
 
   @GetMapping
   public ResponseEntity<Page<SchoolClassSurfaceResponse>> getAccessibleSchoolClasses(
-      Principal principal, @PageableDefault(page = 0, size = 20) Pageable pageable) {
+      Principal principal, @PageableDefault(size = 20) Pageable pageable) {
     User currentUser = currentUserResolver.resolveCurrentUser(principal);
 
     Pageable effectivePageable = pageable;

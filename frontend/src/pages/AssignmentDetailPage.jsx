@@ -78,8 +78,15 @@ export default function AssignmentDetailPage() {
                     setMyAssignmentError(null);
                     const data = await userAssignmentApi.getMyAssignment(assignment.id);
                     setMyUserAssignment(data);
+                    
                     if (data?.submissions?.length > 0) {
-                        setSubmissionContent(data.submissions[data.submissions.length - 1].content || '');
+                        // Sort by createdAt descending to get the latest submission deterministically
+                        const sortedSubmissions = [...data.submissions].sort((a, b) => {
+                            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+                            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                            return dateB - dateA;
+                        });
+                        setSubmissionContent(sortedSubmissions[0].content || '');
                     }
                 } catch (err) {
                     console.error('Failed to fetch my assignment:', err);
@@ -264,21 +271,36 @@ export default function AssignmentDetailPage() {
                                         {submitError}
                                     </div>
                                 )}
+
                                 {myUserAssignment.status === 'EVALUATED' ? (
                                     <div className="space-y-4">
-                                        <div className="p-4 bg-muted rounded-lg">
+                                        <div className="p-4 bg-muted rounded-lg border border-blue-200">
                                             <h4 className="font-bold mb-1">Resultat</h4>
                                             <p className="text-2xl font-bold text-primary">{myUserAssignment.grade}</p>
                                         </div>
                                         <div>
-                                            <h4 className="font-bold mb-1">Feedback</h4>
-                                            <p className="whitespace-pre-wrap text-muted-foreground">
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Feedback</h4>
+                                            <p className="whitespace-pre-wrap">
                                                 {myUserAssignment.feedback || 'Ingen feedback lämnad.'}
                                             </p>
                                         </div>
                                         <div className="pt-4 border-t">
-                                            <h4 className="font-bold mb-1">Ditt svar</h4>
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt svar</h4>
                                             <p className="whitespace-pre-wrap">{submissionContent}</p>
+                                        </div>
+                                    </div>
+                                ) : myUserAssignment.status === 'TURNED_IN' ? (
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-green-50 text-green-800 border border-green-200 rounded-lg flex items-center gap-2">
+                                            <ClipboardCheck className="h-5 w-5" />
+                                            <span className="font-medium">Inlämnad – väntar på bedömning</span>
+                                        </div>
+                                        <div className="p-4 bg-muted/30 rounded-lg">
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt svar</h4>
+                                            <p className="whitespace-pre-wrap">{submissionContent}</p>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground italic">
+                                            Du kan inte ändra din inlämning medan den väntar på bedömning.
                                         </div>
                                     </div>
                                 ) : (
@@ -391,9 +413,13 @@ export default function AssignmentDetailPage() {
                                 <User className="h-4 w-4 text-muted-foreground"/>
                                 <span className="font-semibold">Skapad av:</span>
                                 <span>
-                                    <Link to={`/profile/${assignment.creator?.id}`} className="hover:underline text-primary">
-                                        {assignment.creator?.username}
-                                    </Link>
+                                    {assignment.creator?.id ? (
+                                        <Link to={`/profile/${assignment.creator.id}`} className="hover:underline text-primary">
+                                            {assignment.creator.username}
+                                        </Link>
+                                    ) : (
+                                        <span>{assignment.creator?.username || 'Okänd'}</span>
+                                    )}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
