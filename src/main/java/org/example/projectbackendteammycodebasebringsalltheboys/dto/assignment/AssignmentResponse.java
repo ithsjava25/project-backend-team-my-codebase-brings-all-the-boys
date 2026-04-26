@@ -4,12 +4,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Data;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.AssignmentStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 
 @Data
 public class AssignmentResponse {
   private UUID id;
   private String title;
   private AssignmentStatus status;
+  private StudentAssignmentStatus studentStatus;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private LocalDateTime deadline;

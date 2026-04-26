@@ -24,11 +24,11 @@ class DtoMapperTest {
 
   @Mock private StorageService storageService;
 
-  private DtoMapper dtoMapper;
+  @Mock private DtoMapper dtoMapper;
 
   @BeforeEach
   void setUp() {
-    dtoMapper = new DtoMapper(storageService);
+    dtoMapper = new DtoMapper(storageService, dtoMapper.getUserAssignmentRepository());
   }
 
   @Test

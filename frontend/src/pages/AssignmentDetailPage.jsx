@@ -27,6 +27,8 @@ export default function AssignmentDetailPage() {
     const [submissionError, setSubmissionError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionContent, setSubmissionContent] = useState('');
+    const [submitSuccess, setSubmitSuccess] = useState(null);
+    const [submitError, setSubmitError] = useState(null);
 
     const isAdmin = user?.role?.name === 'ROLE_ADMIN';
     const isTeacher = user?.role?.name === 'ROLE_TEACHER';
@@ -79,15 +81,18 @@ export default function AssignmentDetailPage() {
 
         try {
             setIsSubmitting(true);
+            setSubmitError(null);
+            setSubmitSuccess(null);
+            
             const updated = await userAssignmentApi.submit(myUserAssignment.id, {
                 content: submissionContent,
                 fileS3Keys: [] // Files are already attached via FileSection in the current implementation
             });
             setMyUserAssignment(updated);
-            alert('Din inlämning har skickats!');
+            setSubmitSuccess('Din inlämning har skickats!');
         } catch (err) {
             console.error('Submission failed:', err);
-            alert(err.response?.data?.message || 'Inlämningen misslyckades.');
+            setSubmitError(err.response?.data?.message || 'Inlämningen misslyckades.');
         } finally {
             setIsSubmitting(false);
         }

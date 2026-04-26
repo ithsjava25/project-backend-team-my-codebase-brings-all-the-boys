@@ -92,9 +92,10 @@ export function AssignmentListView({
             <TableRow>
               <TableHead>Uppgift</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Inlämnad</TableHead>
+              <TableHead>Bedömd</TableHead>
               <TableHead>Slutdatum</TableHead>
               <TableHead className="text-right">Skapad</TableHead>
-              <TableHead className="text-right">Uppdaterad</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -110,9 +111,22 @@ export function AssignmentListView({
                     {getStatusLabel(assignment.status)}
                   </Badge>
                 </TableCell>
+                <TableCell>
+                    {assignment.studentStatus === 'TURNED_IN' || assignment.studentStatus === 'EVALUATED' ? (
+                        <Badge variant="default" className="bg-green-500">Ja</Badge>
+                    ) : (
+                        <Badge variant="secondary">Nej</Badge>
+                    )}
+                </TableCell>
+                <TableCell>
+                    {assignment.studentStatus === 'EVALUATED' ? (
+                        <Badge variant="default" className="bg-blue-500">Ja</Badge>
+                    ) : (
+                        <Badge variant="secondary">Nej</Badge>
+                    )}
+                </TableCell>
                 <TableCell>{formatDate(assignment.deadline)}</TableCell>
                 <TableCell className="text-right">{formatDate(assignment.createdAt)}</TableCell>
-                <TableCell className="text-right">{formatDate(assignment.updatedAt)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

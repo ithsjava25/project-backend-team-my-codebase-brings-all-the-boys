@@ -139,6 +139,35 @@ public class CaseService {
           default -> Page.empty();
         };
 
+    if (roleName.equals("ROLE_STUDENT")) {
+      // Optimization: Fetch UserAssignments for the student for the assignments on this page
+      java.util.List<org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment>
+          userAssignments =
+              dtoMapper
+                  .getUserAssignmentRepository()
+                  .findByStudentAndAssignmentIn(user, assignments.getContent());
+
+      java.util.Map<
+              UUID,
+              org.example.projectbackendteammycodebasebringsalltheboys.enums
+                  .StudentAssignmentStatus>
+          statusMap =
+              userAssignments.stream()
+                  .collect(
+                      Collectors.toMap(
+                          ua -> ua.getAssignment().getId(),
+                          org.example.projectbackendteammycodebasebringsalltheboys.entity
+                                  .UserAssignment
+                              ::getStatus));
+
+      return assignments.map(
+          a -> {
+            AssignmentResponse resp = dtoMapper.toAssignmentResponse(a);
+            resp.setStudentStatus(statusMap.get(a.getId()));
+            return resp;
+          });
+    }
+
     return assignments.map(dtoMapper::toAssignmentResponse);
   }
 

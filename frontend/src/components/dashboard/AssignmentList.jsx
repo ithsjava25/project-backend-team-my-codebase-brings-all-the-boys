@@ -39,6 +39,8 @@ export function AssignmentList({ assignments }) {
       <TableHeader>
         <TableRow>
           <TableHead>Uppgift</TableHead>
+          <TableHead>Inlämnad</TableHead>
+          <TableHead>Bedömd</TableHead>
           <TableHead className="text-right">Deadline</TableHead>
           <TableHead className="text-right">Status</TableHead>
         </TableRow>
@@ -50,6 +52,20 @@ export function AssignmentList({ assignments }) {
               <Link to={`/assignments/${assignment.id}`} className="hover:underline">
                 {assignment.title}
               </Link>
+            </TableCell>
+            <TableCell>
+                {assignment.studentStatus === 'TURNED_IN' || assignment.studentStatus === 'EVALUATED' ? (
+                    <Badge variant="default" className="bg-green-500 text-[10px] h-5 px-1">Ja</Badge>
+                ) : (
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1">Nej</Badge>
+                )}
+            </TableCell>
+            <TableCell>
+                {assignment.studentStatus === 'EVALUATED' ? (
+                    <Badge variant="default" className="bg-blue-500 text-[10px] h-5 px-1">Ja</Badge>
+                ) : (
+                    <Badge variant="secondary" className="text-[10px] h-5 px-1">Nej</Badge>
+                )}
             </TableCell>
             <TableCell className="text-right">
               <Badge variant="outline">{formatDate(assignment.deadline)}</Badge>

@@ -3,6 +3,7 @@ package org.example.projectbackendteammycodebasebringsalltheboys.mapper;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.assignment.AssignmentResponse;
@@ -21,6 +22,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserPro
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.user.UserSummary;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.*;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.storage.StorageService;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Component;
 public class DtoMapper {
 
   private final StorageService storageService;
+  @Getter private final UserAssignmentRepository userAssignmentRepository;
 
   public UserSummary toUserSummary(User user) {
     if (user == null) return null;
