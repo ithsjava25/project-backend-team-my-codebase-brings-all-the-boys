@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class UserAssignmentService {
 
   private final UserAssignmentRepository userAssignmentRepository;
@@ -57,6 +58,10 @@ public class UserAssignmentService {
 
   @Transactional
   public void submitWork(UserAssignment ua, String content, List<String> fileS3Keys) {
+    log.info(
+        "Submitting work for assignment {} and student {}",
+        ua.getAssignment().getId(),
+        ua.getStudent().getId());
     if (ua.getAssignment().getDeadline() != null
         && LocalDateTime.now().isAfter(ua.getAssignment().getDeadline())) {
       throw new BadRequestException("The deadline for this assignment has passed.");
@@ -103,8 +108,18 @@ public class UserAssignmentService {
     submission.setSubmittedAt(LocalDateTime.now());
     Submission savedSubmission = submissionRepository.save(submission);
 
+    // Manually add to the collection to ensure it's available in the DTO mapping during the same
+    // transaction
+    if (ua.getSubmissions() == null) {
+      ua.setSubmissions(new java.util.LinkedHashSet<>());
+    }
+    ua.getSubmissions().add(savedSubmission);
+    log.info("New submission saved. Total submissions for UA: {}", ua.getSubmissions().size());
+
     for (FileMetadata file : filesToAttach) {
       file.setSubmission(savedSubmission);
+      file.setUserAssignment(
+          null); // Clear previous parent to satisfy hasExactlyOneParent validation
       fileMetadataRepository.save(file);
     }
 
@@ -173,13 +188,23 @@ public class UserAssignmentService {
 
   @Transactional(readOnly = true)
   public Optional<UserAssignment> getByAssignmentAndStudent(Assignment assignment, User student) {
-    return userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
+    Optional<UserAssignment> ua =
+        userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId());
+    ua.ifPresent(
+        userAssignment ->
+            log.info(
+                "Found UserAssignment {} with {} submissions",
+                userAssignment.getId(),
+                userAssignment.getSubmissions().size()));
+    return ua;
   }
 
   @Transactional
   public UserAssignment getOrCreateForStudent(Assignment assignment, User student) {
     Optional<UserAssignment> existing =
-        userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
+        userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId());
 
     if (existing.isPresent()) {
       return existing.get();

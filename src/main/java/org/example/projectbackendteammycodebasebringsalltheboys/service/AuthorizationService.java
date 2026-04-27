@@ -74,7 +74,9 @@ public class AuthorizationService {
       return true;
     }
     return isStudent(user)
-        && userAssignmentRepository.findByAssignmentAndStudent(assignment, user).isPresent();
+        && userAssignmentRepository
+            .findByAssignment_IdAndStudent_Id(assignment.getId(), user.getId())
+            .isPresent();
   }
 
   @Transactional(readOnly = true)

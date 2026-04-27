@@ -102,9 +102,11 @@ export function CourseListView({ courses, view: initialView = 'grid', role = 'st
                     <TableCell className="font-medium">{course.name}</TableCell>
                     <TableCell><Badge variant="outline">{course.class}</Badge></TableCell>
                     {role === 'student' && (
-                      <>
-                        <span>PLACEHOLDER</span>
-                      </>
+                      <TableCell>
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
+                          Aktiv
+                        </Badge>
+                      </TableCell>
                     )}
                     {role === 'teacher' && (
                       <>

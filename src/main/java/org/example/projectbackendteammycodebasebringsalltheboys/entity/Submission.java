@@ -2,8 +2,8 @@ package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,7 +29,7 @@ public class Submission extends BaseEntity {
   private String content;
 
   @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<FileMetadata> files = new ArrayList<>();
+  private Set<FileMetadata> files = new LinkedHashSet<>();
 
   private LocalDateTime submittedAt;
 

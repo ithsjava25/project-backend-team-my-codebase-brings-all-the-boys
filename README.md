@@ -28,7 +28,7 @@ This project is a high-security case management system designed for school envir
 - Hardened User Profiles with scoped authorization and shared course/class visibility.
 - Developed self-edit functionality for user profiles with current password verification.
 - Resolved Hibernate 6 soft-delete incompatibilities and DataIntegrityViolation issues in seeding.
-- Added advanced Activity Log filtering and fixed deterministic paging.
+- Added advanced Activity Log filtering, fixed deterministic paging, and enhanced context for enrollment/deletion events.
 - Implemented students' "Turn In" workflow and improved status visibility.
 
 ## Current Todo List

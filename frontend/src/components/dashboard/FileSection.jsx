@@ -15,7 +15,8 @@ export function FileSection({
                                 userAssignmentId,
                                 commentId,
                                 onFilesChanged,
-                                uploadedS3Keys = EMPTY_S3_KEYS
+                                uploadedS3Keys = EMPTY_S3_KEYS,
+                                title = "Bilagor"
                             }) {
     const [localFiles, setLocalFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -167,7 +168,7 @@ export function FileSection({
         <>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                    <CardTitle>Bilagor ({files.length})</CardTitle>
+                    <CardTitle>{title} ({files.length})</CardTitle>
                     <div className="relative">
                         <input
                             type="file"

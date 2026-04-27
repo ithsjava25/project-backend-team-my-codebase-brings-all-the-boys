@@ -21,10 +21,11 @@ public interface UserAssignmentRepository extends JpaRepository<UserAssignment, 
   @EntityGraph(attributePaths = {"assignment", "student"})
   List<UserAssignment> findByStudent(User student);
 
-  @EntityGraph(attributePaths = {"student"})
+  @EntityGraph(attributePaths = {"student", "submissions.files", "files"})
   List<UserAssignment> findByAssignment(Assignment assignment);
 
-  Optional<UserAssignment> findByAssignmentAndStudent(Assignment assignment, User student);
+  @EntityGraph(attributePaths = {"submissions.files", "files", "student"})
+  Optional<UserAssignment> findByAssignment_IdAndStudent_Id(UUID assignmentId, UUID studentId);
 
   long countByStatus(StudentAssignmentStatus status);
 

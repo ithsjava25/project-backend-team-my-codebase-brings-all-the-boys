@@ -82,7 +82,8 @@ class AuthorizationServiceTest {
   void canAccessCase_studentAssigned_returnsTrue() {
     User student = createUser("ROLE_STUDENT");
     Assignment assignment = createAssignment(null);
-    when(userAssignmentRepository.findByAssignmentAndStudent(assignment, student))
+    when(userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId()))
         .thenReturn(Optional.of(new UserAssignment()));
 
     assertThat(authorizationService.canAccessCase(student, assignment)).isTrue();
@@ -93,7 +94,8 @@ class AuthorizationServiceTest {
   void canAccessCase_studentNotAssigned_returnsFalse() {
     User student = createUser("ROLE_STUDENT");
     Assignment assignment = createAssignment(null);
-    when(userAssignmentRepository.findByAssignmentAndStudent(assignment, student))
+    when(userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId()))
         .thenReturn(Optional.empty());
 
     assertThat(authorizationService.canAccessCase(student, assignment)).isFalse();

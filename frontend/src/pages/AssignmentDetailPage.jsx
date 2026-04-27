@@ -1,5 +1,5 @@
 import {useParams, Link, useNavigate} from 'react-router-dom';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useAssignmentDetail} from '@/hooks/useAssignmentDetail';
 import {userAssignmentApi} from '@/api/userAssignments';
 import {CommentSection} from '@/components/dashboard/CommentSection';
@@ -36,6 +36,21 @@ export default function AssignmentDetailPage() {
     const isStudent = user?.role?.name === 'ROLE_STUDENT';
     const canManageSubmissions = isAdmin || isTeacher;
 
+    // Merge files from UserAssignment and all its Submissions for a complete list for the student
+    const studentFiles = useMemo(() => {
+        if (!isStudent || !myUserAssignment) return [];
+
+        const directFiles = myUserAssignment.files || [];
+        const submissionFiles = (myUserAssignment.submissions || [])
+            .flatMap(s => s.files || []);
+
+        // Use a Map to ensure uniqueness by ID
+        const fileMap = new Map();
+        [...directFiles, ...submissionFiles].forEach(f => fileMap.set(f.id, f));
+
+        return Array.from(fileMap.values());
+    }, [isStudent, myUserAssignment]);
+
     useEffect(() => {
         let timeout;
         if (submitSuccess) {
@@ -50,6 +65,15 @@ export default function AssignmentDetailPage() {
         setSubmissionContent(e.target.value);
         if (submitSuccess) setSubmitSuccess(null);
     };
+
+    useEffect(() => {
+        // Reset local state when assignment changes
+        setMyUserAssignment(null);
+        setSubmissionContent('');
+        setSubmitSuccess(null);
+        setSubmitError(null);
+        setUploadedS3Keys([]);
+    }, [assignmentId]);
 
     useEffect(() => {
         if (canManageSubmissions && assignment?.id) {
@@ -78,12 +102,12 @@ export default function AssignmentDetailPage() {
                     setMyAssignmentError(null);
                     const data = await userAssignmentApi.getMyAssignment(assignment.id);
                     setMyUserAssignment(data);
-                    
+
                     if (data?.submissions?.length > 0) {
-                        // Sort by createdAt descending to get the latest submission deterministically
+                        // Sort by submittedAt descending to get the latest submission deterministically
                         const sortedSubmissions = [...data.submissions].sort((a, b) => {
-                            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
-                            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+                            const dateA = a.submittedAt ? new Date(a.submittedAt) : new Date(0);
+                            const dateB = b.submittedAt ? new Date(b.submittedAt) : new Date(0);
                             return dateB - dateA;
                         });
                         setSubmissionContent(sortedSubmissions[0].content || '');
@@ -106,7 +130,7 @@ export default function AssignmentDetailPage() {
             setIsSubmitting(true);
             setSubmitError(null);
             setSubmitSuccess(null);
-            
+
             const updated = await userAssignmentApi.submit(myUserAssignment.id, {
                 content: submissionContent,
                 fileS3Keys: uploadedS3Keys
@@ -162,10 +186,14 @@ export default function AssignmentDetailPage() {
 
     const getUserAssignmentStatusLabel = (status) => {
         switch (status) {
-            case 'ASSIGNED': return 'Tilldelad';
-            case 'TURNED_IN': return 'Inlämnad';
-            case 'EVALUATED': return 'Bedömd';
-            default: return status;
+            case 'ASSIGNED':
+                return 'Tilldelad';
+            case 'TURNED_IN':
+                return 'Inlämnad';
+            case 'EVALUATED':
+                return 'Bedömd';
+            default:
+                return status;
         }
     };
 
@@ -192,7 +220,8 @@ export default function AssignmentDetailPage() {
                             {getStatusLabel(assignment.status)}
                         </Badge>
                         {isStudent && myUserAssignment && (
-                            <Badge variant={myUserAssignment.status === 'EVALUATED' ? 'default' : 'secondary'} className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200">
+                            <Badge variant={myUserAssignment.status === 'EVALUATED' ? 'default' : 'secondary'}
+                                   className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200">
                                 Din status: {getUserAssignmentStatusLabel(myUserAssignment.status)}
                             </Badge>
                         )}
@@ -242,7 +271,7 @@ export default function AssignmentDetailPage() {
                             </CardContent>
                         </Card>
                     )}
-                    
+
                     {isStudent && myUserAssignment && (
                         <Card>
                             <CardHeader>
@@ -255,8 +284,8 @@ export default function AssignmentDetailPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {submitSuccess && (
-                                    <div 
-                                        role="status" 
+                                    <div
+                                        role="status"
                                         aria-live="polite"
                                         className="p-3 bg-green-100 text-green-800 border border-green-200 rounded-md text-sm"
                                     >
@@ -264,7 +293,7 @@ export default function AssignmentDetailPage() {
                                     </div>
                                 )}
                                 {submitError && (
-                                    <div 
+                                    <div
                                         role="alert"
                                         className="p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-sm"
                                     >
@@ -285,18 +314,21 @@ export default function AssignmentDetailPage() {
                                             </p>
                                         </div>
                                         <div className="pt-4 border-t">
-                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt svar</h4>
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt
+                                                svar</h4>
                                             <p className="whitespace-pre-wrap">{submissionContent}</p>
                                         </div>
                                     </div>
                                 ) : myUserAssignment.status === 'TURNED_IN' ? (
                                     <div className="space-y-4">
-                                        <div className="p-4 bg-green-50 text-green-800 border border-green-200 rounded-lg flex items-center gap-2">
-                                            <ClipboardCheck className="h-5 w-5" />
+                                        <div
+                                            className="p-4 bg-green-50 text-green-800 border border-green-200 rounded-lg flex items-center gap-2">
+                                            <ClipboardCheck className="h-5 w-5"/>
                                             <span className="font-medium">Inlämnad – väntar på bedömning</span>
                                         </div>
                                         <div className="p-4 bg-muted/30 rounded-lg">
-                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt svar</h4>
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt
+                                                svar</h4>
                                             <p className="whitespace-pre-wrap">{submissionContent}</p>
                                         </div>
                                         <div className="text-xs text-muted-foreground italic">
@@ -305,7 +337,7 @@ export default function AssignmentDetailPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        <Textarea 
+                                        <Textarea
                                             placeholder="Skriv ditt svar här..."
                                             className="min-h-[200px]"
                                             value={submissionContent}
@@ -313,8 +345,8 @@ export default function AssignmentDetailPage() {
                                             disabled={isSubmitting}
                                         />
                                         <div className="flex justify-end">
-                                            <Button 
-                                                onClick={handleSubmission} 
+                                            <Button
+                                                onClick={handleSubmission}
                                                 disabled={isSubmitting || !submissionContent.trim()}
                                                 className="gap-2"
                                             >
@@ -372,8 +404,8 @@ export default function AssignmentDetailPage() {
                                                     onClick={() => navigate(`/assignments/${assignmentId}/grade/${ua.student.id}`)}
                                                 >
                                                     <TableCell className="font-medium text-xs truncate max-w-[100px]">
-                                                        <Link 
-                                                            to={`/profile/${ua.student.id}`} 
+                                                        <Link
+                                                            to={`/profile/${ua.student.id}`}
                                                             className="hover:underline text-primary"
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
@@ -414,7 +446,8 @@ export default function AssignmentDetailPage() {
                                 <span className="font-semibold">Skapad av:</span>
                                 <span>
                                     {assignment.creator?.id ? (
-                                        <Link to={`/profile/${assignment.creator.id}`} className="hover:underline text-primary">
+                                        <Link to={`/profile/${assignment.creator.id}`}
+                                              className="hover:underline text-primary">
                                             {assignment.creator.username}
                                         </Link>
                                     ) : (
@@ -432,7 +465,8 @@ export default function AssignmentDetailPage() {
 
                     {(!isStudent || myUserAssignment) && (
                         <FileSection
-                            files={isStudent ? (myUserAssignment?.files ?? []) : (assignment.files ?? [])}
+                            files={isStudent ? studentFiles : (assignment.files ?? [])}
+                            title={isStudent ? "Dina filer" : "Lärarens filer"}
                             assignmentId={isStudent ? undefined : assignmentId}
                             userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
                             onFilesChanged={setUploadedS3Keys}

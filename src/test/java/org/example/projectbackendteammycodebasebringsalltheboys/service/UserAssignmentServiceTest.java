@@ -53,10 +53,13 @@ class UserAssignmentServiceTest {
   void submitWork_invalidStatus_throwsException() {
     Assignment assignment = new Assignment();
     assignment.setDeadline(LocalDateTime.now().plusDays(1));
+    User student = new User();
+    student.setId(UUID.randomUUID());
 
     UserAssignment ua = new UserAssignment();
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
     ua.setAssignment(assignment);
+    ua.setStudent(student);
 
     assertThatThrownBy(() -> userAssignmentService.submitWork(ua, "content", List.of()))
         .isInstanceOf(BadRequestException.class)
@@ -143,8 +146,11 @@ class UserAssignmentServiceTest {
   void submitWork_deadlinePassed_throwsException() {
     Assignment assignment = new Assignment();
     assignment.setDeadline(LocalDateTime.now().minusHours(1));
+    User student = new User();
+    student.setId(UUID.randomUUID());
     UserAssignment ua = new UserAssignment();
     ua.setAssignment(assignment);
+    ua.setStudent(student);
     ua.setStatus(StudentAssignmentStatus.ASSIGNED);
 
     assertThatThrownBy(() -> userAssignmentService.submitWork(ua, "too late", List.of()))
@@ -202,9 +208,11 @@ class UserAssignmentServiceTest {
   @DisplayName("getOrCreateForStudent returns existing if present")
   void getOrCreateForStudent_existing_returnsExisting() {
     Assignment a = new Assignment();
+    a.setId(UUID.randomUUID());
     User student = new User();
+    student.setId(UUID.randomUUID());
     UserAssignment existing = new UserAssignment();
-    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+    when(userAssignmentRepository.findByAssignment_IdAndStudent_Id(a.getId(), student.getId()))
         .thenReturn(Optional.of(existing));
 
     UserAssignment result = userAssignmentService.getOrCreateForStudent(a, student);
@@ -217,14 +225,16 @@ class UserAssignmentServiceTest {
   @DisplayName("getOrCreateForStudent creates new if absent and authorized")
   void getOrCreateForStudent_absent_createsNew() {
     Assignment a = new Assignment();
+    a.setId(UUID.randomUUID());
     User student = new User();
+    student.setId(UUID.randomUUID());
     org.example.projectbackendteammycodebasebringsalltheboys.entity.Role role =
         new org.example.projectbackendteammycodebasebringsalltheboys.entity.Role();
     role.setName("ROLE_STUDENT");
     student.setRole(role);
     student.setUsername("alice");
 
-    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+    when(userAssignmentRepository.findByAssignment_IdAndStudent_Id(a.getId(), student.getId()))
         .thenReturn(Optional.empty());
     when(authorizationService.canViewAssignment(student, a)).thenReturn(true);
     when(userAssignmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -240,13 +250,15 @@ class UserAssignmentServiceTest {
   @DisplayName("getOrCreateForStudent throws NotFoundException if unauthorized")
   void getOrCreateForStudent_unauthorized_throwsException() {
     Assignment a = new Assignment();
+    a.setId(UUID.randomUUID());
     User student = new User();
+    student.setId(UUID.randomUUID());
     org.example.projectbackendteammycodebasebringsalltheboys.entity.Role role =
         new org.example.projectbackendteammycodebasebringsalltheboys.entity.Role();
     role.setName("ROLE_STUDENT");
     student.setRole(role);
 
-    when(userAssignmentRepository.findByAssignmentAndStudent(a, student))
+    when(userAssignmentRepository.findByAssignment_IdAndStudent_Id(a.getId(), student.getId()))
         .thenReturn(Optional.empty());
     when(authorizationService.canViewAssignment(student, a)).thenReturn(false);
 

@@ -345,7 +345,9 @@ public class DataSeeder implements CommandLineRunner {
       StudentAssignmentStatus status,
       String grade,
       String feedback) {
-    if (userAssignmentRepository.findByAssignmentAndStudent(assignment, student).isEmpty()) {
+    if (userAssignmentRepository
+        .findByAssignment_IdAndStudent_Id(assignment.getId(), student.getId())
+        .isEmpty()) {
       UserAssignment ua = new UserAssignment();
       ua.setAssignment(assignment);
       ua.setStudent(student);

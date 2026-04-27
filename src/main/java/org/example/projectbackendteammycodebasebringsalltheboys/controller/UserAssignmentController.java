@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/user-assignments")
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class UserAssignmentController {
 
   private final UserAssignmentService userAssignmentService;
@@ -84,7 +85,13 @@ public class UserAssignmentController {
             .getByAssignmentAndStudent(assignment, student)
             .orElseThrow(() -> new NotFoundException("Submission not found for this student."));
 
-    return ResponseEntity.ok(dtoMapper.toUserAssignmentResponse(ua));
+    UserAssignmentResponse response = dtoMapper.toUserAssignmentResponse(ua);
+    log.info(
+        "Returning UserAssignmentResponse with {} submissions for student {}",
+        response.getSubmissions() != null ? response.getSubmissions().size() : 0,
+        student.getUsername());
+
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/evaluated")

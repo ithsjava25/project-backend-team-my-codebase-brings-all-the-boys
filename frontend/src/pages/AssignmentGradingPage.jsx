@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import {userAssignmentApi} from '@/api/userAssignments';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -48,6 +48,31 @@ export default function AssignmentGradingPage() {
         fetchData();
     }, [assignmentId, studentId]);
 
+    // Consolidate all student-uploaded files (direct and via submissions)
+    const studentFiles = useMemo(() => {
+        if (!ua) return [];
+        
+        const directFiles = ua.files || [];
+        const submissionFiles = (ua.submissions || [])
+            .flatMap(s => s.files || []);
+        
+        // Use a Map to ensure uniqueness by ID
+        const fileMap = new Map();
+        [...directFiles, ...submissionFiles].forEach(f => fileMap.set(f.id, f));
+        
+        return Array.from(fileMap.values());
+    }, [ua]);
+
+    // Deterministically get the latest submission by date
+    const latestSubmission = useMemo(() => {
+        if (!ua || !ua.submissions || ua.submissions.length === 0) return null;
+        return [...ua.submissions].sort((a, b) => {
+            const dateA = a.submittedAt ? new Date(a.submittedAt) : new Date(0);
+            const dateB = b.submittedAt ? new Date(b.submittedAt) : new Date(0);
+            return dateB - dateA;
+        })[0];
+    }, [ua]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.grade) {
@@ -71,10 +96,6 @@ export default function AssignmentGradingPage() {
     if (loading) return <div className="p-8 text-center">Laddar inlämning...</div>;
     if (error) return <div className="p-8 text-center text-destructive">Fel: {error}</div>;
     if (!ua) return <div className="p-8 text-center">Inlämning hittades inte.</div>;
-
-    const latestSubmission = ua.submissions && ua.submissions.length > 0 
-        ? ua.submissions[ua.submissions.length - 1] 
-        : null;
 
     return (
         <div className="p-8 max-w-4xl mx-auto space-y-6">
@@ -102,33 +123,35 @@ export default function AssignmentGradingPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {latestSubmission ? (
-                                <>
-                                    <div className="prose dark:prose-invert max-w-none">
-                                        <p className="whitespace-pre-wrap">{latestSubmission.content}</p>
-                                    </div>
-
-                                    {latestSubmission.files && latestSubmission.files.length > 0 && (
-                                        <div className="pt-4 border-t">
-                                            <h4 className="font-semibold mb-2 flex items-center gap-2">
-                                                <FileText className="h-4 w-4"/>
-                                                Bifogade filer
-                                            </h4>
-                                            <div className="grid grid-cols-1 gap-2">
-                                                {latestSubmission.files.map(file => (
-                                                    <div key={file.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                                        <span className="text-sm truncate">{file.fileName}</span>
-                                                        <Button size="sm" variant="ghost" asChild>
-                                                            <a href={file.downloadUrl} target="_blank" rel="noopener noreferrer">
-                                                                <Download className="h-4 w-4"/>
-                                                            </a>
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
+                                <div className="prose dark:prose-invert max-w-none">
+                                    <p className="whitespace-pre-wrap">{latestSubmission.content}</p>
+                                </div>
                             ) : (
+                                <p className="text-muted-foreground italic">Ingen inlämningstext har skrivits än.</p>
+                            )}
+
+                            {studentFiles.length > 0 && (
+                                <div className="pt-4 border-t">
+                                    <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                                        <FileText className="h-4 w-4"/>
+                                        Studentens filer ({studentFiles.length})
+                                    </h4>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {studentFiles.map(file => (
+                                            <div key={file.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                                                <span className="text-sm truncate">{file.fileName}</span>
+                                                <Button size="sm" variant="ghost" asChild>
+                                                    <a href={file.downloadUrl} target="_blank" rel="noopener noreferrer">
+                                                        <Download className="h-4 w-4"/>
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {!latestSubmission && studentFiles.length === 0 && (
                                 <p className="text-muted-foreground italic">Ingen inlämning har gjorts än.</p>
                             )}
                         </CardContent>
