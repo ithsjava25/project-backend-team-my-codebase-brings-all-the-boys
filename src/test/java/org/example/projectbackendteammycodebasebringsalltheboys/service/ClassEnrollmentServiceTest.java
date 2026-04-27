@@ -37,6 +37,7 @@ class ClassEnrollmentServiceTest {
     User user = new User();
     user.setUsername("user1");
     SchoolClass schoolClass = new SchoolClass();
+    schoolClass.setName("Class A");
     schoolClass.setId(UUID.randomUUID());
     User actor = new User();
 
@@ -62,6 +63,7 @@ class ClassEnrollmentServiceTest {
     User user = new User();
     user.setUsername("user1");
     SchoolClass schoolClass = new SchoolClass();
+    schoolClass.setName("Class A");
     schoolClass.setId(UUID.randomUUID());
     User actor = new User();
     ClassEnrollment existing = new ClassEnrollment();

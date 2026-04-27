@@ -43,9 +43,10 @@ class UserServiceTest {
   @Mock private UserAssignmentRepository userAssignmentRepository;
   @Mock private SubmissionRepository submissionRepository;
   @Mock private FileMetadataRepository fileMetadataRepository;
-  @Mock private ActivityLogRepository activityLogRepository;
-  @Mock private AssignmentRepository assignmentRepository;
   @Mock private CommentRepository commentRepository;
+  @Mock private ActivityLogRepository activityLogRepository;
+  @Mock private ActivityLogService activityLogService;
+  @Mock private AssignmentRepository assignmentRepository;
   @Mock private ClassEnrollmentService classEnrollmentService;
 
   private UserService userService;
@@ -66,6 +67,7 @@ class UserServiceTest {
             fileMetadataRepository,
             commentRepository,
             activityLogRepository,
+            activityLogService,
             authorizationService,
             assignmentRepository,
             classEnrollmentService);

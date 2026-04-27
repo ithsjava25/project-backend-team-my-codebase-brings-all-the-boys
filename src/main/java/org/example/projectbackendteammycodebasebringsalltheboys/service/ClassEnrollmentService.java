@@ -41,7 +41,13 @@ public class ClassEnrollmentService {
           ActivityAction.UPDATED,
           EntityType.CLASS_ENROLLMENT,
           saved.getId(),
-          Map.of("enrolledUser", user.getUsername(), "role", role.name()),
+          Map.of(
+              "enrolledUser",
+              user.getUsername(),
+              "role",
+              role.name(),
+              "class",
+              schoolClass.getName()),
           ActivityStatus.SUCCESS);
       return saved;
     }
@@ -59,7 +65,13 @@ public class ClassEnrollmentService {
         ActivityAction.ADDED,
         EntityType.CLASS_ENROLLMENT,
         saved.getId(),
-        Map.of("enrolledUser", user.getUsername(), "role", role.name()),
+        Map.of(
+            "enrolledUser",
+            user.getUsername(),
+            "role",
+            role.name(),
+            "class",
+            schoolClass.getName()),
         ActivityStatus.SUCCESS);
 
     return saved;
@@ -76,7 +88,7 @@ public class ClassEnrollmentService {
           ActivityAction.REMOVED,
           EntityType.CLASS_ENROLLMENT,
           null,
-          Map.of("removedUser", user.getUsername()),
+          Map.of("removedUser", user.getUsername(), "class", schoolClass.getName()),
           ActivityStatus.FAILED);
       return;
     }
@@ -88,7 +100,7 @@ public class ClassEnrollmentService {
         ActivityAction.REMOVED,
         EntityType.CLASS_ENROLLMENT,
         null,
-        Map.of("removedUser", user.getUsername()),
+        Map.of("removedUser", user.getUsername(), "class", schoolClass.getName()),
         ActivityStatus.SUCCESS);
   }
 

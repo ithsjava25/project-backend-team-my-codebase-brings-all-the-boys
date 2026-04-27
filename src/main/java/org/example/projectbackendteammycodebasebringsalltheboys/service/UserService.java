@@ -10,6 +10,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
@@ -43,6 +44,7 @@ public class UserService {
   private final FileMetadataRepository fileMetadataRepository;
   private final CommentRepository commentRepository;
   private final ActivityLogRepository activityLogRepository;
+  private final ActivityLogService activityLogService;
   private final AuthorizationService authorizationService;
   private final AssignmentRepository assignmentRepository;
   private final ClassEnrollmentService classEnrollmentService;
@@ -344,12 +346,21 @@ public class UserService {
   }
 
   @Transactional
-  @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.USER)
   public void deleteUser(UUID id) {
     User user =
         userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 
     User actor = getCurrentUser();
+
+    // Log BEFORE deletion to capture the username
+    activityLogService.log(
+        actor,
+        null,
+        ActivityAction.DELETED,
+        EntityType.USER,
+        id,
+        Map.of("username", user.getUsername()),
+        ActivityStatus.SUCCESS);
 
     // 1. Delete student-scoped records (Cascade is often LAZY or missing for soft-delete)
     // First delete comments linked to student's UserAssignments to avoid FK constraints

@@ -149,9 +149,13 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
             SCHOOL_CLASS: "klass",
             USER_ASSIGNMENT: "uppgift",
             COMMENT: "kommentar",
-            CLASS_ENROLLMENT: "klass",
+            CLASS_ENROLLMENT: "enrollment", // Internal label, used in logic below
             SUBMISSION: "inlämning",
+            USER: "användare",
+            FILE: "fil",
         };
+
+        const getEntityLabel = (t) => (typeMap[t.toUpperCase()] || t).toLowerCase();
 
         switch (action) {
             case 'LOGIN':
@@ -162,13 +166,16 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                 if (type === 'ASSIGNMENT') return `skapade uppgiften "${details.title || 'okänd'}"`;
                 if (type === 'COURSE') return `skapade kursen "${details.name || 'okänd'}"`;
                 if (type === 'USER') return `skapade användaren "${details.username || 'okänd'}"`;
-                return `skapade ${type.toLowerCase()}`;
+                return `skapade ${getEntityLabel(type)}`;
             case 'UPDATED':
                 if (type === 'COURSE') return `uppdaterade kursen "${details.name || 'okänd'}"`;
                 if (type === 'USER') return `uppdaterade användaren "${details.username || 'okänd'}"`;
-                return `uppdaterade ${type.toLowerCase()}`;
+                if (type === 'CLASS_ENROLLMENT') {
+                    return `uppdaterade rollen för ${details.enrolledUser || 'en användare'} till ${details.role || 'okänd'}`;
+                }
+                return `uppdaterade ${getEntityLabel(type)}`;
             case 'DELETED': {
-                const label = (typeMap[type.toUpperCase()] || type).toLowerCase();
+                const label = getEntityLabel(type);
                 const candidates = [
                     details.name,
                     details.username,
@@ -179,19 +186,27 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                     details.class,
                 ];
                 const resolved = candidates.find((v) => typeof v === 'string' && v.length > 0) ?? 'okänd';
-                return `tog bort ${label} (${resolved.toLowerCase()})`;
+                return `tog bort ${label === 'enrollment' ? 'medlemskap' : label} (${resolved.toLowerCase()})`;
             }
+            case 'REMOVED':
+                if (type === 'CLASS_ENROLLMENT') {
+                    return `tog bort ${details.removedUser || 'en användare'} från klassen ${details.class || ''}`.trim();
+                }
+                return `tog bort ${getEntityLabel(type)}`;
             case 'ADDED':
                 if (type === 'COMMENT') return `kommenterade på "${details.assignmentTitle || 'en uppgift'}"`;
                 if (type === 'FILE') return `laddade upp filen "${details.fileName || 'okänd'}"`;
                 if (type === 'SUBMISSION') return `lämnade in "${details.assignmentTitle || 'en uppgift'}"`;
-                return `lade till ${type.toLowerCase()}`;
+                if (type === 'CLASS_ENROLLMENT') {
+                    return `lade till ${details.enrolledUser || 'en användare'} i klassen ${details.class || ''} som ${details.role || 'medlem'}`.trim();
+                }
+                return `lade till ${getEntityLabel(type)}`;
             case 'ASSIGNED':
                 return `tilldelade "${details.assignmentTitle || 'uppgift'}" till ${details.student || 'en student'}`;
             case 'EVALUATED':
                 return `bedömde en inlämning med betyg ${details.grade || '-'}`;
             default:
-                return `${action.toLowerCase()} ${type.toLowerCase()}`;
+                return `${action.toLowerCase()} ${getEntityLabel(type)}`;
         }
     };
 
