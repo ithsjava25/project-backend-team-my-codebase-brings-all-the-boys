@@ -40,12 +40,14 @@ public abstract class BaseEntity {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof BaseEntity that)) return false;
+    if (o == null || org.hibernate.Hibernate.getClass(this) != org.hibernate.Hibernate.getClass(o))
+      return false;
+    BaseEntity that = (BaseEntity) o;
     return id != null && id.equals(that.getId());
   }
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return id != null ? id.hashCode() : System.identityHashCode(this);
   }
 }

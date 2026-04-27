@@ -83,11 +83,7 @@ export function CourseListView({ courses, view: initialView = 'grid', role = 'st
                 <TableRow>
                   <TableHead>Kurs</TableHead>
                   <TableHead>Klass</TableHead>
-                  {role === 'student' && (
-                    <>
-                      <TableHead>Status</TableHead>
-                    </>
-                  )}
+                  {role === 'student' && <TableHead>Status</TableHead>}
                   {role === 'teacher' && (
                     <>
                       <TableHead className="text-right">Studenter</TableHead>

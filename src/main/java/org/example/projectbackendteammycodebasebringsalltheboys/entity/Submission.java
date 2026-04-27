@@ -29,6 +29,7 @@ public class Submission extends BaseEntity {
   private String content;
 
   @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OrderBy("createdAt ASC")
   private Set<FileMetadata> files = new LinkedHashSet<>();
 
   private LocalDateTime submittedAt;

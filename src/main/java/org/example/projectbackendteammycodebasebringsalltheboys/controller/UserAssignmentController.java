@@ -86,10 +86,10 @@ public class UserAssignmentController {
             .orElseThrow(() -> new NotFoundException("Submission not found for this student."));
 
     UserAssignmentResponse response = dtoMapper.toUserAssignmentResponse(ua);
-    log.info(
+    log.debug(
         "Returning UserAssignmentResponse with {} submissions for student {}",
         response.getSubmissions() != null ? response.getSubmissions().size() : 0,
-        student.getUsername());
+        student.getId() != null ? student.getId() : "unknown-id");
 
     return ResponseEntity.ok(response);
   }
@@ -99,12 +99,11 @@ public class UserAssignmentController {
   public ResponseEntity<Page<UserAssignmentResponse>> getEvaluatedAssignments(Pageable pageable) {
     User currentUser = userService.getCurrentUser();
 
-    Pageable effectivePageable = pageable;
-    if (pageable.getPageSize() > 100) {
-      effectivePageable =
-          org.springframework.data.domain.PageRequest.of(
-              pageable.getPageNumber(), 100, pageable.getSort());
-    }
+    org.springframework.data.domain.Pageable effectivePageable =
+        pageable.getPageSize() > 100
+            ? org.springframework.data.domain.PageRequest.of(
+                pageable.getPageNumber(), 100, pageable.getSort())
+            : pageable;
 
     Page<UserAssignment> evaluated =
         userAssignmentService.getEvaluatedAssignmentsForTeacher(currentUser, effectivePageable);

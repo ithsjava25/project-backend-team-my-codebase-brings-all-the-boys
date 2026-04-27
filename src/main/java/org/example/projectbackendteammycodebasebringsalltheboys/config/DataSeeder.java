@@ -142,7 +142,7 @@ public class DataSeeder implements CommandLineRunner {
     addAssistantIfMissing(backend, teacher2);
     addAssistantIfMissing(frontend, teacher1);
     addAssistantIfMissing(databases, teacher5);
-    courseRepository.saveAll(java.util.List.of(backend, frontend, databases));
+    courseRepository.saveAll(java.util.List.of(backend, frontend, databases, cloud));
 
     // 8. Assignments
     Assignment a1 =
@@ -185,6 +185,13 @@ public class DataSeeder implements CommandLineRunner {
             "Dockerize App",
             "Skapa en Dockerfile för din Spring Boot-applikation och sätt upp en docker-compose för att köra appen tillsammans med en PostgreSQL-databas.",
             devops,
+            teacher4);
+
+    Assignment a7 =
+        getOrCreateAssignment(
+            "Cloud Deployment",
+            "Deploya en enkel webbapplikation till molnet med hjälp av AWS Elastic Beanstalk eller liknande tjänst. Fokus på konfiguration och loggning.",
+            cloud,
             teacher4);
 
     // 9. Student assignments - varied examples for demo

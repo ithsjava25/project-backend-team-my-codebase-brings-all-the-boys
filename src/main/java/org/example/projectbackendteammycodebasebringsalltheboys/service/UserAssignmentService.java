@@ -179,7 +179,7 @@ public class UserAssignmentService {
   @Transactional(readOnly = true)
   public org.springframework.data.domain.Page<UserAssignment> getEvaluatedAssignmentsForTeacher(
       User user, Pageable pageable) {
-    if (user.getRole() != null && "ROLE_ADMIN".equals(user.getRole().getName())) {
+    if (authorizationService.isAdmin(user)) {
       return userAssignmentRepository.findByStatus(StudentAssignmentStatus.EVALUATED, pageable);
     }
     return userAssignmentRepository.findByStatusAndTeacherConnection(
@@ -192,11 +192,16 @@ public class UserAssignmentService {
         userAssignmentRepository.findByAssignment_IdAndStudent_Id(
             assignment.getId(), student.getId());
     ua.ifPresent(
-        userAssignment ->
-            log.info(
-                "Found UserAssignment {} with {} submissions",
-                userAssignment.getId(),
-                userAssignment.getSubmissions().size()));
+        userAssignment -> {
+          int submissionCount =
+              Optional.ofNullable(userAssignment.getSubmissions())
+                  .map(java.util.Set::size)
+                  .orElse(0);
+          log.info(
+              "Found UserAssignment {} with {} submissions",
+              userAssignment.getId(),
+              submissionCount);
+        });
     return ua;
   }
 

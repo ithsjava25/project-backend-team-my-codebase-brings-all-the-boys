@@ -15,6 +15,7 @@ import {
 import {ArrowLeft, Download, FileText} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {CommentSection} from '@/components/dashboard/CommentSection';
+import {mergeStudentFiles, getLatestSubmission} from '@/utils/userAssignment';
 
 export default function AssignmentGradingPage() {
     const {assignmentId, studentId} = useParams();
@@ -49,29 +50,10 @@ export default function AssignmentGradingPage() {
     }, [assignmentId, studentId]);
 
     // Consolidate all student-uploaded files (direct and via submissions)
-    const studentFiles = useMemo(() => {
-        if (!ua) return [];
-        
-        const directFiles = ua.files || [];
-        const submissionFiles = (ua.submissions || [])
-            .flatMap(s => s.files || []);
-        
-        // Use a Map to ensure uniqueness by ID
-        const fileMap = new Map();
-        [...directFiles, ...submissionFiles].forEach(f => fileMap.set(f.id, f));
-        
-        return Array.from(fileMap.values());
-    }, [ua]);
+    const studentFiles = useMemo(() => mergeStudentFiles(ua), [ua]);
 
     // Deterministically get the latest submission by date
-    const latestSubmission = useMemo(() => {
-        if (!ua || !ua.submissions || ua.submissions.length === 0) return null;
-        return [...ua.submissions].sort((a, b) => {
-            const dateA = a.submittedAt ? new Date(a.submittedAt) : new Date(0);
-            const dateB = b.submittedAt ? new Date(b.submittedAt) : new Date(0);
-            return dateB - dateA;
-        })[0];
-    }, [ua]);
+    const latestSubmission = useMemo(() => getLatestSubmission(ua), [ua]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

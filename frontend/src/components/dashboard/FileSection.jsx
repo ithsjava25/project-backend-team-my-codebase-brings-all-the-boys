@@ -1,4 +1,4 @@
-import {useState, useEffect, useMemo, useRef} from 'react';
+import {useState, useEffect, useMemo, useRef, useId} from 'react';
 import {fileApi} from '@/api/files';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -25,6 +25,7 @@ export function FileSection({
     const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
     const [newS3Keys, setNewS3Keys] = useState([]);
     const prevUploadedS3KeysRef = useRef(uploadedS3Keys);
+    const uploadId = useId();
 
     // Derive displayed list by combining server files and local uploads
     const files = useMemo(() => {
@@ -172,13 +173,13 @@ export function FileSection({
                     <div className="relative">
                         <input
                             type="file"
-                            id="file-upload"
+                            id={uploadId}
                             className="hidden"
                             onChange={handleUpload}
                             disabled={isUploading}
                         />
                         <Button variant="outline" size="sm" asChild disabled={isUploading}>
-                            <label htmlFor="file-upload" className="cursor-pointer">
+                            <label htmlFor={uploadId} className="cursor-pointer">
                                 {isUploading ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                 ) : (

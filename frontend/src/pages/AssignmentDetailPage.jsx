@@ -12,6 +12,7 @@ import {useAuthContext} from '@/context/AuthContext';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {Textarea} from '@/components/ui/textarea';
+import {mergeStudentFiles, getLatestSubmission} from '@/utils/userAssignment';
 
 export default function AssignmentDetailPage() {
     const {assignmentId} = useParams();
@@ -37,19 +38,10 @@ export default function AssignmentDetailPage() {
     const canManageSubmissions = isAdmin || isTeacher;
 
     // Merge files from UserAssignment and all its Submissions for a complete list for the student
-    const studentFiles = useMemo(() => {
-        if (!isStudent || !myUserAssignment) return [];
+    const studentFiles = useMemo(() => mergeStudentFiles(myUserAssignment), [myUserAssignment]);
 
-        const directFiles = myUserAssignment.files || [];
-        const submissionFiles = (myUserAssignment.submissions || [])
-            .flatMap(s => s.files || []);
-
-        // Use a Map to ensure uniqueness by ID
-        const fileMap = new Map();
-        [...directFiles, ...submissionFiles].forEach(f => fileMap.set(f.id, f));
-
-        return Array.from(fileMap.values());
-    }, [isStudent, myUserAssignment]);
+    // Deterministically get the latest submission by date
+    const latestSubmission = useMemo(() => getLatestSubmission(myUserAssignment), [myUserAssignment]);
 
     useEffect(() => {
         let timeout;
@@ -95,32 +87,41 @@ export default function AssignmentDetailPage() {
     }, [assignment?.id, canManageSubmissions]);
 
     useEffect(() => {
+        let cancelled = false;
         if (isStudent && assignment?.id) {
             const fetchMyAssignment = async () => {
                 try {
                     setMyAssignmentLoading(true);
                     setMyAssignmentError(null);
                     const data = await userAssignmentApi.getMyAssignment(assignment.id);
-                    setMyUserAssignment(data);
+                    
+                    if (!cancelled) {
+                        setMyUserAssignment(data);
 
-                    if (data?.submissions?.length > 0) {
-                        // Sort by submittedAt descending to get the latest submission deterministically
-                        const sortedSubmissions = [...data.submissions].sort((a, b) => {
-                            const dateA = a.submittedAt ? new Date(a.submittedAt) : new Date(0);
-                            const dateB = b.submittedAt ? new Date(b.submittedAt) : new Date(0);
-                            return dateB - dateA;
-                        });
-                        setSubmissionContent(sortedSubmissions[0].content || '');
+                        if (data?.submissions?.length > 0) {
+                            // Sort by submittedAt descending to get the latest submission deterministically
+                            const sortedSubmissions = [...data.submissions].sort((a, b) => {
+                                const dateA = a.submittedAt ? new Date(a.submittedAt) : new Date(0);
+                                const dateB = b.submittedAt ? new Date(b.submittedAt) : new Date(0);
+                                return dateB - dateA;
+                            });
+                            setSubmissionContent(sortedSubmissions[0].content || '');
+                        }
                     }
                 } catch (err) {
-                    console.error('Failed to fetch my assignment:', err);
-                    setMyAssignmentError('Kunde inte hämta din inlämning.');
+                    if (!cancelled) {
+                        console.error('Failed to fetch my assignment:', err);
+                        setMyAssignmentError('Kunde inte hämta din inlämning.');
+                    }
                 } finally {
-                    setMyAssignmentLoading(false);
+                    if (!cancelled) {
+                        setMyAssignmentLoading(false);
+                    }
                 }
             };
             fetchMyAssignment();
         }
+        return () => { cancelled = true; };
     }, [assignment?.id, isStudent]);
 
     const handleSubmission = async () => {
@@ -316,7 +317,7 @@ export default function AssignmentDetailPage() {
                                         <div className="pt-4 border-t">
                                             <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt
                                                 svar</h4>
-                                            <p className="whitespace-pre-wrap">{submissionContent}</p>
+                                            <p className="whitespace-pre-wrap">{latestSubmission?.content || ''}</p>
                                         </div>
                                     </div>
                                 ) : myUserAssignment.status === 'TURNED_IN' ? (
@@ -329,7 +330,7 @@ export default function AssignmentDetailPage() {
                                         <div className="p-4 bg-muted/30 rounded-lg">
                                             <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt
                                                 svar</h4>
-                                            <p className="whitespace-pre-wrap">{submissionContent}</p>
+                                            <p className="whitespace-pre-wrap">{latestSubmission?.content || ''}</p>
                                         </div>
                                         <div className="text-xs text-muted-foreground italic">
                                             Du kan inte ändra din inlämning medan den väntar på bedömning.

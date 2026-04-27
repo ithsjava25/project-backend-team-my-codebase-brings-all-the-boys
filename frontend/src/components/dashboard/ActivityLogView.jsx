@@ -11,7 +11,7 @@ import {Activity, User, FileText, MessageSquare, Briefcase, BookIcon, BookOpenIc
 
 export function ActivityLogView({limit = 10, userId: initialUserId, entityType: initialEntityType, entityId}) {
     const [logs, setLogs] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [listLoading, setListLoading] = useState(true);
     const [allUsers, setAllUsers] = useState([]);
     const {user: currentUser} = useAuthContext();
 
@@ -19,8 +19,7 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
     const [filters, setFilters] = useState({
         userId: initialUserId || '',
         action: '',
-        entityType: initialEntityType || '',
-        status: ''
+        entityType: initialEntityType || ''
     });
 
     const isAdmin = currentUser?.role?.name === 'ROLE_ADMIN';
@@ -58,7 +57,7 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
 
     const fetchLogs = async (signal) => {
         try {
-            setLoading(true);
+            setListLoading(true);
             let data;
 
             if (isAdmin && !initialUserId && !entityId) {
@@ -95,7 +94,7 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
             }
         } finally {
             if (!signal?.aborted) {
-                setLoading(false);
+                setListLoading(false);
             }
         }
     };
@@ -112,8 +111,7 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
         setFilters({
             userId: initialUserId || '',
             action: '',
-            entityType: initialEntityType || '',
-            status: ''
+            entityType: initialEntityType || ''
         });
     };
 
@@ -210,8 +208,6 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
         }
     };
 
-    if (loading) return <p className="text-sm text-muted-foreground p-4">Laddar loggar...</p>;
-
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -268,6 +264,8 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                                     <SelectItem value="ASSIGNED">Tilldelad</SelectItem>
                                     <SelectItem value="EVALUATED">Bedömd</SelectItem>
                                     <SelectItem value="LOGIN">Inloggning</SelectItem>
+                                    <SelectItem value="REGISTERED">Registrering</SelectItem>
+                                    <SelectItem value="REMOVED">Borttagning</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -297,8 +295,12 @@ export function ActivityLogView({limit = 10, userId: initialUserId, entityType: 
                     </div>
                 )}
 
-                <div className="space-y-4 pt-2">
-                    {logs.length === 0 ? (
+                <div className="space-y-4 pt-2 min-h-[100px] relative">
+                    {listLoading ? (
+                        <div className="flex items-center justify-center p-8">
+                            <p className="text-sm text-muted-foreground">Laddar loggar...</p>
+                        </div>
+                    ) : logs.length === 0 ? (
                         <p className="text-sm text-muted-foreground">Ingen aktivitet hittades.</p>
                     ) : (
                         logs.map((log) => {

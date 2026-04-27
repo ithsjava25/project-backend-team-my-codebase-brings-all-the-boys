@@ -178,15 +178,15 @@ public class AuthorizationService {
     return false;
   }
 
-  private boolean isAdmin(User user) {
+  public boolean isAdmin(User user) {
     return user.getRole().getName().equalsIgnoreCase("ROLE_ADMIN");
   }
 
-  private boolean isTeacher(User user) {
+  public boolean isTeacher(User user) {
     return user.getRole().getName().equalsIgnoreCase("ROLE_TEACHER");
   }
 
-  private boolean isStudent(User user) {
+  public boolean isStudent(User user) {
     return user.getRole().getName().equalsIgnoreCase("ROLE_STUDENT");
   }
 }
