@@ -1,10 +1,9 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.Collections;
-import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.dto.schoolclass.SchoolClassDetailResponse;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
@@ -12,10 +11,10 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
+import org.example.projectbackendteammycodebasebringsalltheboys.security.CurrentUserResolver;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.ClassEnrollmentService;
 import org.example.projectbackendteammycodebasebringsalltheboys.service.SchoolClassService;
-import org.example.projectbackendteammycodebasebringsalltheboys.service.UserService;
 import org.example.projectbackendteammycodebasebringsalltheboys.testConfig.TestViewConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,7 +37,7 @@ class SchoolClassControllerTest {
 
   @MockitoBean private SchoolClassService schoolClassService;
   @MockitoBean private ClassEnrollmentService classEnrollmentService;
-  @MockitoBean private UserService userService;
+  @MockitoBean private CurrentUserResolver currentUserResolver;
   @MockitoBean private DtoMapper dtoMapper;
   @MockitoBean private CustomOAuth2UserService customOAuth2UserService;
 
@@ -45,7 +46,15 @@ class SchoolClassControllerTest {
       username = "admin",
       roles = {"ADMIN"})
   void getAllSchoolClasses_AdminAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
+    User admin = new User();
+    admin.setUsername("admin");
+    admin.setRole(new Role("ROLE_ADMIN"));
+
+    Mockito.when(currentUserResolver.resolveCurrentUser(any())).thenReturn(admin);
+    Mockito.when(
+            schoolClassService.getAccessibleSchoolClassesDto(
+                Mockito.eq(admin), any(Pageable.class)))
+        .thenReturn(Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -55,7 +64,15 @@ class SchoolClassControllerTest {
       username = "teacher",
       roles = {"TEACHER"})
   void getAllSchoolClasses_TeacherAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
+    User teacher = new User();
+    teacher.setUsername("teacher");
+    teacher.setRole(new Role("ROLE_TEACHER"));
+
+    Mockito.when(currentUserResolver.resolveCurrentUser(any())).thenReturn(teacher);
+    Mockito.when(
+            schoolClassService.getAccessibleSchoolClassesDto(
+                Mockito.eq(teacher), any(Pageable.class)))
+        .thenReturn(Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -65,7 +82,15 @@ class SchoolClassControllerTest {
       username = "student",
       roles = {"STUDENT"})
   void getAllSchoolClasses_StudentAccess() throws Exception {
-    Mockito.when(schoolClassService.getAllSchoolClassesDto()).thenReturn(Collections.emptyList());
+    User student = new User();
+    student.setUsername("student");
+    student.setRole(new Role("ROLE_STUDENT"));
+
+    Mockito.when(currentUserResolver.resolveCurrentUser(any())).thenReturn(student);
+    Mockito.when(
+            schoolClassService.getAccessibleSchoolClassesDto(
+                Mockito.eq(student), any(Pageable.class)))
+        .thenReturn(Page.empty());
 
     mockMvc.perform(get("/api/school-classes")).andExpect(status().isOk());
   }
@@ -82,7 +107,7 @@ class SchoolClassControllerTest {
 
     SchoolClassDetailResponse response = new SchoolClassDetailResponse();
 
-    Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
+    Mockito.when(currentUserResolver.resolveCurrentUser(any())).thenReturn(student);
     Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, student)).thenReturn(response);
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isOk());
@@ -98,8 +123,7 @@ class SchoolClassControllerTest {
     unauthorizedUser.setUsername("unauthorized_user");
     unauthorizedUser.setRole(new Role("ROLE_USER"));
 
-    Mockito.when(userService.getUserByUsername("unauthorized_user"))
-        .thenReturn(Optional.of(unauthorizedUser));
+    Mockito.when(currentUserResolver.resolveCurrentUser(any())).thenReturn(unauthorizedUser);
     Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, unauthorizedUser))
         .thenThrow(new ForbiddenException("Access denied"));
 
@@ -118,7 +142,7 @@ class SchoolClassControllerTest {
 
     SchoolClassDetailResponse response = new SchoolClassDetailResponse();
 
-    Mockito.when(userService.getUserByUsername("teacher")).thenReturn(Optional.of(teacher));
+    Mockito.when(currentUserResolver.resolveCurrentUser(any())).thenReturn(teacher);
     Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, teacher)).thenReturn(response);
 
     mockMvc.perform(get("/api/school-classes/{id}", classId)).andExpect(status().isOk());
@@ -144,7 +168,7 @@ class SchoolClassControllerTest {
     student.setUsername("student");
     student.setRole(new Role("ROLE_STUDENT"));
 
-    Mockito.when(userService.getUserByUsername("student")).thenReturn(Optional.of(student));
+    Mockito.when(currentUserResolver.resolveCurrentUser(any())).thenReturn(student);
     Mockito.when(schoolClassService.getSchoolClassDetailDto(classId, student))
         .thenThrow(new NotFoundException("Not found"));
 

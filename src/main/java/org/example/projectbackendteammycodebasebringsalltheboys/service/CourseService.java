@@ -22,6 +22,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SchoolClassRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,7 @@ public class CourseService {
   private final SchoolClassRepository schoolClassRepository;
   private final UserRepository userRepository;
   private final AuthorizationService authorizationService;
+  private final UserAssignmentRepository userAssignmentRepository;
 
   @Transactional
   @SuppressWarnings("unused")
@@ -314,7 +316,35 @@ public class CourseService {
   // Get course if access
   @Transactional(readOnly = true)
   public Optional<CourseDetailResponse> getAccessibleCourseDto(UUID id, User user) {
-    return getAccessibleCourse(id, user).map(dtoMapper::toCourseDetailResponse);
+    return getAccessibleCourse(id, user)
+        .map(
+            course -> {
+              if (user != null
+                  && user.getRole() != null
+                  && user.getRole().getName().equalsIgnoreCase("ROLE_STUDENT")) {
+                // Enrich assignments with student status
+                List<org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment>
+                    assignments = course.getAssignments();
+                if (assignments != null && !assignments.isEmpty()) {
+                  Map<
+                          UUID,
+                          org.example.projectbackendteammycodebasebringsalltheboys.enums
+                              .StudentAssignmentStatus>
+                      statusMap =
+                          userAssignmentRepository
+                              .findByStudentAndAssignmentIn(user, assignments)
+                              .stream()
+                              .collect(
+                                  java.util.stream.Collectors.toMap(
+                                      ua -> ua.getAssignment().getId(),
+                                      org.example.projectbackendteammycodebasebringsalltheboys
+                                              .entity.UserAssignment
+                                          ::getStatus));
+                  return dtoMapper.toCourseDetailResponse(course, statusMap);
+                }
+              }
+              return dtoMapper.toCourseDetailResponse(course);
+            });
   }
 
   // Filtered course list

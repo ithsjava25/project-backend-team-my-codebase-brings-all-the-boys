@@ -14,10 +14,12 @@ import org.example.projectbackendteammycodebasebringsalltheboys.dto.casefile.Cas
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Assignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Course;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.AssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadRequestException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.ForbiddenException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
@@ -25,6 +27,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.AssignmentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CommentRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CaseService {
 
   private final AssignmentRepository assignmentRepository;
+  private final UserAssignmentRepository userAssignmentRepository;
   private final DtoMapper dtoMapper;
   private final AuthorizationService authorizationService;
   private final CourseRepository courseRepository;
@@ -138,6 +142,23 @@ public class CaseService {
               assignmentRepository.findByStudentEnrollment(user.getId(), pageable);
           default -> Page.empty();
         };
+
+    if ("ROLE_STUDENT".equals(roleName) && assignments.hasContent()) {
+      // Optimization: Fetch UserAssignments for the student for the assignments on this page
+      Map<UUID, StudentAssignmentStatus> statusMap =
+          userAssignmentRepository
+              .findByStudentAndAssignmentIn(user, assignments.getContent())
+              .stream()
+              .collect(
+                  Collectors.toMap(ua -> ua.getAssignment().getId(), UserAssignment::getStatus));
+
+      return assignments.map(
+          a -> {
+            AssignmentResponse resp = dtoMapper.toAssignmentResponse(a);
+            resp.setStudentStatus(statusMap.get(a.getId()));
+            return resp;
+          });
+    }
 
     return assignments.map(dtoMapper::toAssignmentResponse);
   }

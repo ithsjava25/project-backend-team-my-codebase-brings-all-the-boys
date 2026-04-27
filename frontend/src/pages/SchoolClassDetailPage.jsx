@@ -1,5 +1,5 @@
 import {useState, useEffect, useMemo} from 'react';
-import {useParams, useNavigate} from 'react-router-dom';
+import {useParams, useNavigate, Link} from 'react-router-dom';
 import {schoolClassApi} from '@/api/schoolClasses';
 import {userApi} from '@/api/users';
 import {useAuthContext} from '@/context/AuthContext';
@@ -183,7 +183,17 @@ export default function SchoolClassDetailPage() {
                                                 onClick={() => navigate(`/courses/${course.id}`)}
                                             >
                                                 <TableCell className="font-medium">{course.name}</TableCell>
-                                                <TableCell>{course.leadTeacher?.username || '-'}</TableCell>
+                                                <TableCell>
+                                                    {course.leadTeacher ? (
+                                                        <Link 
+                                                            to={`/profile/${course.leadTeacher.id}`}
+                                                            className="hover:underline text-primary"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {course.leadTeacher.username}
+                                                        </Link>
+                                                    ) : '-'}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -204,7 +214,11 @@ export default function SchoolClassDetailPage() {
                                     <TableBody>
                                         {sc.teachers?.map((t) => (
                                             <TableRow key={t.id}>
-                                                <TableCell className="font-medium">{t.username}</TableCell>
+                                                <TableCell className="font-medium">
+                                                    <Link to={`/profile/${t.id}`} className="hover:underline text-primary">
+                                                        {t.username}
+                                                    </Link>
+                                                </TableCell>
                                                 <TableCell className="text-right text-muted-foreground">{t.email}</TableCell>
                                             </TableRow>
                                         ))}
@@ -222,7 +236,11 @@ export default function SchoolClassDetailPage() {
                                     <TableBody>
                                         {sc.students?.map((s) => (
                                             <TableRow key={s.id}>
-                                                <TableCell className="font-medium">{s.username}</TableCell>
+                                                <TableCell className="font-medium">
+                                                    <Link to={`/profile/${s.id}`} className="hover:underline text-primary">
+                                                        {s.username}
+                                                    </Link>
+                                                </TableCell>
                                                 <TableCell className="text-right text-muted-foreground">{s.email}</TableCell>
                                             </TableRow>
                                         ))}

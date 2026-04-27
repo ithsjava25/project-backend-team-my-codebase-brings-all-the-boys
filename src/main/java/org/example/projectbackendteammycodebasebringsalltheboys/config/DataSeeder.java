@@ -98,32 +98,168 @@ public class DataSeeder implements CommandLineRunner {
     getOrCreateEnrollment(s14, classC, ClassRole.STUDENT);
     getOrCreateEnrollment(s15, classC, ClassRole.STUDENT);
 
-    // 7. Courses
-    Course backend = getOrCreateCourse("Java Backend", "Spring Boot & JPA", classA, teacher1);
-    Course frontend = getOrCreateCourse("React Frontend", "React & TypeScript", classB, teacher2);
-    Course databases = getOrCreateCourse("Databases", "SQL & PostgreSQL", classA, teacher3);
-    Course devops = getOrCreateCourse("DevOps", "CI/CD & Docker", classC, teacher4);
-    Course algorithms =
-        getOrCreateCourse("Algorithms", "Data structures & algorithms", classC, teacher5);
+    // 7. Courses - Focused on specific classes
+    Course backend =
+        getOrCreateCourse(
+            "Java Backend",
+            "Avancerad backend-utveckling med Spring Boot, JPA och säkerhet. Fokus på att bygga skalbara och robusta system.",
+            classA,
+            teacher1);
+    Course databases =
+        getOrCreateCourse(
+            "Databases",
+            "Lär dig designa, implementera och optimera relationella databaser med PostgreSQL. Inkluderar avancerad SQL och prestandaoptimering.",
+            classA,
+            teacher3);
 
-    // 8. Course connections
-    getOrCreateCourse("Shared Backend", "Advanced backend", classB, teacher1);
-    getOrCreateCourse("Shared Frontend", "UI/UX basics", classA, teacher2);
-    getOrCreateCourse("Cloud Basics", "Intro to cloud", classB, teacher4);
-    getOrCreateCourse("Testing", "JUnit & integration tests", classC, teacher3);
+    Course frontend =
+        getOrCreateCourse(
+            "React Frontend",
+            "Modern webbutveckling med React, TypeScript och Tailwind CSS. Vi bygger interaktiva och responsiva användargränssnitt.",
+            classB,
+            teacher2);
+    Course cloud =
+        getOrCreateCourse(
+            "Cloud Basics",
+            "Introduktion till molnbaserad infrastruktur (AWS/Azure). Fokus på deployment, skalning och serverlös arkitektur.",
+            classB,
+            teacher4);
 
-    // 9. Assignments
-    Assignment a1 = getOrCreateAssignment("Intro Java", "Basics", backend, teacher1);
-    Assignment a2 = getOrCreateAssignment("Build API", "REST API", backend, teacher1);
-    Assignment a3 = getOrCreateAssignment("React App", "Frontend project", frontend, teacher2);
+    Course devops =
+        getOrCreateCourse(
+            "DevOps",
+            "CI/CD, Docker och Kubernetes. Vi automatiserar hela utvecklingscykeln från kod till produktion.",
+            classC,
+            teacher4);
+    Course testing =
+        getOrCreateCourse(
+            "Testing",
+            "Kvalitetssäkring genom enhetstester, integrationstester och E2E-tester med JUnit och Vitest.",
+            classC,
+            teacher5);
 
-    // 10. Student assignments
-    getOrCreateUserAssignment(a1, s1, StudentAssignmentStatus.EVALUATED, "A", "Great!");
-    getOrCreateUserAssignment(a1, s2, StudentAssignmentStatus.TURNED_IN, null, null);
-    getOrCreateUserAssignment(a2, s3, StudentAssignmentStatus.ASSIGNED, null, null);
+    // Add some assistants
+    addAssistantIfMissing(backend, teacher2);
+    addAssistantIfMissing(frontend, teacher1);
+    addAssistantIfMissing(databases, teacher5);
+    courseRepository.saveAll(java.util.List.of(backend, frontend, databases, cloud));
+
+    // 8. Assignments
+    Assignment a1 =
+        getOrCreateAssignment(
+            "Intro Java",
+            "Lär dig grunderna i Java. Installera JDK, sätt upp Maven och skriv ditt första 'Hello World'-program. Fokus på variabler, datatyper och kontrollflöden.",
+            backend,
+            teacher1);
+
+    Assignment a2 =
+        getOrCreateAssignment(
+            "Build REST API",
+            "Skapa en komplett REST-backend med Spring Boot. Implementera controllers, tjänster och repositories för att hantera ärenden i ett skolsystem. Inkludera felhantering och DTO-mappning.",
+            backend,
+            teacher1);
+
+    Assignment a3 =
+        getOrCreateAssignment(
+            "React Components",
+            "Designa och bygg ett bibliotek av återanvändbara UI-komponenter med React och Tailwind CSS. Fokus på props, state och tillgänglighet (accessibility).",
+            frontend,
+            teacher2);
+
+    Assignment a4 =
+        getOrCreateAssignment(
+            "SQL Queries",
+            "Designa ett databasschema och skriv komplexa SQL-frågor. Använd JOINs, aggregatfunktioner (GROUP BY) och subqueries för att extrahera statistik från systemet.",
+            databases,
+            teacher3);
+
+    Assignment a5 =
+        getOrCreateAssignment(
+            "Unit Testing",
+            "Skriv robusta enhetstester med JUnit 5 och Mockito. Målet är 80% kodtäckning på dina service-klasser.",
+            testing,
+            teacher5);
+
+    Assignment a6 =
+        getOrCreateAssignment(
+            "Dockerize App",
+            "Skapa en Dockerfile för din Spring Boot-applikation och sätt upp en docker-compose för att köra appen tillsammans med en PostgreSQL-databas.",
+            devops,
+            teacher4);
+
+    Assignment a7 =
+        getOrCreateAssignment(
+            "Cloud Deployment",
+            "Deploya en enkel webbapplikation till molnet med hjälp av AWS Elastic Beanstalk eller liknande tjänst. Fokus på konfiguration och loggning.",
+            cloud,
+            teacher4);
+
+    // 9. Student assignments - varied examples for demo
+    // Class A
+    getOrCreateUserAssignment(
+        a1,
+        s1,
+        StudentAssignmentStatus.EVALUATED,
+        "A",
+        "Utmärkt arbete! Din kod är ren och välstrukturerad.");
+    getOrCreateUserAssignment(a2, s1, StudentAssignmentStatus.TURNED_IN, null, null);
+    getOrCreateUserAssignment(a4, s1, StudentAssignmentStatus.ASSIGNED, null, null);
+
+    getOrCreateUserAssignment(
+        a1,
+        s2,
+        StudentAssignmentStatus.EVALUATED,
+        "C",
+        "Bra start, men tänk på namngivning av variabler.");
+    getOrCreateUserAssignment(a4, s2, StudentAssignmentStatus.TURNED_IN, null, null);
+
+    // Class B
     getOrCreateUserAssignment(a3, s6, StudentAssignmentStatus.ASSIGNED, null, null);
+    getOrCreateUserAssignment(a3, s7, StudentAssignmentStatus.TURNED_IN, null, null);
 
-    log.info("Data seeding completed successfully.");
+    // Class C
+    getOrCreateUserAssignment(
+        a5,
+        s11,
+        StudentAssignmentStatus.EVALUATED,
+        "B",
+        "Mycket bra tester, du har täckt de flesta edge cases.");
+    getOrCreateUserAssignment(a6, s11, StudentAssignmentStatus.ASSIGNED, null, null);
+
+    // 10. Comments - adding some life to the discussions
+    getOrCreateComment(
+        "Kom ihåg att kolla på de nya DTO-mappningarna vi gick igenom igår!", a2, teacher1, null);
+    getOrCreateComment(
+        "Jag har laddat upp en exempelfil för SQL-uppgiften nu.", a4, teacher3, null);
+
+    // Student question on an assignment
+    getOrCreateComment("Hur hanterar vi validering av email-formatet bäst?", a2, s1, null);
+
+    log.info("Data seeding completed successfully with enriched data and comments.");
+  }
+
+  private void getOrCreateComment(
+      String text, Assignment assignment, User author, UserAssignment ua) {
+    try {
+      String identity = text.trim() + "|" + assignment.getId() + "|" + author.getId();
+      String seedKey =
+          java.util.Base64.getEncoder()
+              .encodeToString(
+                  java.security.MessageDigest.getInstance("MD5")
+                      .digest(identity.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+
+      if (!commentRepository.existsBySeedKey(seedKey)) {
+        Comment comment = new Comment();
+        comment.setText(text);
+        comment.setAuthor(author);
+        comment.setAssignment(assignment);
+        comment.setUserAssignment(ua);
+        comment.setSeedKey(seedKey);
+        commentRepository.save(comment);
+      }
+    } catch (java.security.NoSuchAlgorithmException e) {
+      log.error("Failed to compute seedKey for comment", e);
+    }
   }
 
   private Role getOrCreateRole(String name) {
@@ -196,8 +332,18 @@ public class DataSeeder implements CommandLineRunner {
               a.setCourse(course);
               a.setCreator(creator);
               a.setStatus(AssignmentStatus.OPEN);
+              // Use a deterministic seed for demo deadlines based on title hash
+              java.util.Random deterministicRandom = new java.util.Random(title.hashCode());
+              a.setDeadline(
+                  java.time.LocalDateTime.now().plusDays(7 + deterministicRandom.nextInt(7)));
               return assignmentRepository.save(a);
             });
+  }
+
+  private void addAssistantIfMissing(Course course, User assistant) {
+    if (!course.getAssistants().contains(assistant)) {
+      course.getAssistants().add(assistant);
+    }
   }
 
   private void getOrCreateUserAssignment(
@@ -206,7 +352,9 @@ public class DataSeeder implements CommandLineRunner {
       StudentAssignmentStatus status,
       String grade,
       String feedback) {
-    if (userAssignmentRepository.findByAssignmentAndStudent(assignment, student).isEmpty()) {
+    if (userAssignmentRepository
+        .findByAssignment_IdAndStudent_Id(assignment.getId(), student.getId())
+        .isEmpty()) {
       UserAssignment ua = new UserAssignment();
       ua.setAssignment(assignment);
       ua.setStudent(student);

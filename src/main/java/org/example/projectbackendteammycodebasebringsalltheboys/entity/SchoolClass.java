@@ -1,8 +1,8 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.entity;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,8 +22,8 @@ public class SchoolClass extends BaseEntity {
   private String description;
 
   @OneToMany(mappedBy = "schoolClass", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Course> courses = new ArrayList<>();
+  private Set<Course> courses = new LinkedHashSet<>();
 
   @OneToMany(mappedBy = "schoolClass", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<ClassEnrollment> enrollments = new ArrayList<>();
+  private Set<ClassEnrollment> enrollments = new LinkedHashSet<>();
 }

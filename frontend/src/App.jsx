@@ -8,6 +8,8 @@ import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard.jsx';
 import CourseDetailPage from './pages/CourseDetailPage';
+import UserProfilePage from './pages/UserProfilePage';
+import ProfileEditPage from './pages/ProfileEditPage';
 import SchoolClassDetailPage from './pages/SchoolClassDetailPage';
 import AssignmentDetailPage from './pages/AssignmentDetailPage';
 import AssignmentCreatePage from './pages/AssignmentCreatePage';
@@ -16,6 +18,7 @@ import UserCreatePage from './pages/admin/UserCreatePage';
 import UserEditPage from './pages/admin/UserEditPage';
 import CourseCreatePage from './pages/admin/CourseCreatePage';
 import CourseEditPage from './pages/admin/CourseEditPage';
+import AssignmentEditPage from './pages/admin/AssignmentEditPage';
 
 import UserManagementPage from './pages/admin/UserManagementPage';
 import CourseManagementPage from './pages/admin/CourseManagementPage';
@@ -47,6 +50,8 @@ export default function App() {
                             >
                                 <Route path="/dashboard" element={<Dashboard/>}/>
                                 <Route path="/courses/:courseId" element={<CourseDetailPage/>}/>
+                                <Route path="/profile/:id" element={<UserProfilePage/>}/>
+                                <Route path="/profile/edit" element={<ProfileEditPage/>}/>
                                 <Route path="/courses/:courseId/assignments/new" element={<AssignmentCreatePage/>}/>
                                 <Route path="/assignments/:assignmentId" element={<AssignmentDetailPage/>}/>
                                 <Route
@@ -60,13 +65,16 @@ export default function App() {
                                 <Route path="/school-classes/:id" element={<SchoolClassDetailPage/>}/>
 
                                 {/* Admin-prefixed routes */}
-                                <Route path="admin">
+                                <Route path="admin"
+                                       element={<ProtectedRoute allowedRoles={['ROLE_TEACHER', 'ROLE_ADMIN']}><Outlet/></ProtectedRoute>}>
                                     {/* Shared (Teacher + Admin) */}
                                     <Route path="courses/new" element={<CourseCreatePage/>}/>
                                     <Route path="courses/:id/edit" element={<CourseEditPage/>}/>
+                                    <Route path="assignments/:id/edit" element={<AssignmentEditPage/>}/>
 
                                     {/* Strictly Admin */}
-                                    <Route element={<ProtectedRoute requiredRole="ROLE_ADMIN"><Outlet/></ProtectedRoute>}>
+                                    <Route
+                                        element={<ProtectedRoute requiredRole="ROLE_ADMIN"><Outlet/></ProtectedRoute>}>
                                         <Route path="users" element={<UserManagementPage/>}/>
                                         <Route path="users/new" element={<UserCreatePage/>}/>
                                         <Route path="users/:id/edit" element={<UserEditPage/>}/>

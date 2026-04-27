@@ -49,6 +49,7 @@ export default function CourseManagementPage() {
         if (window.confirm(`Är du säker på att du vill ta bort kursen "${course.name}"?`)) {
             try {
                 await courseApi.deleteCourse(course.id);
+                window.dispatchEvent(new CustomEvent('courses-changed'));
                 alert('Kursen har tagits bort.');
                 if (courses.length === 1 && page === totalPages - 1 && page > 0) {
                     setPage((currentPage) => Math.max(currentPage - 1, 0));

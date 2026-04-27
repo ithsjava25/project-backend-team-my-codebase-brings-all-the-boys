@@ -1,29 +1,40 @@
-import { useState, useEffect } from 'react';
-import { assignmentApi } from '../api/assignments';
+import {useState, useEffect} from 'react';
+import {assignmentApi} from '../api/assignments';
 
-export function useAssignments() {
-  const [assignments, setAssignments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [totalPages, setTotalPages] = useState(0);
+export function useAssignments({page = 0, size = 10} = {}) {
+    const [assignments, setAssignments] = useState([]);
+    const [totalPages, setTotalPages] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
+    useEffect(() => {
+        const controller = new AbortController();
+        const fetchAssignments = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await assignmentApi.getAllAssignments({page, size}, controller.signal);
+                if (!controller.signal.aborted) {
+                    // Spring Data Page object has the list in 'content'
+                    setAssignments(data.content || []);
+                    setTotalPages(data.totalPages ?? 0);
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError' && err.name !== 'CanceledError') {
+                    setError(err.response?.data?.message || 'Failed to fetch assignments');
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        };
 
-  useEffect(() => {
-    const fetchAssignments = async () => {
-      try {
-        setLoading(true);
-        const data = await assignmentApi.getAllAssignments();
-        setAssignments(data.content ?? []);
-        setTotalPages(data.totalPages ?? 0);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch assignments');
-      } finally {
-        setLoading(false);
-      }
-    };
+        fetchAssignments();
+        return () => {
+            controller.abort();
+        };
+    }, [page, size]);
 
-    void fetchAssignments();
-  }, []);
-
-  return { assignments, totalPages, loading, error };
+    return {assignments, totalPages, loading, error};
 }

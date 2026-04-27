@@ -1,5 +1,7 @@
 package org.example.projectbackendteammycodebasebringsalltheboys.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -8,6 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.mapper.DtoMapper;
 import org.example.projectbackendteammycodebasebringsalltheboys.security.oauth.CustomOAuth2UserService;
@@ -64,8 +68,7 @@ class ActivityLogControllerTest {
 
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
     Mockito.when(userService.getUserById(targetUserId)).thenReturn(Optional.of(targetUser));
-    Mockito.when(
-            activityLogService.getLogsForUser(Mockito.eq(targetUser), Mockito.any(Pageable.class)))
+    Mockito.when(activityLogService.getLogsForUser(Mockito.eq(targetUser), any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
@@ -92,7 +95,7 @@ class ActivityLogControllerTest {
 
     Mockito.when(userService.getUserByUsername("alice_student")).thenReturn(Optional.of(alice));
     Mockito.when(userService.getUserById(aliceId)).thenReturn(Optional.of(alice));
-    Mockito.when(activityLogService.getLogsForUser(Mockito.eq(alice), Mockito.any(Pageable.class)))
+    Mockito.when(activityLogService.getLogsForUser(Mockito.eq(alice), any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
@@ -140,9 +143,7 @@ class ActivityLogControllerTest {
     Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
     Mockito.when(
             activityLogService.getLogsForParent(
-                Mockito.eq(EntityType.ASSIGNMENT),
-                Mockito.eq(entityId),
-                Mockito.any(Pageable.class)))
+                Mockito.eq(EntityType.ASSIGNMENT), Mockito.eq(entityId), any(Pageable.class)))
         .thenReturn((Page) emptyPage);
 
     mockMvc
@@ -174,5 +175,56 @@ class ActivityLogControllerTest {
                 .param("page", "0")
                 .param("size", "10"))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(
+      username = "admin",
+      roles = {"ADMIN"})
+  void getAllActivityLogs_InvalidDateRange_ReturnsBadRequest() throws Exception {
+    User admin = new User();
+    admin.setRole(new Role("ROLE_ADMIN"));
+    Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
+
+    mockMvc
+        .perform(
+            get("/api/activity-logs")
+                .param("start", "2026-04-25T10:00:00")
+                .param("end", "2026-04-24T10:00:00"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(
+      username = "admin",
+      roles = {"ADMIN"})
+  void getAllActivityLogs_WithFilters() throws Exception {
+    User admin = new User();
+    admin.setRole(new Role("ROLE_ADMIN"));
+    Mockito.when(userService.getUserByUsername("admin")).thenReturn(Optional.of(admin));
+
+    Page<?> emptyPage = new PageImpl<>(Collections.emptyList());
+    Mockito.when(activityLogService.getLogs(any(), any(), any(), any(), any(), any(), any()))
+        .thenReturn((Page) emptyPage);
+
+    mockMvc
+        .perform(
+            get("/api/activity-logs")
+                .param("action", "CREATED")
+                .param("entityType", "COURSE")
+                .param("status", "SUCCESS")
+                .param("page", "0")
+                .param("size", "10"))
+        .andExpect(status().isOk());
+
+    verify(activityLogService)
+        .getLogs(
+            any(),
+            Mockito.eq(ActivityAction.CREATED),
+            Mockito.eq(EntityType.COURSE),
+            Mockito.eq(ActivityStatus.SUCCESS),
+            any(),
+            any(),
+            any());
   }
 }

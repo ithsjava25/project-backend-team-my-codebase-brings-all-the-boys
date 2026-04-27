@@ -21,17 +21,20 @@ import org.example.projectbackendteammycodebasebringsalltheboys.exception.BadReq
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.FileMetadataRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.SubmissionRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class UserAssignmentService {
 
   private final UserAssignmentRepository userAssignmentRepository;
   private final SubmissionRepository submissionRepository;
   private final FileMetadataRepository fileMetadataRepository;
   private final ActivityLogService activityLogService;
+  private final AuthorizationService authorizationService;
 
   @LogActivity(
       action = ActivityAction.ASSIGNED,
@@ -55,6 +58,10 @@ public class UserAssignmentService {
 
   @Transactional
   public void submitWork(UserAssignment ua, String content, List<String> fileS3Keys) {
+    log.info(
+        "Submitting work for assignment {} and student {}",
+        ua.getAssignment().getId(),
+        ua.getStudent().getId());
     if (ua.getAssignment().getDeadline() != null
         && LocalDateTime.now().isAfter(ua.getAssignment().getDeadline())) {
       throw new BadRequestException("The deadline for this assignment has passed.");
@@ -101,8 +108,18 @@ public class UserAssignmentService {
     submission.setSubmittedAt(LocalDateTime.now());
     Submission savedSubmission = submissionRepository.save(submission);
 
+    // Manually add to the collection to ensure it's available in the DTO mapping during the same
+    // transaction
+    if (ua.getSubmissions() == null) {
+      ua.setSubmissions(new java.util.LinkedHashSet<>());
+    }
+    ua.getSubmissions().add(savedSubmission);
+    log.info("New submission saved. Total submissions for UA: {}", ua.getSubmissions().size());
+
     for (FileMetadata file : filesToAttach) {
       file.setSubmission(savedSubmission);
+      file.setUserAssignment(
+          null); // Clear previous parent to satisfy hasExactlyOneParent validation
       fileMetadataRepository.save(file);
     }
 
@@ -125,20 +142,33 @@ public class UserAssignmentService {
         ActivityStatus.SUCCESS);
   }
 
-  @LogActivity(
-      action = ActivityAction.EVALUATED,
-      entityType = EntityType.USER_ASSIGNMENT,
-      parentIdParamIndex = 0,
-      actorParamIndex = 3)
   @Transactional
   public void evaluateAssignment(UserAssignment ua, String grade, String feedback, User evaluator) {
-    if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN) {
-      throw new BadRequestException("Cannot evaluate assignment in status: " + ua.getStatus());
+    if (ua.getStatus() != StudentAssignmentStatus.TURNED_IN
+        && ua.getStatus() != StudentAssignmentStatus.EVALUATED) {
+      throw new IllegalStateException(
+          "Cannot evaluate assignment in status: "
+              + ua.getStatus()
+              + ". Must be TURNED_IN or EVALUATED (for re-grading).");
     }
+
+    StudentAssignmentStatus priorStatus = ua.getStatus();
     ua.setStatus(StudentAssignmentStatus.EVALUATED);
     ua.setGrade(grade);
     ua.setFeedback(feedback);
     userAssignmentRepository.save(ua);
+
+    // Explicitly log the action to distinguish re-evaluation
+    activityLogService.log(
+        evaluator,
+        ua.getAssignment().getId(),
+        priorStatus == StudentAssignmentStatus.EVALUATED
+            ? ActivityAction.RE_EVALUATED
+            : ActivityAction.EVALUATED,
+        EntityType.USER_ASSIGNMENT,
+        ua.getId(),
+        Map.of("grade", grade),
+        ActivityStatus.SUCCESS);
   }
 
   @Transactional(readOnly = true)
@@ -147,8 +177,57 @@ public class UserAssignmentService {
   }
 
   @Transactional(readOnly = true)
+  public org.springframework.data.domain.Page<UserAssignment> getEvaluatedAssignmentsForTeacher(
+      User user, Pageable pageable) {
+    if (authorizationService.isAdmin(user)) {
+      return userAssignmentRepository.findByStatus(StudentAssignmentStatus.EVALUATED, pageable);
+    }
+    return userAssignmentRepository.findByStatusAndTeacherConnection(
+        StudentAssignmentStatus.EVALUATED, user.getId(), pageable);
+  }
+
+  @Transactional(readOnly = true)
   public Optional<UserAssignment> getByAssignmentAndStudent(Assignment assignment, User student) {
-    return userAssignmentRepository.findByAssignmentAndStudent(assignment, student);
+    Optional<UserAssignment> ua =
+        userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId());
+    ua.ifPresent(
+        userAssignment -> {
+          int submissionCount =
+              Optional.ofNullable(userAssignment.getSubmissions())
+                  .map(java.util.Set::size)
+                  .orElse(0);
+          log.info(
+              "Found UserAssignment {} with {} submissions",
+              userAssignment.getId(),
+              submissionCount);
+        });
+    return ua;
+  }
+
+  @Transactional
+  public UserAssignment getOrCreateForStudent(Assignment assignment, User student) {
+    Optional<UserAssignment> existing =
+        userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId());
+
+    if (existing.isPresent()) {
+      return existing.get();
+    }
+
+    // Lazy create if authorized student
+    if (student.getRole() != null
+        && "ROLE_STUDENT".equals(student.getRole().getName())
+        && authorizationService.canViewAssignment(student, assignment)) {
+      UserAssignment ua = new UserAssignment();
+      ua.setAssignment(assignment);
+      ua.setStudent(student);
+      ua.setStatus(StudentAssignmentStatus.ASSIGNED);
+      return userAssignmentRepository.save(ua);
+    }
+
+    throw new org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException(
+        "UserAssignment not found and could not be created for user: " + student.getUsername());
   }
 
   @Transactional(readOnly = true)

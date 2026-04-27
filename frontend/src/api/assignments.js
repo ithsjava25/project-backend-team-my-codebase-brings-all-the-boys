@@ -1,8 +1,8 @@
 import client from './client';
 
 export const assignmentApi = {
-  getAllAssignments: async () => {
-    const response = await client.get('/assignments');
+  getAllAssignments: async (params = {}, signal) => {
+    const response = await client.get('/assignments', { params, signal });
     return response.data;
   },
 
@@ -12,7 +12,16 @@ export const assignmentApi = {
     },
 
     createAssignment: async (assignmentData) => {
-    const response = await client.post('/assignments', assignmentData);
-    return response.data;
+        const response = await client.post('/assignments', assignmentData);
+        return response.data;
     },
-    };
+
+    updateAssignment: async (id, assignmentData) => {
+        const response = await client.put(`/assignments/${id}`, assignmentData);
+        return response.data;
+    },
+
+    deleteAssignment: async (id) => {
+        await client.delete(`/assignments/${id}`);
+    },
+};

@@ -10,6 +10,8 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityAction;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ActivityStatus;
+import org.example.projectbackendteammycodebasebringsalltheboys.enums.ClassRole;
 import org.example.projectbackendteammycodebasebringsalltheboys.enums.EntityType;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.NotFoundException;
 import org.example.projectbackendteammycodebasebringsalltheboys.exception.UnauthorizedException;
@@ -42,8 +44,10 @@ public class UserService {
   private final FileMetadataRepository fileMetadataRepository;
   private final CommentRepository commentRepository;
   private final ActivityLogRepository activityLogRepository;
+  private final ActivityLogService activityLogService;
   private final AuthorizationService authorizationService;
   private final AssignmentRepository assignmentRepository;
+  private final ClassEnrollmentService classEnrollmentService;
 
   @Transactional(readOnly = true)
   public UserProfileResponse getUserProfile(UUID id) {
@@ -59,7 +63,7 @@ public class UserService {
 
     Pageable limit = PageRequest.of(0, 100);
     List<SchoolClass> classes =
-        schoolClassRepository.findByEnrollments_UserId(target.getId(), limit).getContent();
+        schoolClassRepository.findByUserIdPaged(target.getId(), limit).getContent();
 
     // For courses, we need to check lead teacher AND assistants
     // Use a bounded set to deduplicate and prevent unbounded memory usage
@@ -187,8 +191,15 @@ public class UserService {
   @Transactional
   @LogActivity(action = ActivityAction.CREATED, entityType = EntityType.USER)
   public User createUser(UserRequest request) {
-    if (userRepository.existsByUsername(request.getUsername())
-        || userRepository.existsByEmail(request.getEmail())) {
+    String username = normalize(request.getUsername());
+    String email = normalize(request.getEmail());
+    if (username == null || email == null) {
+      throw new IllegalArgumentException("Username and email are required");
+    }
+    email = email.toLowerCase(Locale.ROOT);
+
+    if (userRepository.existsByUsernameIgnoreCase(username)
+        || userRepository.existsByEmailIgnoreCase(email)) {
       throw new IllegalStateException("Username or email already exists");
     }
     Role role =
@@ -198,8 +209,8 @@ public class UserService {
                 () -> new IllegalStateException("Role not found: " + request.getRoleName()));
 
     User user = new User();
-    user.setUsername(request.getUsername());
-    user.setEmail(request.getEmail());
+    user.setUsername(username);
+    user.setEmail(email);
     user.setPassword(passwordEncoder.encode(request.getPassword())); // Encode password
     user.setRole(role);
     return userRepository.save(user);
@@ -213,9 +224,28 @@ public class UserService {
             .findById(id)
             .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
+    User actor = getCurrentUser();
+
+    String newUsername = normalize(request.getUsername());
+    String newEmailRaw = normalize(request.getEmail());
+    if (newUsername == null || newEmailRaw == null) {
+      throw new IllegalArgumentException("Username and email are required");
+    }
+    String newEmail = newEmailRaw.toLowerCase(Locale.ROOT);
+
+    // Uniqueness checks
+    if (!newUsername.equalsIgnoreCase(user.getUsername())
+        && userRepository.existsByUsernameIgnoreCase(newUsername)) {
+      throw new IllegalStateException("Username already taken");
+    }
+    if (!newEmail.equalsIgnoreCase(user.getEmail())
+        && userRepository.existsByEmailIgnoreCase(newEmail)) {
+      throw new IllegalStateException("Email already taken");
+    }
+
     // Update user details
-    user.setUsername(request.getUsername());
-    user.setEmail(request.getEmail());
+    user.setUsername(newUsername);
+    user.setEmail(newEmail);
     // Only update password if provided and not empty
     if (request.getPassword() != null && !request.getPassword().isEmpty()) {
       user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -229,16 +259,108 @@ public class UserService {
                 () -> new IllegalStateException("Role not found: " + request.getRoleName()));
     user.setRole(role);
 
-    return userRepository.save(user);
+    User savedUser = userRepository.save(user);
+
+    // Sync school classes if provided
+    if (request.getSchoolClassIds() != null && !request.getSchoolClassIds().isEmpty()) {
+      // 1. Deduplicate and bulk load
+      List<UUID> uniqueIds = request.getSchoolClassIds().stream().distinct().toList();
+      List<SchoolClass> classes = schoolClassRepository.findAllById(uniqueIds);
+
+      if (classes.size() != uniqueIds.size()) {
+        Set<UUID> foundIdSet =
+            classes.stream()
+                .map(
+                    org.example.projectbackendteammycodebasebringsalltheboys.entity.SchoolClass
+                        ::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        List<UUID> missingIds =
+            uniqueIds.stream().filter(idReq -> !foundIdSet.contains(idReq)).toList();
+        throw new NotFoundException("School classes not found: " + missingIds);
+      }
+
+      // 2. Remove existing enrollments
+      classEnrollmentRepository.deleteByUserId(id);
+
+      // 3. Add new enrollments
+      ClassRole classRole = resolveClassRole(role.getName());
+
+      for (SchoolClass sc : classes) {
+        this.classEnrollmentService.enrollUser(savedUser, sc, classRole, actor);
+      }
+    }
+
+    return savedUser;
   }
 
   @Transactional
-  @LogActivity(action = ActivityAction.DELETED, entityType = EntityType.USER)
+  @LogActivity(action = ActivityAction.UPDATED, entityType = EntityType.USER)
+  public User updateProfile(UserRequest request) {
+    User currentUser = getCurrentUser();
+
+    // 1. Basic validation (DTO level already has @NotBlank, but ensure logic is solid)
+    String newUsername = request.getUsername().trim();
+    String newEmail = request.getEmail().trim().toLowerCase(Locale.ROOT);
+
+    // 2. Uniqueness checks excluding current user
+    if (!newUsername.equalsIgnoreCase(currentUser.getUsername())
+        && userRepository.existsByUsernameIgnoreCase(newUsername)) {
+      throw new IllegalStateException("Username already taken");
+    }
+
+    if (!newEmail.equalsIgnoreCase(currentUser.getEmail())
+        && userRepository.existsByEmailIgnoreCase(newEmail)) {
+      throw new IllegalStateException("Email already registered");
+    }
+
+    // 3. Password change requires current password verification
+    if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+      if (request.getCurrentPassword() == null || request.getCurrentPassword().isEmpty()) {
+        throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+            .ForbiddenException("Current password is required to set a new password");
+      }
+
+      if (!passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword())) {
+        throw new org.example.projectbackendteammycodebasebringsalltheboys.exception
+            .ForbiddenException("Incorrect current password");
+      }
+
+      currentUser.setPassword(passwordEncoder.encode(request.getPassword()));
+    }
+
+    currentUser.setUsername(newUsername);
+    currentUser.setEmail(newEmail);
+
+    return userRepository.save(currentUser);
+  }
+
+  private ClassRole resolveClassRole(String roleName) {
+    return switch (roleName) {
+      case "ROLE_TEACHER" -> ClassRole.TEACHER;
+      case "ROLE_ADMIN" -> ClassRole.MENTOR;
+      case "ROLE_STUDENT" -> ClassRole.STUDENT;
+      default ->
+          throw new IllegalArgumentException(
+              "Unknown role name for class role mapping: " + roleName);
+    };
+  }
+
+  @Transactional
   public void deleteUser(UUID id) {
     User user =
         userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 
     User actor = getCurrentUser();
+
+    // Log BEFORE deletion to capture the username
+    activityLogService.log(
+        actor,
+        null,
+        ActivityAction.DELETED,
+        EntityType.USER,
+        id,
+        Map.of("username", user.getUsername()),
+        ActivityStatus.SUCCESS);
 
     // 1. Delete student-scoped records (Cascade is often LAZY or missing for soft-delete)
     // First delete comments linked to student's UserAssignments to avoid FK constraints

@@ -39,13 +39,16 @@ export default function CourseEditPage() {
                 setError(null);
                 
                 const [courseData, classesData, teachersData] = await Promise.all([
-                    courseApi.getCourseByIdAdmin(id),
+                    courseApi.getCourseById(id),
                     schoolClassApi.getAllSchoolClasses(),
                     userApi.getTeachers()
                 ]);
 
                 if (isMounted) {
-                    setClasses(classesData);
+                    // Handle Spring Data Page object or array with null safety
+                    const classesContent = classesData?.content ?? classesData;
+                    setClasses(Array.isArray(classesContent) ? classesContent : []);
+                    
                     setAllTeachers(teachersData || []);
                     setForm({
                         name: courseData.name || '',
@@ -115,6 +118,7 @@ export default function CourseEditPage() {
                 endDate: form.endDate === '' ? null : form.endDate
             };
             await courseApi.updateCourse(id, submissionData);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Kursen har uppdaterats!');
             navigate('/admin/courses');
         } catch (err) {

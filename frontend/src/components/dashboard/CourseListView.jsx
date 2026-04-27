@@ -14,8 +14,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 
-export function CourseListView({ courses, view: initialView = 'grid', role = 'student' }) {
+export function CourseListView({ courses, view: initialView = 'grid', role = 'student', loading }) {
   const [view, setView] = useState(initialView);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Mina Kurser</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Laddar kurser...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!courses || courses.length === 0) {
     return (
@@ -70,11 +83,7 @@ export function CourseListView({ courses, view: initialView = 'grid', role = 'st
                 <TableRow>
                   <TableHead>Kurs</TableHead>
                   <TableHead>Klass</TableHead>
-                  {role === 'student' && (
-                    <>
-                      <TableHead>Status</TableHead>
-                    </>
-                  )}
+                  {role === 'student' && <TableHead>Status</TableHead>}
                   {role === 'teacher' && (
                     <>
                       <TableHead className="text-right">Studenter</TableHead>
@@ -89,9 +98,11 @@ export function CourseListView({ courses, view: initialView = 'grid', role = 'st
                     <TableCell className="font-medium">{course.name}</TableCell>
                     <TableCell><Badge variant="outline">{course.class}</Badge></TableCell>
                     {role === 'student' && (
-                      <>
-                        <span>PLACEHOLDER</span>
-                      </>
+                      <TableCell>
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
+                          Aktiv
+                        </Badge>
+                      </TableCell>
                     )}
                     {role === 'teacher' && (
                       <>

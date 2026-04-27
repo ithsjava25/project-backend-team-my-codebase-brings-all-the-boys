@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {courseApi} from '../api/courses';
 
 export function useCourses({page = 0, size = 10} = {}) {
@@ -6,6 +6,14 @@ export function useCourses({page = 0, size = 10} = {}) {
     const [totalPages, setTotalPages] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    const refresh = useCallback(() => setRefreshTrigger(prev => prev + 1), []);
+
+    useEffect(() => {
+        window.addEventListener('courses-changed', refresh);
+        return () => window.removeEventListener('courses-changed', refresh);
+    }, [refresh]);
 
     useEffect(() => {
         let cancelled = false;
@@ -34,7 +42,7 @@ export function useCourses({page = 0, size = 10} = {}) {
         return () => {
             cancelled = true;
         };
-    }, [page, size]);
+    }, [page, size, refreshTrigger]);
 
-    return {courses, totalPages, loading, error};
+    return {courses, totalPages, loading, error, refresh};
 }

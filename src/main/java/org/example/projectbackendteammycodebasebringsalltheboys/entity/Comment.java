@@ -31,6 +31,8 @@ public class Comment extends BaseEntity {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String text;
 
+  @Column private String seedKey;
+
   @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<FileMetadata> files = new ArrayList<>();
 }

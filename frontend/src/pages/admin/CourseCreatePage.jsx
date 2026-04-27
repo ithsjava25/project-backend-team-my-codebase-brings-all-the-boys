@@ -47,7 +47,10 @@ export default function CourseCreatePage() {
                 ]);
 
                 if (isMounted) {
-                    setClasses(classesData);
+                    // Handle Spring Data Page object or array with null safety
+                    const classesContent = classesData?.content ?? classesData;
+                    setClasses(Array.isArray(classesContent) ? classesContent : []);
+                    
                     setAllTeachers(teachersData || []);
                 }
             } catch (err) {
@@ -116,6 +119,7 @@ export default function CourseCreatePage() {
             };
             
             await courseApi.createCourse(submissionData);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Kursen har skapats!');
             navigate('/admin/courses');
         } catch (err) {

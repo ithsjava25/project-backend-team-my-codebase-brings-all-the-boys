@@ -1,16 +1,18 @@
 import {useParams, Link, useNavigate} from 'react-router-dom';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useAssignmentDetail} from '@/hooks/useAssignmentDetail';
 import {userAssignmentApi} from '@/api/userAssignments';
 import {CommentSection} from '@/components/dashboard/CommentSection';
 import {FileSection} from '@/components/dashboard/FileSection';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
-import {ArrowLeft, Calendar, User, Edit, ClipboardCheck} from 'lucide-react';
+import {ArrowLeft, Calendar, User, Edit, ClipboardCheck, Send} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useAuthContext} from '@/context/AuthContext';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Textarea} from '@/components/ui/textarea';
+import {mergeStudentFiles, getLatestSubmission} from '@/utils/userAssignment';
 
 export default function AssignmentDetailPage() {
     const {assignmentId} = useParams();
@@ -24,11 +26,46 @@ export default function AssignmentDetailPage() {
     const [myAssignmentError, setMyAssignmentError] = useState(null);
     const [loadingSubmissions, setLoadingSubmissions] = useState(false);
     const [submissionError, setSubmissionError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionContent, setSubmissionContent] = useState('');
+    const [submitSuccess, setSubmitSuccess] = useState(null);
+    const [submitError, setSubmitError] = useState(null);
+    const [uploadedS3Keys, setUploadedS3Keys] = useState([]);
 
     const isAdmin = user?.role?.name === 'ROLE_ADMIN';
     const isTeacher = user?.role?.name === 'ROLE_TEACHER';
     const isStudent = user?.role?.name === 'ROLE_STUDENT';
     const canManageSubmissions = isAdmin || isTeacher;
+
+    // Merge files from UserAssignment and all its Submissions for a complete list for the student
+    const studentFiles = useMemo(() => mergeStudentFiles(myUserAssignment), [myUserAssignment]);
+
+    // Deterministically get the latest submission by date
+    const latestSubmission = useMemo(() => getLatestSubmission(myUserAssignment), [myUserAssignment]);
+
+    useEffect(() => {
+        let timeout;
+        if (submitSuccess) {
+            timeout = setTimeout(() => {
+                setSubmitSuccess(null);
+            }, 5000);
+        }
+        return () => clearTimeout(timeout);
+    }, [submitSuccess]);
+
+    const handleContentChange = (e) => {
+        setSubmissionContent(e.target.value);
+        if (submitSuccess) setSubmitSuccess(null);
+    };
+
+    useEffect(() => {
+        // Reset local state when assignment changes
+        setMyUserAssignment(null);
+        setSubmissionContent('');
+        setSubmitSuccess(null);
+        setSubmitError(null);
+        setUploadedS3Keys([]);
+    }, [assignmentId]);
 
     useEffect(() => {
         if (canManageSubmissions && assignment?.id) {
@@ -50,23 +87,65 @@ export default function AssignmentDetailPage() {
     }, [assignment?.id, canManageSubmissions]);
 
     useEffect(() => {
+        let cancelled = false;
         if (isStudent && assignment?.id) {
             const fetchMyAssignment = async () => {
                 try {
                     setMyAssignmentLoading(true);
                     setMyAssignmentError(null);
                     const data = await userAssignmentApi.getMyAssignment(assignment.id);
-                    setMyUserAssignment(data);
+                    
+                    if (!cancelled) {
+                        setMyUserAssignment(data);
+
+                        if (data?.submissions?.length > 0) {
+                            // Sort by submittedAt descending to get the latest submission deterministically
+                            const sortedSubmissions = [...data.submissions].sort((a, b) => {
+                                const dateA = a.submittedAt ? new Date(a.submittedAt) : new Date(0);
+                                const dateB = b.submittedAt ? new Date(b.submittedAt) : new Date(0);
+                                return dateB - dateA;
+                            });
+                            setSubmissionContent(sortedSubmissions[0].content || '');
+                        }
+                    }
                 } catch (err) {
-                    console.error('Failed to fetch my assignment:', err);
-                    setMyAssignmentError('Kunde inte hämta din inlämning.');
+                    if (!cancelled) {
+                        console.error('Failed to fetch my assignment:', err);
+                        setMyAssignmentError('Kunde inte hämta din inlämning.');
+                    }
                 } finally {
-                    setMyAssignmentLoading(false);
+                    if (!cancelled) {
+                        setMyAssignmentLoading(false);
+                    }
                 }
             };
             fetchMyAssignment();
         }
+        return () => { cancelled = true; };
     }, [assignment?.id, isStudent]);
+
+    const handleSubmission = async () => {
+        if (!myUserAssignment || isSubmitting) return;
+
+        try {
+            setIsSubmitting(true);
+            setSubmitError(null);
+            setSubmitSuccess(null);
+
+            const updated = await userAssignmentApi.submit(myUserAssignment.id, {
+                content: submissionContent,
+                fileS3Keys: uploadedS3Keys
+            });
+            setMyUserAssignment(updated);
+            setSubmitSuccess('Din inlämning har skickats!');
+            setUploadedS3Keys([]); // Reset after successful submission
+        } catch (err) {
+            console.error('Submission failed:', err);
+            setSubmitError(err.response?.data?.message || 'Inlämningen misslyckades.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -106,6 +185,19 @@ export default function AssignmentDetailPage() {
         }
     };
 
+    const getUserAssignmentStatusLabel = (status) => {
+        switch (status) {
+            case 'ASSIGNED':
+                return 'Tilldelad';
+            case 'TURNED_IN':
+                return 'Inlämnad';
+            case 'EVALUATED':
+                return 'Bedömd';
+            default:
+                return status;
+        }
+    };
+
     if (loading) return <div className="p-8">Laddar uppgift...</div>;
     if (error) return <div className="p-8 text-destructive">Fel: {error}</div>;
     if (!assignment) return <div className="p-8">Uppgiften hittades inte.</div>;
@@ -128,7 +220,13 @@ export default function AssignmentDetailPage() {
                         <Badge variant={getStatusVariant(assignment.status)}>
                             {getStatusLabel(assignment.status)}
                         </Badge>
-                        {user?.role?.name === 'ROLE_ADMIN' && (
+                        {isStudent && myUserAssignment && (
+                            <Badge variant={myUserAssignment.status === 'EVALUATED' ? 'default' : 'secondary'}
+                                   className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200">
+                                Din status: {getUserAssignmentStatusLabel(myUserAssignment.status)}
+                            </Badge>
+                        )}
+                        {canManageSubmissions && (
                             <Button variant="outline"
                                     onClick={() => navigate(`/admin/assignments/${assignmentId}/edit`)}
                                     className="gap-2">
@@ -174,6 +272,99 @@ export default function AssignmentDetailPage() {
                             </CardContent>
                         </Card>
                     )}
+
+                    {isStudent && myUserAssignment && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>Din inlämning</span>
+                                    <Badge variant={myUserAssignment.status === 'EVALUATED' ? 'default' : 'secondary'}>
+                                        {getUserAssignmentStatusLabel(myUserAssignment.status)}
+                                    </Badge>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {submitSuccess && (
+                                    <div
+                                        role="status"
+                                        aria-live="polite"
+                                        className="p-3 bg-green-100 text-green-800 border border-green-200 rounded-md text-sm"
+                                    >
+                                        {submitSuccess}
+                                    </div>
+                                )}
+                                {submitError && (
+                                    <div
+                                        role="alert"
+                                        className="p-3 bg-destructive/10 text-destructive border border-destructive/20 rounded-md text-sm"
+                                    >
+                                        {submitError}
+                                    </div>
+                                )}
+
+                                {myUserAssignment.status === 'EVALUATED' ? (
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-muted rounded-lg border border-blue-200">
+                                            <h4 className="font-bold mb-1">Resultat</h4>
+                                            <p className="text-2xl font-bold text-primary">{myUserAssignment.grade}</p>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Feedback</h4>
+                                            <p className="whitespace-pre-wrap">
+                                                {myUserAssignment.feedback || 'Ingen feedback lämnad.'}
+                                            </p>
+                                        </div>
+                                        <div className="pt-4 border-t">
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt
+                                                svar</h4>
+                                            <p className="whitespace-pre-wrap">{latestSubmission?.content || ''}</p>
+                                        </div>
+                                    </div>
+                                ) : myUserAssignment.status === 'TURNED_IN' ? (
+                                    <div className="space-y-4">
+                                        <div
+                                            className="p-4 bg-green-50 text-green-800 border border-green-200 rounded-lg flex items-center gap-2">
+                                            <ClipboardCheck className="h-5 w-5"/>
+                                            <span className="font-medium">Inlämnad – väntar på bedömning</span>
+                                        </div>
+                                        <div className="p-4 bg-muted/30 rounded-lg">
+                                            <h4 className="font-bold mb-1 text-sm uppercase tracking-wider text-muted-foreground">Ditt
+                                                svar</h4>
+                                            <p className="whitespace-pre-wrap">{latestSubmission?.content || ''}</p>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground italic">
+                                            Du kan inte ändra din inlämning medan den väntar på bedömning.
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <Textarea
+                                            placeholder="Skriv ditt svar här..."
+                                            className="min-h-[200px]"
+                                            value={submissionContent}
+                                            onChange={handleContentChange}
+                                            disabled={isSubmitting}
+                                        />
+                                        <div className="flex justify-end">
+                                            <Button
+                                                onClick={handleSubmission}
+                                                disabled={isSubmitting || !submissionContent.trim()}
+                                                className="gap-2"
+                                            >
+                                                {isSubmitting ? 'Lämnar in...' : (
+                                                    <>
+                                                        <Send className="h-4 w-4"/>
+                                                        Lämna in
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {(!isStudent || myUserAssignment) && (
                         <CommentSection
                             assignmentId={isStudent ? undefined : assignmentId}
@@ -214,7 +405,13 @@ export default function AssignmentDetailPage() {
                                                     onClick={() => navigate(`/assignments/${assignmentId}/grade/${ua.student.id}`)}
                                                 >
                                                     <TableCell className="font-medium text-xs truncate max-w-[100px]">
-                                                        {ua.student.username}
+                                                        <Link
+                                                            to={`/profile/${ua.student.id}`}
+                                                            className="hover:underline text-primary"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {ua.student.username}
+                                                        </Link>
                                                     </TableCell>
                                                     <TableCell>
                                                         <Badge
@@ -248,7 +445,16 @@ export default function AssignmentDetailPage() {
                             <div className="flex items-center gap-2 text-sm">
                                 <User className="h-4 w-4 text-muted-foreground"/>
                                 <span className="font-semibold">Skapad av:</span>
-                                <span>{assignment.creator?.username}</span>
+                                <span>
+                                    {assignment.creator?.id ? (
+                                        <Link to={`/profile/${assignment.creator.id}`}
+                                              className="hover:underline text-primary">
+                                            {assignment.creator.username}
+                                        </Link>
+                                    ) : (
+                                        <span>{assignment.creator?.username || 'Okänd'}</span>
+                                    )}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                                 <Calendar className="h-4 w-4 text-muted-foreground"/>
@@ -260,9 +466,12 @@ export default function AssignmentDetailPage() {
 
                     {(!isStudent || myUserAssignment) && (
                         <FileSection
-                            files={isStudent ? [] : (assignment.files ?? [])}
+                            files={isStudent ? studentFiles : (assignment.files ?? [])}
+                            title={isStudent ? "Dina filer" : "Lärarens filer"}
                             assignmentId={isStudent ? undefined : assignmentId}
                             userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
+                            onFilesChanged={setUploadedS3Keys}
+                            uploadedS3Keys={uploadedS3Keys}
                         />
                     )}
                 </div>

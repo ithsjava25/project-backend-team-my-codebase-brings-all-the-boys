@@ -20,7 +20,9 @@ export default function SchoolClassManagementPage() {
             setLoading(true);
             setError(null);
             const data = await schoolClassApi.getAllSchoolClasses();
-            setClasses(data || []);
+            // Handle Spring Data Page object or array
+            const content = data.content !== undefined ? data.content : data;
+            setClasses(Array.isArray(content) ? content : []);
         } catch (err) {
             setError(err.response?.data?.message || 'Kunde inte hämta klasser.');
         } finally {
@@ -42,6 +44,7 @@ export default function SchoolClassManagementPage() {
         if (window.confirm(`Är du säker på att du vill ta bort klassen "${sc.name}"?`)) {
             try {
                 await schoolClassApi.deleteSchoolClass(sc.id);
+                window.dispatchEvent(new CustomEvent('courses-changed'));
                 alert('Klassen har tagits bort.');
                 await fetchClasses();
             } catch (error) {

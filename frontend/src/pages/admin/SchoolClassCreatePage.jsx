@@ -24,6 +24,7 @@ export default function SchoolClassCreatePage() {
         setError(null);
         try {
             await schoolClassApi.createSchoolClass(form);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Klassen har skapats!');
             navigate('/admin/school-classes');
         } catch (err) {

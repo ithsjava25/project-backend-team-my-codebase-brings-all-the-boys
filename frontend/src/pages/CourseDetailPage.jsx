@@ -82,6 +82,7 @@ export default function CourseDetailPage() {
 
         try {
             await courseApi.deleteCourse(courseId);
+            window.dispatchEvent(new CustomEvent('courses-changed'));
             alert('Kursen har tagits bort.');
             navigate('/dashboard');
         } catch (err) {

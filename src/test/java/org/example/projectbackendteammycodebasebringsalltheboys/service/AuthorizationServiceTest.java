@@ -11,6 +11,7 @@ import org.example.projectbackendteammycodebasebringsalltheboys.entity.Role;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.User;
 import org.example.projectbackendteammycodebasebringsalltheboys.entity.UserAssignment;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.ClassEnrollmentRepository;
+import org.example.projectbackendteammycodebasebringsalltheboys.repository.CourseRepository;
 import org.example.projectbackendteammycodebasebringsalltheboys.repository.UserAssignmentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,13 +25,15 @@ class AuthorizationServiceTest {
 
   @Mock private UserAssignmentRepository userAssignmentRepository;
   @Mock private ClassEnrollmentRepository classEnrollmentRepository;
+  @Mock private CourseRepository courseRepository;
 
   private AuthorizationService authorizationService;
 
   @BeforeEach
   void setUp() {
     authorizationService =
-        new AuthorizationService(userAssignmentRepository, classEnrollmentRepository);
+        new AuthorizationService(
+            userAssignmentRepository, classEnrollmentRepository, courseRepository);
   }
 
   private User createUser(String roleName) {
@@ -79,7 +82,8 @@ class AuthorizationServiceTest {
   void canAccessCase_studentAssigned_returnsTrue() {
     User student = createUser("ROLE_STUDENT");
     Assignment assignment = createAssignment(null);
-    when(userAssignmentRepository.findByAssignmentAndStudent(assignment, student))
+    when(userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId()))
         .thenReturn(Optional.of(new UserAssignment()));
 
     assertThat(authorizationService.canAccessCase(student, assignment)).isTrue();
@@ -90,7 +94,8 @@ class AuthorizationServiceTest {
   void canAccessCase_studentNotAssigned_returnsFalse() {
     User student = createUser("ROLE_STUDENT");
     Assignment assignment = createAssignment(null);
-    when(userAssignmentRepository.findByAssignmentAndStudent(assignment, student))
+    when(userAssignmentRepository.findByAssignment_IdAndStudent_Id(
+            assignment.getId(), student.getId()))
         .thenReturn(Optional.empty());
 
     assertThat(authorizationService.canAccessCase(student, assignment)).isFalse();
@@ -122,5 +127,77 @@ class AuthorizationServiceTest {
     Comment comment = new Comment();
     comment.setAuthor(other);
     assertThat(authorizationService.canModifyComment(student, comment)).isFalse();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns true if users share a course")
+  void canViewUserProfile_sharedCourse_returnsTrue() {
+    User actor = createUser("ROLE_STUDENT");
+    User target = createUser("ROLE_STUDENT");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns false if no common ground")
+  void canViewUserProfile_noCommonGround_returnsFalse() {
+    User actor = createUser("ROLE_STUDENT");
+    User target = createUser("ROLE_STUDENT");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(false);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isFalse();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns true if users share a class")
+  void canViewUserProfile_sharedClass_returnsTrue() {
+    User actor = createUser("ROLE_STUDENT");
+    User target = createUser("ROLE_STUDENT");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns true if teacher and student share a course")
+  void canViewUserProfile_teacherStudentSharedCourse_returnsTrue() {
+    User actor = createUser("ROLE_TEACHER");
+    User target = createUser("ROLE_STUDENT");
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
+  }
+
+  @Test
+  @DisplayName("canViewUserProfile returns true if both users are assistants on same course")
+  void canViewUserProfile_bothAssistants_returnsTrue() {
+    User actor = createUser("ROLE_TEACHER");
+    User target = createUser("ROLE_TEACHER");
+    actor.setId(UUID.randomUUID());
+    target.setId(UUID.randomUUID());
+
+    when(classEnrollmentRepository.hasSharedSchoolClass(actor.getId(), target.getId()))
+        .thenReturn(false);
+    when(courseRepository.hasSharedCourse(actor.getId(), target.getId())).thenReturn(true);
+
+    assertThat(authorizationService.canViewUserProfile(actor, target)).isTrue();
   }
 }

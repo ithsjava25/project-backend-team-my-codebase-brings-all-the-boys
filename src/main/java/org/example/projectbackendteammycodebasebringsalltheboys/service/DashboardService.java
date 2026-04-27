@@ -44,10 +44,14 @@ public class DashboardService {
               .findByLeadTeacherId(user.getId(), org.springframework.data.domain.Pageable.unpaged())
               .getTotalElements());
     } else if ("ROLE_STUDENT".equals(role)) {
-      stats.put(
-          "pendingAssignments",
-          userAssignmentRepository.countByStudent_IdAndStatus(
-              user.getId(), StudentAssignmentStatus.ASSIGNED));
+      // Pending = Total Enrolled - Evaluated
+      long totalEnrolled = assignmentRepository.countByStudentEnrollment(user.getId());
+      long evaluated =
+          userAssignmentRepository.countByStudentEnrollmentAndStatus(
+              user.getId(), StudentAssignmentStatus.EVALUATED);
+
+      stats.put("pendingAssignments", Math.max(0, totalEnrolled - evaluated));
+      stats.put("evaluatedAssignments", evaluated);
 
       LocalDateTime now = LocalDateTime.now();
       LocalDateTime weekFromNow = now.plusDays(7);
