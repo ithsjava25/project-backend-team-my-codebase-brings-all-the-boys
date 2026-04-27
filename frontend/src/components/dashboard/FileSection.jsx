@@ -1,4 +1,4 @@
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useEffect, useMemo, useRef} from 'react';
 import {fileApi} from '@/api/files';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -23,6 +23,7 @@ export function FileSection({
     const [previewFile, setPreviewFile] = useState(null);
     const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
     const [newS3Keys, setNewS3Keys] = useState([]);
+    const prevUploadedS3KeysRef = useRef(uploadedS3Keys);
 
     // Derive displayed list by combining server files and local uploads
     const files = useMemo(() => {
@@ -33,12 +34,16 @@ export function FileSection({
 
     // Handle parent reset signal and notify parent of internal state changes
     useEffect(() => {
-        if (uploadedS3Keys.length === 0 && (newS3Keys.length > 0 || localFiles.length > 0)) {
+        const prevLen = prevUploadedS3KeysRef.current.length;
+        prevUploadedS3KeysRef.current = uploadedS3Keys;
+        // Only react to a transition: parent had keys, now cleared them.
+        if (prevLen > 0 && uploadedS3Keys.length === 0 &&
+            (newS3Keys.length > 0 || localFiles.length > 0)) {
             setNewS3Keys([]);
             setLocalFiles([]);
             if (onFilesChanged) onFilesChanged([]);
         }
-    }, [uploadedS3Keys, onFilesChanged, newS3Keys.length, localFiles.length]);
+    }, [uploadedS3Keys, onFilesChanged]);
 
     useEffect(() => {
         if (onFilesChanged && newS3Keys.length > 0) {
