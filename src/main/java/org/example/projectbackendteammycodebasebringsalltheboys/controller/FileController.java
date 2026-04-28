@@ -39,6 +39,35 @@ public class FileController {
   public ResponseEntity<UploadResponse> getUploadUrl(
       @Valid @RequestBody UploadRequest request, Principal principal) {
 
+    // Prevent file upload to assignment if already submitted
+    if (request.getUserAssignmentId() != null) {
+      if (principal == null) {
+        throw new UnauthorizedException("Authentication is required");
+      }
+
+      User currentUser =
+          userService
+              .getUserByUsername(principal.getName())
+              .orElseThrow(() -> new UnauthorizedException("Current user not found"));
+
+      UserAssignment userAssignment =
+          userAssignmentService
+              .getById(request.getUserAssignmentId())
+              .orElseThrow(() -> new NotFoundException("UserAssignment not found"));
+
+      if (!authorizationService.canAccessUserAssignment(currentUser, userAssignment)) {
+        throw new ForbiddenException("You are not allowed to upload files to this assignment");
+      }
+
+      // Only allow upload for ASSIGNED status
+      if (userAssignment.getStatus()
+          != org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus
+              .ASSIGNED) {
+        throw new ForbiddenException(
+            "Cannot upload files. Assignment has already been submitted or evaluated.");
+      }
+    }
+
     GeneratedUpload generatedUpload =
         fileService.generateUploadUrl(request.getFileName(), request.getContentType());
 
@@ -94,6 +123,13 @@ public class FileController {
 
       if (!authorizationService.canAccessUserAssignment(currentUser, userAssignment)) {
         throw new ForbiddenException("You are not allowed to attach files to this user assignment");
+      }
+
+      if (userAssignment.getStatus()
+          != org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus
+              .ASSIGNED) {
+        throw new ForbiddenException(
+            "Cannot finalize file upload. Assignment has already been submitted or evaluated.");
       }
     }
 

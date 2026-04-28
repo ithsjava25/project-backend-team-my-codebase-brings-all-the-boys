@@ -138,7 +138,6 @@ export default function AssignmentDetailPage() {
             });
             setMyUserAssignment(updated);
             setSubmitSuccess('Din inlämning har skickats!');
-            setUploadedS3Keys([]); // Reset after successful submission
         } catch (err) {
             console.error('Submission failed:', err);
             setSubmitError(err.response?.data?.message || 'Inlämningen misslyckades.');
@@ -472,6 +471,7 @@ export default function AssignmentDetailPage() {
                             userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
                             onFilesChanged={setUploadedS3Keys}
                             uploadedS3Keys={uploadedS3Keys}
+                            canUpload={isStudent ? myUserAssignment?.status === 'ASSIGNED' : true}
                         />
                     )}
                 </div>

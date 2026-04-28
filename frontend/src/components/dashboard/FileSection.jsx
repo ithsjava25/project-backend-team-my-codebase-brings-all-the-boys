@@ -16,7 +16,8 @@ export function FileSection({
                                 commentId,
                                 onFilesChanged,
                                 uploadedS3Keys = EMPTY_S3_KEYS,
-                                title = "Bilagor"
+                                title = "Bilagor",
+                                canUpload = true
                             }) {
     const [localFiles, setLocalFiles] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -170,25 +171,27 @@ export function FileSection({
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <CardTitle>{title} ({files.length})</CardTitle>
-                    <div className="relative">
-                        <input
+                    {canUpload && (
+                      <div className="relative">
+                          <input
                             type="file"
                             id={uploadId}
                             className="hidden"
                             onChange={handleUpload}
                             disabled={isUploading}
-                        />
-                        <Button variant="outline" size="sm" asChild disabled={isUploading}>
-                            <label htmlFor={uploadId} className="cursor-pointer">
-                                {isUploading ? (
+                          />
+                          <Button variant="outline" size="sm" asChild disabled={isUploading}>
+                              <label htmlFor={uploadId} className="cursor-pointer">
+                                  {isUploading ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                ) : (
+                                  ) : (
                                     <Upload className="mr-2 h-4 w-4"/>
-                                )}
-                                Ladda upp
-                            </label>
-                        </Button>
-                    </div>
+                                  )}
+                                  Ladda upp
+                              </label>
+                          </Button>
+                      </div>
+                    )}
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {uploadError && (
