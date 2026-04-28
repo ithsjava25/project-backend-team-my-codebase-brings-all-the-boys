@@ -55,6 +55,10 @@ public class FileController {
               .getById(request.getUserAssignmentId())
               .orElseThrow(() -> new NotFoundException("UserAssignment not found"));
 
+      if (!authorizationService.canAccessUserAssignment(currentUser, userAssignment)) {
+        throw new ForbiddenException("You are not allowed to upload files to this assignment");
+      }
+
       // Only allow upload for ASSIGNED status
       if (userAssignment.getStatus()
           != org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus
@@ -119,6 +123,13 @@ public class FileController {
 
       if (!authorizationService.canAccessUserAssignment(currentUser, userAssignment)) {
         throw new ForbiddenException("You are not allowed to attach files to this user assignment");
+      }
+
+      if (userAssignment.getStatus()
+          != org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus
+              .ASSIGNED) {
+        throw new ForbiddenException(
+            "Cannot finalize file upload. Assignment has already been submitted or evaluated.");
       }
     }
 
