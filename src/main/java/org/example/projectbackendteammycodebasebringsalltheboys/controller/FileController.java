@@ -37,7 +37,7 @@ public class FileController {
 
   @PostMapping("/upload-url")
   public ResponseEntity<UploadResponse> getUploadUrl(
-          @Valid @RequestBody UploadRequest request, Principal principal) {
+      @Valid @RequestBody UploadRequest request, Principal principal) {
 
     // Prevent file upload to assignment if already submitted
     if (request.getUserAssignmentId() != null) {
@@ -45,26 +45,30 @@ public class FileController {
         throw new UnauthorizedException("Authentication is required");
       }
 
-      User currentUser = userService
+      User currentUser =
+          userService
               .getUserByUsername(principal.getName())
               .orElseThrow(() -> new UnauthorizedException("Current user not found"));
 
-      UserAssignment userAssignment = userAssignmentService
+      UserAssignment userAssignment =
+          userAssignmentService
               .getById(request.getUserAssignmentId())
               .orElseThrow(() -> new NotFoundException("UserAssignment not found"));
 
       // Only allow upload for ASSIGNED status
-      if (userAssignment.getStatus() != org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus.ASSIGNED) {
+      if (userAssignment.getStatus()
+          != org.example.projectbackendteammycodebasebringsalltheboys.enums.StudentAssignmentStatus
+              .ASSIGNED) {
         throw new ForbiddenException(
-                "Cannot upload files. Assignment has already been submitted or evaluated.");
+            "Cannot upload files. Assignment has already been submitted or evaluated.");
       }
     }
 
     GeneratedUpload generatedUpload =
-            fileService.generateUploadUrl(request.getFileName(), request.getContentType());
+        fileService.generateUploadUrl(request.getFileName(), request.getContentType());
 
     return ResponseEntity.ok(
-            new UploadResponse(generatedUpload.uploadUrl(), generatedUpload.s3Key()));
+        new UploadResponse(generatedUpload.uploadUrl(), generatedUpload.s3Key()));
   }
 
   @PostMapping("/finalize")
