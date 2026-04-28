@@ -472,6 +472,7 @@ export default function AssignmentDetailPage() {
                             userAssignmentId={isStudent ? myUserAssignment?.id : undefined}
                             onFilesChanged={setUploadedS3Keys}
                             uploadedS3Keys={uploadedS3Keys}
+                            canUpload={isStudent ? myUserAssignment?.status === 'ASSIGNED' : true}
                         />
                     )}
                 </div>
